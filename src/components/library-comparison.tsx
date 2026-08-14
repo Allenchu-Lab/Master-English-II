@@ -54,7 +54,10 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
         await ensureAnonymousUser(client);
         const { data, error } = await client.from("practice_attempts").select("passage_id, submitted_at").order("created_at", { ascending: true });
         if (error || cancelled) return;
-        setAttempts(Object.fromEntries(data.map((attempt) => [attempt.passage_id, attempt.submitted_at ? "submitted" : "draft"])));
+        setAttempts(data.reduce<Record<string, "draft" | "submitted">>((result, attempt) => {
+          result[attempt.passage_id] = attempt.submitted_at || result[attempt.passage_id] === "submitted" ? "submitted" : "draft";
+          return result;
+        }, {}));
       } catch { /* The library remains usable when account setup is unavailable. */ }
     }
     loadAttempts();
@@ -130,7 +133,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
     <main className="comparison" ref={pageRef}>
       <div className="product-shell">
         <aside className="product-nav">
-          <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><strong>{isEnglish ? "Master English II" : "吃透英语二"}</strong></div>
+          <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><Image src="/favicon.svg" width={22} height={22} alt="" aria-hidden="true" /><strong>{isEnglish ? "Master English II" : "吃透英语二"}</strong></div>
           <nav>
             <button className="active"><BookOpen /><span>{isEnglish ? "Practice" : "刷题"}</span></button>
             <button><BarChart3 /><span>{isEnglish ? "Statistics" : "统计"}</span></button>
@@ -170,8 +173,8 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
                   <div className="article-list">{articles.length ? articles.map((article) => {
                     const state = article.id ? attempts[article.id] : undefined;
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
-                    const action = state === "submitted" ? (isEnglish ? "View answers" : "查看作答") : state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
-                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questions.length} questions` : `${article.wordCount} 词 · ${article.questions.length} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Answers saved" : "作答已保存") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div><a className="article-action" href={`/practice/${year}/${article.number}`}>{action}<ChevronRight /></a></div></article>;
+                    const action = state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
+                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questions.length} questions` : `${article.wordCount} 词 · ${article.questions.length} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Intensive reading unlocked" : "已解锁精读") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><a className="article-action secondary" href={`/practice/${year}/${article.number}`}>{isEnglish ? "Redo" : "重新练习"}</a><a className="article-action primary" href={`/intensive/${year}/${article.number}`}>{isEnglish ? "Study deeply" : "进入精读"}<ChevronRight /></a></div> : <a className="article-action" href={`/practice/${year}/${article.number}`}>{action}<ChevronRight /></a>}</div></article>;
                   }) : <div className="article-empty"><p>{selectedPaper ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "The source paper has not been imported yet." : "该年份真题尚未导入。")}</p></div>}</div>
                 </div>
               </div>

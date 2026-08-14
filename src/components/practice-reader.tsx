@@ -150,7 +150,7 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
               </div>}
             </section>)}
           </div>
-          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? `Score: ${gradeResult?.score} / ${gradeResult?.total}` : `得分 ${gradeResult?.score} / ${gradeResult?.total}`)}</span>{submitted && <Link href="/">{isEnglish ? "Back to library" : "返回首页"}</Link>}</footer>}
+          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href="/">{isEnglish ? "Back to library" : "返回首页"}</Link><Link href={`/intensive/${passage.year}/${passage.number}`}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
         </aside>
       </div>
 
