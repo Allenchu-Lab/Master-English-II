@@ -1,0 +1,184 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { BarChart3, BookOpen, ChevronRight, FileText, Languages, PenLine, TextCursorInput } from "lucide-react";
+import type { ExamPaperMap } from "@/data/exam-types";
+import { ensureAnonymousUser, getSupabaseBrowserClient } from "@/lib/supabase/client";
+
+gsap.registerPlugin(useGSAP, MotionPathPlugin);
+
+const typeItems = [
+  { zh: "阅读理解 Part A", en: "Reading Part A", done: 0, total: 8, zhUnit: "篇", enUnit: "passages", icon: BookOpen },
+  { zh: "阅读理解 Part B", en: "Reading Part B", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: FileText },
+  { zh: "完形填空", en: "Cloze", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: TextCursorInput },
+  { zh: "翻译", en: "Translation", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: Languages },
+  { zh: "写作", en: "Writing", done: 0, total: 4, zhUnit: "题", enUnit: "tasks", icon: PenLine },
+];
+
+export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
+  const pageRef = useRef<HTMLElement>(null);
+  const sketchRef = useRef<HTMLDivElement>(null);
+  const firstContentRender = useRef(true);
+  const [year, setYear] = useState(2026);
+  const [activeType, setActiveType] = useState(0);
+  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">("zh");
+  const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
+  const isEnglish = uiLanguage === "en";
+  const selectedType = typeItems[activeType];
+  const selectedPaper = papers[String(year)];
+  const articles = activeType === 0 && selectedPaper ? selectedPaper.readingA : [];
+
+  useEffect(() => {
+    const savedLanguage = window.localStorage.getItem("ui-language");
+    if (savedLanguage !== "en" && savedLanguage !== "zh") return;
+    const timer = window.setTimeout(() => setUiLanguage(savedLanguage), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const switchLanguage = () => {
+    const nextLanguage = isEnglish ? "zh" : "en";
+    setUiLanguage(nextLanguage);
+    window.localStorage.setItem("ui-language", nextLanguage);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAttempts() {
+      const client = getSupabaseBrowserClient();
+      if (!client) return;
+      try {
+        await ensureAnonymousUser(client);
+        const { data, error } = await client.from("practice_attempts").select("passage_id, submitted_at").order("created_at", { ascending: true });
+        if (error || cancelled) return;
+        setAttempts(Object.fromEntries(data.map((attempt) => [attempt.passage_id, attempt.submitted_at ? "submitted" : "draft"])));
+      } catch { /* The library remains usable when account setup is unavailable. */ }
+    }
+    loadAttempts();
+    return () => { cancelled = true; };
+  }, []);
+
+  const playSketchInteraction = () => {
+    if (!sketchRef.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const dot = sketchRef.current.querySelector(".sketch-tracer");
+    const image = sketchRef.current.querySelector(".learning-sketch");
+    gsap.killTweensOf([dot, image]);
+    gsap.timeline()
+      .set(dot, { autoAlpha: 1 })
+      .fromTo(dot, {
+        motionPath: { path: "#sketch-motion-path", align: "#sketch-motion-path", alignOrigin: [0.5, 0.5], start: 0, end: 0 },
+      }, {
+        motionPath: { path: "#sketch-motion-path", align: "#sketch-motion-path", alignOrigin: [0.5, 0.5], start: 0, end: 1 },
+        duration: 0.72,
+        ease: "power1.inOut",
+      })
+      .to(dot, { autoAlpha: 0, scale: 1.5, duration: 0.14, ease: "power2.out" })
+      .to(image, { y: -3, rotation: 1, duration: 0.16, ease: "power2.out" }, "<")
+      .to(image, { y: 0, rotation: 0, duration: 0.24, ease: "power2.out" });
+  };
+
+  useGSAP(() => {
+    const media = gsap.matchMedia();
+
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      const timeline = gsap.timeline({ defaults: { duration: 0.22, ease: "power2.out" } });
+
+      timeline
+        .from([".learning-intro", ".question-types"], { autoAlpha: 0, y: 6 }, 0)
+        .from(".year-library", { autoAlpha: 0 }, 0.04)
+        .from(".type-progress b, .article-group-head i b", {
+          scaleX: 0,
+          transformOrigin: "left center",
+          duration: 0.24,
+        }, 0)
+        .to(".learning-sketch", {
+          keyframes: [
+            { y: 2, rotation: -1.5, duration: 0.1 },
+            { y: -5, rotation: 1.5, duration: 0.2, ease: "power2.out" },
+            { y: 0, rotation: 0, duration: 0.28, ease: "power2.out" },
+          ],
+          transformOrigin: "30% 78%",
+        }, 0.12);
+    });
+
+    return () => media.revert();
+  }, { scope: pageRef });
+
+  useGSAP(() => {
+    if (firstContentRender.current) {
+      firstContentRender.current = false;
+      return;
+    }
+
+    const media = gsap.matchMedia();
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.fromTo(
+        ".article-group",
+        { autoAlpha: 0 },
+        { autoAlpha: 1, duration: 0.16, ease: "power2.out", overwrite: "auto" },
+      );
+    });
+
+    return () => media.revert();
+  }, { dependencies: [year, activeType], scope: pageRef, revertOnUpdate: true });
+
+  return (
+    <main className="comparison" ref={pageRef}>
+      <div className="product-shell">
+        <aside className="product-nav">
+          <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><strong>{isEnglish ? "Master English II" : "吃透英语二"}</strong></div>
+          <nav>
+            <button className="active"><BookOpen /><span>{isEnglish ? "Practice" : "刷题"}</span></button>
+            <button><BarChart3 /><span>{isEnglish ? "Statistics" : "统计"}</span></button>
+          </nav>
+          <div className="sidebar-tools"><button className="language-switch" onClick={switchLanguage} aria-label={isEnglish ? "Switch to Chinese" : "切换到英文"} aria-pressed={isEnglish}><Languages /><span>{isEnglish ? "中文" : "English"}</span></button></div>
+        </aside>
+
+        <div className="product-main">
+          <header className="content-header">
+            <nav className="breadcrumb" aria-label={isEnglish ? "Breadcrumb" : "面包屑导航"}><BookOpen /><span aria-current="page">{isEnglish ? "Practice" : "刷题"}</span></nav>
+            <button className="account-button" aria-label={isEnglish ? "User account" : "个人账户"}><Image src="/default-student-avatar.png" alt="" width={28} height={28} /><div><strong>{isEnglish ? "Study learner" : "备考同学"}</strong><small>{isEnglish ? "6-day streak" : "连续练习 6 天"}</small></div></button>
+          </header>
+
+          <section className="library">
+            <header className={`learning-intro ${isEnglish ? "is-english" : ""}`}>
+              <div>
+                <h1>{isEnglish ? "Read it. Solve it." : "读懂真题，把题做对。"}</h1>
+                <p>{isEnglish ? "One passage at a time." : "一次练一篇，读懂再继续。"}</p>
+              </div>
+              <div className="sketch-scene" ref={sketchRef} onPointerEnter={playSketchInteraction} aria-hidden="true">
+                <Image className="learning-sketch" src="/reading-path-sketch.png" alt="" width={178} height={112} loading="eager" />
+                <svg className="sketch-track" viewBox="0 0 144 91" focusable="false">
+                  <path id="sketch-motion-path" d="M35 68 C48 55 61 59 66 47 C70 37 58 30 67 24 C77 17 86 29 81 40 C78 51 101 60 116 43" />
+                  <circle className="sketch-tracer" r="2.6" />
+                </svg>
+              </div>
+            </header>
+            <section className="question-types">
+              <div className="type-tabs">{typeItems.map(({ zh, en, done, total, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={zh} onClick={() => setActiveType(index)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`}</small><span className="type-progress-copy"><span>{isEnglish ? "Completed" : "已累计完成"}</span><strong>{done} / {total}</strong></span><i className="type-progress"><b style={{ width: `${(done / total) * 100}%` }} /></i></button>)}</div>
+            </section>
+
+            <section className="year-library">
+              <div className="paper-browser">
+                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{Array.from({ length: 17 }, (_, index) => 2026 - index).map((value) => { const available = String(value) in papers; return <button key={value} className={year === value ? "active" : ""} onClick={() => setYear(value)}><strong>{value}</strong><small>{available ? "0/4" : "—"}</small></button>})}</aside>
+                <div className="article-group">
+                  <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} 0 / {articles.length || selectedPaper?.sections.readingA || 0}</span><i><b style={{ width: "0%" }} /></i></div></div>
+                  <div className="article-list">{articles.length ? articles.map((article) => {
+                    const state = article.id ? attempts[article.id] : undefined;
+                    const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
+                    const action = state === "submitted" ? (isEnglish ? "View answers" : "查看作答") : state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
+                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questions.length} questions` : `${article.wordCount} 词 · ${article.questions.length} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Answers saved" : "作答已保存") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div><a className="article-action" href={`/practice/${year}/${article.number}`}>{action}<ChevronRight /></a></div></article>;
+                  }) : <div className="article-empty"><p>{selectedPaper ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "The source paper has not been imported yet." : "该年份真题尚未导入。")}</p></div>}</div>
+                </div>
+              </div>
+            </section>
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+}

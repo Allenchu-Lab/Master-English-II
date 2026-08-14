@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local Codex working files
+/.codex-audit/
+/plans/
+/design-qa.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

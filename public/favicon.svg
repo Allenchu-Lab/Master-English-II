@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="28" height="28" x="2" y="2" rx="7" fill="#111111"/>
+  <text x="13.5" y="22" fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="19" font-weight="700" text-anchor="middle">E</text>
+  <text x="23" y="13" fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="9" font-weight="700" text-anchor="middle">2</text>
+</svg>
