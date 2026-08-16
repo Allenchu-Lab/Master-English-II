@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, Check, Clock3, LoaderCircle, Pause, Play, RotateCcw } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
-import { ensureAnonymousUser, getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
 
 type SaveState = "connecting" | "saved" | "saving" | "error";
@@ -40,27 +39,10 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
   useEffect(() => {
     let cancelled = false;
     async function restoreAttempt() {
-      const client = getSupabaseBrowserClient();
-      if (!client) { setSaveState("error"); return; }
       try {
-        const user = await ensureAnonymousUser(client);
-        const { data, error } = await client
-          .from("practice_attempts")
-          .select("id, answers, submitted_at")
-          .eq("user_id", user.id)
-          .eq("passage_id", passage.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (error) throw error;
-        let current = data;
-        if (!current || current.submitted_at) {
-          const created = await client.from("practice_attempts")
-            .insert({ user_id: user.id, passage_id: passage.id, answers: {} })
-            .select("id, answers, submitted_at").single();
-          if (created.error) throw created.error;
-          current = created.data;
-        }
+        const response = await fetch(`/api/attempts/${passage.id}`);
+        if (!response.ok) throw new Error("Unable to restore attempt");
+        const { attempt: current } = await response.json() as { attempt: { id: string; answers: Record<string, number> } };
         if (cancelled) return;
         attemptId.current = current.id;
         setAnswers((current.answers as Record<string, number>) ?? {});
@@ -77,26 +59,25 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
     if (!hydrated.current || !attemptId.current || submitted) return;
     setSaveState("saving");
     const timer = window.setTimeout(async () => {
-      const client = getSupabaseBrowserClient();
-      if (!client || !attemptId.current) return;
-      const { error } = await client.from("practice_attempts").update({ answers }).eq("id", attemptId.current);
-      setSaveState(error ? "error" : "saved");
+      if (!attemptId.current) return;
+      const response = await fetch(`/api/attempts/${passage.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attemptId: attemptId.current, answers }) });
+      setSaveState(response.ok ? "saved" : "error");
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [answers, submitted]);
+  }, [answers, passage.id, submitted]);
 
   const submit = async () => {
-    const client = getSupabaseBrowserClient();
-    if (!client || !attemptId.current) return;
+    if (!attemptId.current) return;
     if (Object.keys(answers).length !== passage.questions.length) {
       setSubmitError(isEnglish ? "Answer every question before submitting." : "请完成全部题目后再提交。");
       return;
     }
     setSubmitError(null);
     setSaveState("saving");
-    const { data, error } = await client.rpc("submit_practice_attempt", { attempt_uuid: attemptId.current, submitted_answers: answers });
-    if (error) { setSubmitError(isEnglish ? "Unable to grade this passage yet." : "当前文章暂时无法判分。"); setSaveState("error"); return; }
-    setGradeResult(data as GradeResult);
+    const response = await fetch(`/api/attempts/${passage.id}/submit`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attemptId: attemptId.current, answers }) });
+    const data = await response.json() as GradeResult & { error?: string };
+    if (!response.ok) { setSubmitError(isEnglish ? "Unable to grade this passage yet." : (data.error ?? "当前文章暂时无法判分。")); setSaveState("error"); return; }
+    setGradeResult(data);
     setSubmitted(true);
     setTimerRunning(false);
     setSaveState("saved");

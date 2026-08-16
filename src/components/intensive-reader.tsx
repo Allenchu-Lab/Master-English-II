@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, LoaderCircle, LockKeyhole, RotateCcw, Sparkles } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
-import { ensureAnonymousUser, getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
 
 type AccessState = "checking" | "allowed" | "denied" | "error";
@@ -37,20 +36,11 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
   useEffect(() => {
     let cancelled = false;
     async function checkAccess() {
-      const client = getSupabaseBrowserClient();
-      if (!client) { setAccessState("error"); return; }
       try {
-        const user = await ensureAnonymousUser(client);
-        const { data, error } = await client
-          .from("practice_attempts")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("passage_id", passage.id)
-          .not("submitted_at", "is", null)
-          .limit(1)
-          .maybeSingle();
-        if (error) throw error;
-        if (!cancelled) setAccessState(data ? "allowed" : "denied");
+        const response = await fetch(`/api/attempts/${passage.id}/access`);
+        if (!response.ok) throw new Error("Unable to check access");
+        const { allowed } = await response.json() as { allowed: boolean };
+        if (!cancelled) setAccessState(allowed ? "allowed" : "denied");
       } catch {
         if (!cancelled) setAccessState("error");
       }

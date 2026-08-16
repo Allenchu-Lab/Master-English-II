@@ -2,15 +2,13 @@
 
 import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
 import { ArrowLeft, Check, LoaderCircle, LogOut, X } from "lucide-react";
-import { isEmailUser, requestEmailOtp, signOut, verifyEmailOtp } from "@/lib/auth/email-otp";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getAuthUser, isEmailUser, requestEmailOtp, signOut, verifyEmailOtp, type AuthUser } from "@/lib/auth/email-otp";
 
 type Step = "email" | "code";
 
 export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onAuthChange: () => void }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -22,11 +20,7 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
   const signedIn = isEmailUser(user);
 
   useEffect(() => {
-    const client = getSupabaseBrowserClient();
-    if (!client) return;
-    client.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: listener } = client.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
-    return () => listener.subscription.unsubscribe();
+    getAuthUser().then(({ user: current }) => setUser(current)).catch(() => setUser(null));
   }, []);
 
   const close = () => {
@@ -39,8 +33,6 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
 
   const sendCode = async (event: FormEvent) => {
     event.preventDefault();
-    const client = getSupabaseBrowserClient();
-    if (!client) { setError(isEnglish ? "The login service is not configured." : "登录服务尚未配置。"); return; }
     setLoading(true);
     setError(null);
     setEmailError(null);
@@ -54,7 +46,7 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
         setEmailError(isEnglish ? "Enter a valid email address." : "请输入正确的邮箱地址。");
         return;
       }
-      await requestEmailOtp(client, normalizedEmail);
+      await requestEmailOtp(normalizedEmail);
       setEmail(normalizedEmail);
       setCode("");
       setStep("code");
@@ -67,8 +59,6 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
 
   const verifyCode = async (event: FormEvent) => {
     event.preventDefault();
-    const client = getSupabaseBrowserClient();
-    if (!client) return;
     setLoading(true);
     setError(null);
     try {
@@ -76,7 +66,7 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
         setError(isEnglish ? "Enter the complete verification code." : "请输入完整的验证码。");
         return;
       }
-      const result = await verifyEmailOtp(client, email, code.trim());
+      const result = await verifyEmailOtp(email, code.trim());
       setUser(result.user);
       onAuthChange();
       if (!result.recordsMigrated) {
@@ -94,12 +84,10 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
   };
 
   const handleSignOut = async () => {
-    const client = getSupabaseBrowserClient();
-    if (!client) return;
     setLoading(true);
     setError(null);
     try {
-      await signOut(client);
+      await signOut();
       setUser(null);
       setOpen(false);
       setEmail("");

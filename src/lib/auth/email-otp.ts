@@ -1,56 +1,30 @@
 "use client";
 
-import type { SupabaseClient, User } from "@supabase/supabase-js";
+export type AuthUser = { email: string | null; isAnonymous: boolean };
 
-type GuestAttempt = {
-  passage_id: string;
-  started_at: string;
-  submitted_at: string | null;
-  score: number | null;
-  answers: Record<string, number>;
-  next_review_at: string | null;
-};
-
-export function isEmailUser(user: User | null) {
-  return Boolean(user?.email && !user.is_anonymous);
+async function api<T>(url: string, options?: RequestInit) {
+  const response = await fetch(url, options);
+  const body = await response.json() as T & { error?: string };
+  if (!response.ok) throw new Error(body.error ?? "Request failed");
+  return body;
 }
 
-export async function requestEmailOtp(client: SupabaseClient, email: string) {
-  const { error } = await client.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true },
-  });
-  if (error) throw error;
+export function isEmailUser(user: AuthUser | null) {
+  return Boolean(user?.email && !user.isAnonymous);
 }
 
-export async function verifyEmailOtp(client: SupabaseClient, email: string, token: string) {
-  const { data: sessionData } = await client.auth.getSession();
-  const guestUser = sessionData.session?.user;
-  let guestAttempts: GuestAttempt[] = [];
-
-  if (guestUser?.is_anonymous) {
-    const { data } = await client
-      .from("practice_attempts")
-      .select("passage_id, started_at, submitted_at, score, answers, next_review_at")
-      .eq("user_id", guestUser.id);
-    guestAttempts = (data ?? []) as GuestAttempt[];
-  }
-
-  const { data, error } = await client.auth.verifyOtp({ email, token, type: "email" });
-  if (error || !data.user) throw error ?? new Error("Unable to verify email");
-
-  let recordsMigrated = true;
-  if (guestUser?.is_anonymous && guestUser.id !== data.user.id && guestAttempts.length) {
-    const { error: migrationError } = await client.from("practice_attempts").insert(
-      guestAttempts.map((attempt) => ({ ...attempt, user_id: data.user!.id })),
-    );
-    recordsMigrated = !migrationError;
-  }
-
-  return { user: data.user, recordsMigrated };
+export async function getAuthUser() {
+  return api<{ user: AuthUser | null }>("/api/auth/session");
 }
 
-export async function signOut(client: SupabaseClient) {
-  const { error } = await client.auth.signOut();
-  if (error) throw error;
+export async function requestEmailOtp(email: string) {
+  return api<{ ok: true }>("/api/auth/request-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+}
+
+export async function verifyEmailOtp(email: string, code: string) {
+  return api<{ user: AuthUser; recordsMigrated: boolean }>("/api/auth/verify-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, code }) });
+}
+
+export async function signOut() {
+  return api<{ ok: true }>("/api/auth/logout", { method: "POST" });
 }

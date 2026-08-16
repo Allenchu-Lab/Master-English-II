@@ -7,7 +7,6 @@ import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { BarChart3, BookOpen, ChevronRight, FileText, Languages, PenLine, TextCursorInput } from "lucide-react";
 import type { ExamPaperMap } from "@/data/exam-types";
-import { ensureAnonymousUser, getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { EmailAuth } from "@/components/email-auth";
 
 gsap.registerPlugin(useGSAP, MotionPathPlugin);
@@ -50,12 +49,10 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
   useEffect(() => {
     let cancelled = false;
     async function loadAttempts() {
-      const client = getSupabaseBrowserClient();
-      if (!client) return;
       try {
-        await ensureAnonymousUser(client);
-        const { data, error } = await client.from("practice_attempts").select("passage_id, submitted_at").order("created_at", { ascending: true });
-        if (error || cancelled) return;
+        const response = await fetch("/api/attempts");
+        if (!response.ok || cancelled) return;
+        const { attempts: data } = await response.json() as { attempts: { passage_id: string; submitted_at: string | null }[] };
         setAttempts(data.reduce<Record<string, "draft" | "submitted">>((result, attempt) => {
           result[attempt.passage_id] = attempt.submitted_at || result[attempt.passage_id] === "submitted" ? "submitted" : "draft";
           return result;
