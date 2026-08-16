@@ -8,6 +8,7 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { BarChart3, BookOpen, ChevronRight, FileText, Languages, PenLine, TextCursorInput } from "lucide-react";
 import type { ExamPaperMap } from "@/data/exam-types";
 import { ensureAnonymousUser, getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { EmailAuth } from "@/components/email-auth";
 
 gsap.registerPlugin(useGSAP, MotionPathPlugin);
 
@@ -27,6 +28,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
   const [activeType, setActiveType] = useState(0);
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">("zh");
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
+  const [authRevision, setAuthRevision] = useState(0);
   const isEnglish = uiLanguage === "en";
   const selectedType = typeItems[activeType];
   const selectedPaper = papers[String(year)];
@@ -62,7 +64,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
     }
     loadAttempts();
     return () => { cancelled = true; };
-  }, []);
+  }, [authRevision]);
 
   const playSketchInteraction = () => {
     if (!sketchRef.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -144,7 +146,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
         <div className="product-main">
           <header className="content-header">
             <nav className="breadcrumb" aria-label={isEnglish ? "Breadcrumb" : "面包屑导航"}><BookOpen /><span aria-current="page">{isEnglish ? "Practice" : "刷题"}</span></nav>
-            <button className="account-button" aria-label={isEnglish ? "User account" : "个人账户"}><Image src="/default-student-avatar.png" alt="" width={28} height={28} /><div><strong>{isEnglish ? "Study learner" : "备考同学"}</strong><small>{isEnglish ? "6-day streak" : "连续练习 6 天"}</small></div></button>
+            <EmailAuth isEnglish={isEnglish} onAuthChange={() => setAuthRevision((value) => value + 1)} />
           </header>
 
           <section className="library">

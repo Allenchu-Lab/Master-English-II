@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, LoaderCircle, LockKeyhole, RotateCcw, Sparkles } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { ensureAnonymousUser, getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
 
 type AccessState = "checking" | "allowed" | "denied" | "error";
 type ParagraphAnalysis = {
@@ -106,6 +107,7 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
 
   const analysis = analyses[activeParagraph];
   const completedCount = Object.keys(analyses).length;
+  const highlightStorageKey = `reading-highlights:${passage.id}`;
 
   return <main className="intensive-page">
     <header className="intensive-header">
@@ -117,10 +119,11 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
     <div className="intensive-layout">
       <article className="intensive-paper">
         <header><span>{passage.year} · TEXT {passage.number}</span><h1>{isEnglish ? "Paragraph Study" : "逐段精读"}</h1><p>{isEnglish ? "Read independently first, then use AI to check your understanding. Select a paragraph to switch." : "先自己读，再让 AI 帮你核对理解。点击段落可切换。"}</p></header>
+        <HighlightGuide isEnglish={isEnglish} />
         <nav className="intensive-mobile-index" aria-label={isEnglish ? "Select a paragraph" : "选择精读段落"}>{paragraphs.map((_, index) => <button key={index} className={activeParagraph === index ? "active" : ""} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>{index + 1}{analyses[index] && <Check />}</button>)}</nav>
         {paragraphs.map((paragraph, index) => <button key={index} className={`intensive-paragraph ${activeParagraph === index ? "active" : ""}`} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>
           <span className="intensive-paragraph-number">{String(index + 1).padStart(2, "0")}</span>
-          <span>{paragraph}</span>
+          <SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} />
           {analyses[index] && <Check className="intensive-paragraph-check" />}
         </button>)}
       </article>

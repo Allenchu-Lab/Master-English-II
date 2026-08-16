@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, Check, Clock3, LoaderCircle, Pause, Play, RotateCcw } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { ensureAnonymousUser, getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
 
 type SaveState = "connecting" | "saved" | "saving" | "error";
 type GradedQuestion = { questionNumber: number; selectedOption: number; correctOption: number; isCorrect: boolean; promptZh: string; optionTranslations: string[]; explanation: string };
@@ -103,6 +104,7 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
 
   const answeredCount = Object.keys(answers).length;
   const elapsed = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
+  const highlightStorageKey = `reading-highlights:${passage.id}`;
   return (
     <main className="practice-page">
       <header className="practice-header">
@@ -123,14 +125,15 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
       <div className="practice-layout">
         <section className="passage-pane">
           <div className="passage-meta"><span>{passage.year} · Text {passage.number}</span><span>{passage.wordCount} {isEnglish ? "words" : "词"}</span></div>
-          <article>{passage.paragraphs.length ? passage.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>) : <p>{passage.body}</p>}</article>
+          <HighlightGuide isEnglish={isEnglish} />
+          <article>{passage.paragraphs.length ? passage.paragraphs.map((paragraph, index) => <p key={index}><SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} /></p>) : <p><SelectableHighlight text={passage.body} scope="passage:0" storageKey={highlightStorageKey} /></p>}</article>
         </section>
 
         <aside className="question-pane">
           <div className="question-progress"><strong>Text {passage.number}</strong><i><b style={{ width: `${answeredCount / passage.questions.length * 100}%` }} /></i><span>{isEnglish ? `${answeredCount} / ${passage.questions.length} answered` : `${answeredCount} / ${passage.questions.length} 已作答`}</span></div>
           <div className="question-scroll">
             {passage.questions.map((question) => <section className={`question-item ${submitted ? "is-disabled" : ""}`} key={question.id} role="group" aria-labelledby={`question-${question.number}`}>
-              <h2 id={`question-${question.number}`}><span>{question.number}</span>{question.prompt}</h2>
+              <h2 id={`question-${question.number}`}><span>{question.number}</span><SelectableHighlight text={question.prompt} scope={`question:${question.id}`} storageKey={highlightStorageKey} /></h2>
               <div className="option-list">{question.options.map((option) => {
                 const selected = answers[String(question.number)] === option.index;
                 const graded = gradeResult?.questions.find((item) => item.questionNumber === question.number);
