@@ -1,7 +1,7 @@
 FROM node:22-alpine AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm config set registry https://mirrors.tencent.com/npm/ && npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
