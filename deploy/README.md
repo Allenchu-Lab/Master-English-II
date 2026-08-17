@@ -60,6 +60,105 @@ curl -s http://127.0.0.1:3000/api/health   # 期望 {"ok":true}
 
 `/api/health` 会真的执行一次 `select 1`，返回 `ok` 即表示应用与数据库都通。密码配错时这里会返回异常而不是 `ok`。
 
+## 备案通过后切换域名与 HTTPS
+
+前置条件：备案已通过，域名解析已指向本机公网 IP（A 记录），且用域名访问 80 端口能打开站点。解析未生效前不要签发证书，验证会失败。
+
+先确认解析已经生效：
+
+```bash
+DOMAIN=你的域名
+dig +short A "$DOMAIN"            # 应返回本机公网 IP
+curl -sI "http://$DOMAIN" | head -1   # 应返回 200
+```
+
+签发证书。`--webroot` 方式不需要停 Nginx，验证文件走 `deploy/nginx/master-english.conf` 里已经预留的 `/.well-known/acme-challenge/` 路径：
+
+```bash
+sudo apt update && sudo apt install -y certbot
+sudo mkdir -p /var/www/certbot
+sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" -d "www.$DOMAIN" --agree-tos -m 你的邮箱 --no-eff-email
+```
+
+证书签发成功后再换配置。`__DOMAIN__` 是占位符，必须先替换：
+
+```bash
+cd /opt/master-english
+sed "s/__DOMAIN__/$DOMAIN/g" deploy/nginx/master-english-https.conf | sudo tee /etc/nginx/sites-available/master-english > /dev/null
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+`nginx -t` 必须通过再 reload。如果它报证书文件不存在，说明上一步签发没成功，此时旧配置仍在运行，站点不会中断。
+
+最后把 cookie 切成仅 HTTPS 传输：
+
+```bash
+sed -i 's/^COOKIE_SECURE=.*/COOKIE_SECURE=true/' .env.production
+docker compose up -d
+```
+
+这一步不能漏。`COOKIE_SECURE=true` 会给会话 cookie 加上 `Secure` 标记，浏览器便不再通过明文 HTTP 发送它。反过来说，**在还没有 HTTPS 时不要提前设成 true**，那样登录态会完全失效。
+
+验证：
+
+```bash
+curl -sI "http://$DOMAIN" | head -1                    # 应为 301
+curl -sI "https://$DOMAIN/api/health" | head -1        # 应为 200
+curl -s "https://$DOMAIN/api/health"                   # 应为 {"ok":true}
+```
+
+启用 HTTPS 后，公网 IP 直接访问会被拒绝（返回 444），这是配置里刻意为之：备案要求站点通过备案域名访问。
+
+证书有效期 90 天。certbot 安装时会自带续期定时任务，确认一下并做一次演练：
+
+```bash
+systemctl list-timers | grep -i certbot
+sudo certbot renew --dry-run
+```
+
+HSTS 的 `max-age` 目前故意设成 300 秒。稳定运行一两周后，可在 `master-english-https.conf` 里改成 `31536000` 再重新部署。**在确认证书续期正常之前不要调大**，HSTS 生效期间浏览器会强制走 HTTPS，证书一旦出问题无法临时退回 HTTP。
+
+## 数据库备份
+
+```bash
+bash deploy/backup.sh
+```
+
+导出到 `/var/backups/master-english/`，gzip 压缩，文件权限 600，保留最近 14 天。脚本先写 `.partial` 再改名，中途失败不会留下半个可用的备份；导出为空也判为失败。
+
+加到每天凌晨 3 点自动执行：
+
+```bash
+( crontab -l 2>/dev/null; echo "0 3 * * * cd /opt/master-english && bash deploy/backup.sh >> /var/log/master-english-backup.log 2>&1" ) | crontab -
+crontab -l
+```
+
+腾讯云的自动快照是整机级别的，和这个不冲突，建议都开：快照防机器故障，这个备份防误删数据、且恢复速度快得多。
+
+从备份恢复（会覆盖现有数据，确认清楚再执行）：
+
+```bash
+gunzip -c /var/backups/master-english/master-english-20260817-030000.sql.gz \
+  | docker compose exec -T db psql -U "$(awk -F= '/^POSTGRES_USER=/{print $2}' .env)" \
+      -d "$(awk -F= '/^POSTGRES_DB=/{print $2}' .env)"
+```
+
+## 清理过期数据
+
+```bash
+bash deploy/cleanup.sh
+```
+
+删除已过期的会话、24 小时以前的验证码、以及从未作答过的陈旧匿名账号，执行完会打印各表剩余行数。这两张表只增不减，长期不清理会让登录时的查询变慢。
+
+验证码保留 24 小时而不是一过期就删，是因为发码接口用 24 小时内的记录数来限制单个邮箱的发送次数，删太早这道防轰炸的闸门就失效了。
+
+加到每周日凌晨 4 点：
+
+```bash
+( crontab -l 2>/dev/null; echo "0 4 * * 0 cd /opt/master-english && bash deploy/cleanup.sh >> /var/log/master-english-cleanup.log 2>&1" ) | crontab -
+```
+
 ## 修改数据库密码
 
 Postgres 密码在数据卷**首次初始化时固化**，之后改 `.env` 不会改变库里已有的密码。若密码已经配错并且已经初始化过，测试环境可直接清卷重建（会清掉全部练习记录）：
