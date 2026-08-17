@@ -4,8 +4,11 @@ import { transaction } from "@/lib/db";
 
 type KeyRow = { question_number: number; correct_option: number; prompt_zh: string; option_translations: string[]; explanation: string };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function POST(request: Request, { params }: { params: Promise<{ passageId: string }> }) {
   const { passageId } = await params;
+  if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
   const user = await getOrCreateSessionUser();
   const { attemptId, answers } = await request.json() as { attemptId?: string; answers?: Record<string, number> };
   if (!attemptId || !answers || Array.isArray(answers)) return NextResponse.json({ error: "请完成全部题目后再提交。" }, { status: 400 });
