@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 const AI_TIMEOUT_MS = 60_000;
@@ -47,12 +48,18 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof Error && error.name === "TimeoutError") {
+      logWarn("dictionary.upstream_timeout", { timeoutMs: AI_TIMEOUT_MS });
       return NextResponse.json({ error: "查词服务响应超时，请稍后重试。" }, { status: 504 });
     }
+    logError("dictionary.upstream_unreachable", error);
     return NextResponse.json({ error: "查词服务暂时不可用。" }, { status: 502 });
   }
 
-  if (!response.ok) return NextResponse.json({ error: "查词服务暂时不可用。" }, { status: 502 });
+  if (!response.ok) {
+    // 记录上游状态码，用于区分额度耗尽、密钥失效与服务端故障。
+    logWarn("dictionary.upstream_error", { status: response.status });
+    return NextResponse.json({ error: "查词服务暂时不可用。" }, { status: 502 });
+  }
   const result = await response.json() as { choices?: { message?: { content?: string } }[] };
   const content = result.choices?.[0]?.message?.content;
   if (!content) return NextResponse.json({ error: "没有查到释义。" }, { status: 502 });

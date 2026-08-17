@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { sendLoginCode } from "@/lib/auth/mailer";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { query } from "@/lib/db";
+import { logError, maskEmail } from "@/lib/log";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // 每个邮箱每天最多发送的验证码数量，防止验证码轰炸
@@ -35,7 +36,14 @@ export async function POST(request: Request) {
   const inserted = await query<{ id: string }>("insert into email_login_codes (email, code_hash, expires_at) values ($1, $2, now() + interval '10 minutes') returning id", [email, codeHash(email, code)]);
   try {
     await sendLoginCode(email, code);
-  } catch {
+  } catch (error) {
+    // 发信失败的原因必须留痕：区分 SES 未配置、密钥无效、发信域名未验证、
+    // 网络不通等情况，否则线上只能看到一句“发送失败”，无从排查。
+    // 同时记录实际走的通道，SES 与 SMTP 的失败原因完全不同。
+    logError("auth.send_code_failed", error, {
+      email: maskEmail(email),
+      channel: process.env.SES_SECRET_ID ? "ses" : "smtp",
+    });
     await query("delete from email_login_codes where id = $1", [inserted.rows[0].id]);
     return NextResponse.json({ error: "验证码发送失败，请稍后重试。" }, { status: 503 });
   }

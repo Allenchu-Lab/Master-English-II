@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 const AI_TIMEOUT_MS = 60_000;
@@ -49,12 +50,17 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof Error && error.name === "TimeoutError") {
+      logWarn("intensive.upstream_timeout", { timeoutMs: AI_TIMEOUT_MS, year, text });
       return NextResponse.json({ error: "AI 服务响应超时，请稍后重试。" }, { status: 504 });
     }
+    logError("intensive.upstream_unreachable", error, { year, text });
     return NextResponse.json({ error: "AI 精读服务暂时不可用。" }, { status: 502 });
   }
 
-  if (!response.ok) return NextResponse.json({ error: "AI 精读服务暂时不可用。" }, { status: 502 });
+  if (!response.ok) {
+    logWarn("intensive.upstream_error", { status: response.status, year, text });
+    return NextResponse.json({ error: "AI 精读服务暂时不可用。" }, { status: 502 });
+  }
   const result = await response.json() as { choices?: { message?: { content?: string } }[] };
   const content = result.choices?.[0]?.message?.content;
   if (!content) return NextResponse.json({ error: "AI 没有返回精读内容。" }, { status: 502 });

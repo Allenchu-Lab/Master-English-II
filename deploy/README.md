@@ -143,6 +143,30 @@ gunzip -c /var/backups/master-english/master-english-20260817-030000.sql.gz \
       -d "$(awk -F= '/^POSTGRES_DB=/{print $2}' .env)"
 ```
 
+## 查看错误日志
+
+应用的错误日志是单行 JSON，输出到容器的标准错误，用 Docker 查看：
+
+```bash
+docker compose logs app | grep '"level":"error"'      # 只看故障
+docker compose logs app | grep '"level":"warn"'       # 只看外部服务异常
+docker compose logs -f app | grep '"event":'          # 实时跟踪
+docker compose logs app | grep '"event":"submit.failed"'   # 按事件筛选
+```
+
+常见事件名与含义：
+
+| 事件 | 含义 | 处理方向 |
+|---|---|---|
+| `submit.failed` | 判分出现非预期故障 | 看 `pgCode` 和 `pgConstraint`，通常是数据库约束冲突 |
+| `submit.keys_unavailable` | 该篇答案未录全 | 不是故障，按 `passageId` 补答案 |
+| `auth.send_code_failed` | 验证码发送失败 | 看 `channel` 区分 SES 还是 SMTP，再看 `errorMessage` |
+| `dictionary.upstream_error` / `intensive.upstream_error` | DeepSeek 返回非 200 | 看 `status`，401 是密钥失效，429 是额度耗尽 |
+| `*.upstream_timeout` | DeepSeek 超时 | 偶发可忽略，频繁出现说明上游不稳 |
+| `*.upstream_unreachable` | 连不上 DeepSeek | 检查服务器出网 |
+
+日志刻意不记录密码、密钥、会话 token 和验证码原文。邮箱以 `a***@example.com` 的形式记录，能区分是哪个用户报错，但无法还原完整地址。
+
 ## 清理过期数据
 
 ```bash
