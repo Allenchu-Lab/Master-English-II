@@ -46,11 +46,19 @@ docker compose up -d --build
 ## 检查状态
 
 ```bash
+bash deploy/verify.sh
+```
+
+这个脚本依次检查容器状态、应用与数据库连通、导入答案（幂等）、打印每篇文章的答案覆盖情况、验证限流是否生效。任一步失败会说明原因并停下，不会重建容器或删除数据。
+
+也可以单独看连通性：
+
+```bash
 docker compose ps
 curl -s http://127.0.0.1:3000/api/health   # 期望 {"ok":true}
 ```
 
-`/api/health` 会真的执行一次 `select 1`，返回 `ok` 即表示应用与数据库都通。
+`/api/health` 会真的执行一次 `select 1`，返回 `ok` 即表示应用与数据库都通。密码配错时这里会返回异常而不是 `ok`。
 
 ## 修改数据库密码
 
