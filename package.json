@@ -16,7 +16,8 @@
     "nodemailer": "^9.0.5",
     "pg": "^8.23.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "tencentcloud-sdk-nodejs-ses": "^4.1.271"
   },
   "devDependencies": {
     "@types/node": "^20",

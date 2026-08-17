@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
@@ -10,14 +10,6 @@ import type { ExamPaperMap } from "@/data/exam-types";
 import { EmailAuth } from "@/components/email-auth";
 
 gsap.registerPlugin(useGSAP, MotionPathPlugin);
-
-const typeItems = [
-  { zh: "阅读理解 Part A", en: "Reading Part A", done: 0, total: 8, zhUnit: "篇", enUnit: "passages", icon: BookOpen },
-  { zh: "阅读理解 Part B", en: "Reading Part B", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: FileText },
-  { zh: "完形填空", en: "Cloze", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: TextCursorInput },
-  { zh: "翻译", en: "Translation", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: Languages },
-  { zh: "写作", en: "Writing", done: 0, total: 4, zhUnit: "题", enUnit: "tasks", icon: PenLine },
-];
 
 export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
   const pageRef = useRef<HTMLElement>(null);
@@ -29,9 +21,39 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
   const [authRevision, setAuthRevision] = useState(0);
   const isEnglish = uiLanguage === "en";
-  const selectedType = typeItems[activeType];
   const selectedPaper = papers[String(year)];
   const articles = activeType === 0 && selectedPaper ? selectedPaper.readingA : [];
+
+  const readingAStats = useMemo(() => {
+    let total = 0;
+    let done = 0;
+    for (const paper of Object.values(papers)) {
+      for (const article of paper.readingA) {
+        total += 1;
+        if (article.id && attempts[article.id] === "submitted") done += 1;
+      }
+    }
+    return { total, done };
+  }, [papers, attempts]);
+
+  const typeItems = useMemo(() => [
+    { zh: "阅读理解 Part A", en: "Reading Part A", done: readingAStats.done, total: readingAStats.total, zhUnit: "篇", enUnit: "passages", icon: BookOpen },
+    { zh: "阅读理解 Part B", en: "Reading Part B", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: FileText },
+    { zh: "完形填空", en: "Cloze", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: TextCursorInput },
+    { zh: "翻译", en: "Translation", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: Languages },
+    { zh: "写作", en: "Writing", done: 0, total: 4, zhUnit: "题", enUnit: "tasks", icon: PenLine },
+  ], [readingAStats.done, readingAStats.total]);
+
+  const yearStats = (yearValue: number) => {
+    const paper = papers[String(yearValue)];
+    if (!paper) return null;
+    const done = paper.readingA.filter((article) => article.id && attempts[article.id] === "submitted").length;
+    return { done, total: paper.readingA.length };
+  };
+
+  const articleDone = articles.filter((article) => article.id && attempts[article.id] === "submitted").length;
+  const articleTotal = articles.length || selectedPaper?.sections.readingA || 0;
+  const selectedType = typeItems[activeType];
 
   useEffect(() => {
     const savedLanguage = window.localStorage.getItem("ui-language");
@@ -166,9 +188,9 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
 
             <section className="year-library">
               <div className="paper-browser">
-                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{Array.from({ length: 17 }, (_, index) => 2026 - index).map((value) => { const available = String(value) in papers; return <button key={value} className={year === value ? "active" : ""} onClick={() => setYear(value)}><strong>{value}</strong><small>{available ? "0/4" : "—"}</small></button>})}</aside>
+                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{Array.from({ length: 17 }, (_, index) => 2026 - index).map((value) => { const available = String(value) in papers; const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => setYear(value)}><strong>{value}</strong><small>{available && stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
                 <div className="article-group">
-                  <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} 0 / {articles.length || selectedPaper?.sections.readingA || 0}</span><i><b style={{ width: "0%" }} /></i></div></div>
+                  <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {articleDone} / {articleTotal}</span><i><b style={{ width: `${articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>
                   <div className="article-list">{articles.length ? articles.map((article) => {
                     const state = article.id ? attempts[article.id] : undefined;
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");

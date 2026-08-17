@@ -12,7 +12,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pas
 
   try {
     const result = await transaction(async (client) => {
-      const attempt = await client.query("select 1 from practice_attempts where id = $1 and user_id = $2 and passage_id = $3 for update", [attemptId, user.id, passageId]);
+      const attempt = await client.query("select 1 from practice_attempts where id = $1 and user_id = $2 and passage_id = $3 and submitted_at is null for update", [attemptId, user.id, passageId]);
       if (!attempt.rowCount) throw new Error("ATTEMPT_NOT_FOUND");
       const keys = await client.query<KeyRow>(
         `select q.question_number, k.correct_option, k.prompt_zh, k.option_translations, k.explanation

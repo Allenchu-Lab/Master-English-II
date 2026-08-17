@@ -68,10 +68,13 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
   const generateAnalysis = async () => {
     setLoadingParagraph(activeParagraph);
     setAnalysisError(null);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 75_000);
     try {
       const response = await fetch("/api/intensive-reading", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({ paragraph: paragraphs[activeParagraph], year: passage.year, text: passage.number, paragraphNumber: activeParagraph + 1 }),
       });
       const result = await response.json() as ParagraphAnalysis & { error?: string };
@@ -80,8 +83,12 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
       setAnalyses(next);
       window.localStorage.setItem(`intensive-analyses:${passage.id}`, JSON.stringify(next));
     } catch (error) {
-      setAnalysisError(error instanceof Error ? error.message : (isEnglish ? "Unable to generate the analysis. Please try again." : "生成失败，请稍后重试。"));
+      const timedOut = error instanceof DOMException && error.name === "AbortError";
+      setAnalysisError(timedOut
+        ? (isEnglish ? "The analysis is taking too long. Please try again." : "AI 服务响应超时，请稍后重试。")
+        : error instanceof Error ? error.message : (isEnglish ? "Unable to generate the analysis. Please try again." : "生成失败，请稍后重试。"));
     } finally {
+      window.clearTimeout(timeout);
       setLoadingParagraph(null);
     }
   };
