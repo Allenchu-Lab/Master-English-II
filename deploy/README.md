@@ -60,6 +60,28 @@ Postgres 密码在数据卷**首次初始化时固化**，之后改 `.env` 不�
 docker compose down -v && docker compose up -d --build
 ```
 
+## 录入答案与解析
+
+判分数据不写在代码里，来源是 `content/answer-keys/<年份>.json`。新增年份不需要改任何代码：
+
+1. 在 `content/answer-keys/` 下新建或编辑该年份的 JSON 文件。每道题填五项：`number`（题号）、`answer`（A/B/C/D）、`promptZh`（题干中译）、`optionsZh`（四条选项中译，顺序对应 A、B、C、D）、`explanation`（解析）。
+2. 本地运行 `npm run build:keys` 生成 `deploy/postgres/003-grading.sql`。生成前会校验答案字母、选项条数、题号重复、空字段，任一项不合格就中止且不产出文件。
+3. 提交这两个文件，服务器 `git pull` 后应用 SQL。
+
+生成的 SQL 是幂等的：同一题重复导入会更新而不是报错，所以改完错别字可以直接重跑，不需要先删数据。
+
+已经初始化过的数据库应用增量：
+
+```bash
+docker compose exec -T db psql \
+  -U "$(awk -F= '/^POSTGRES_USER=/{print $2}' .env)" \
+  -d "$(awk -F= '/^POSTGRES_DB=/{print $2}' .env)" < deploy/postgres/003-grading.sql
+```
+
+答案只写入 `private` 库中的 `question_keys` 表，不写入应用渲染题目时读取的 `questions` 表，避免答案随题目一起下发到浏览器。前端在提交后才会拿到正确选项与解析。
+
+只要某篇文章的答案没有录全，首页会把它标为「答案待录入 / 暂未开放」并且不允许作答，因为提交时会因缺少答案而无法判分。录入并应用 SQL 后，该篇自动变为可练习，不需要改代码或重启。
+
 ## 重新灌题库数据
 
 `deploy/postgres/*.sql` 和 `supabase/seed.sql` 挂在 `docker-entrypoint-initdb.d`，只在数据卷为空时执行一次。补充答案或题目数据时，`docker compose up -d --build` 不会重跑这些脚本，需要清卷重建，或直接灌增量 SQL：
