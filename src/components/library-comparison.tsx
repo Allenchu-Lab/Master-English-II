@@ -6,54 +6,67 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { BarChart3, BookOpen, ChevronRight, FileText, Languages, PenLine, TextCursorInput } from "lucide-react";
-import type { ExamPaperMap } from "@/data/exam-types";
+import type { ExamPaperMap, ExamSectionType } from "@/data/exam-types";
 import { EmailAuth } from "@/components/email-auth";
 
 gsap.registerPlugin(useGSAP, MotionPathPlugin);
+
+// 题型的展示文案与图标属于界面表现，数量与可用状态一律来自数据库。
+const sectionMeta: Record<ExamSectionType, { zh: string; en: string; zhUnit: string; enUnit: string; icon: typeof BookOpen }> = {
+  reading_a: { zh: "阅读理解 Part A", en: "Reading Part A", zhUnit: "篇", enUnit: "passages", icon: BookOpen },
+  reading_b: { zh: "阅读理解 Part B", en: "Reading Part B", zhUnit: "篇", enUnit: "passages", icon: FileText },
+  cloze: { zh: "完形填空", en: "Cloze", zhUnit: "篇", enUnit: "passages", icon: TextCursorInput },
+  translation: { zh: "翻译", en: "Translation", zhUnit: "篇", enUnit: "passages", icon: Languages },
+  writing: { zh: "写作", en: "Writing", zhUnit: "题", enUnit: "tasks", icon: PenLine },
+};
+
+const sectionOrder: ExamSectionType[] = ["reading_a", "reading_b", "cloze", "translation", "writing"];
 
 export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
   const pageRef = useRef<HTMLElement>(null);
   const sketchRef = useRef<HTMLDivElement>(null);
   const firstContentRender = useRef(true);
-  const [year, setYear] = useState(2026);
+  const years = useMemo(() => Object.values(papers).map((paper) => paper.year).sort((a, b) => b - a), [papers]);
+  const [year, setYear] = useState(() => years[0] ?? 0);
   const [activeType, setActiveType] = useState(0);
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">("zh");
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
   const [authRevision, setAuthRevision] = useState(0);
   const isEnglish = uiLanguage === "en";
   const selectedPaper = papers[String(year)];
-  const articles = activeType === 0 && selectedPaper ? selectedPaper.readingA : [];
 
-  const readingAStats = useMemo(() => {
+  const typeItems = useMemo(() => sectionOrder.map((type) => {
     let total = 0;
-    let done = 0;
+    let available = false;
     for (const paper of Object.values(papers)) {
-      for (const article of paper.readingA) {
-        total += 1;
-        if (article.id && attempts[article.id] === "submitted") done += 1;
+      for (const section of paper.sections) {
+        if (section.type !== type) continue;
+        total += section.itemCount;
+        if (section.available) available = true;
       }
     }
-    return { total, done };
-  }, [papers, attempts]);
+    let done = 0;
+    if (type === "reading_a") {
+      for (const paper of Object.values(papers)) {
+        done += paper.readingA.filter((article) => attempts[article.id] === "submitted").length;
+      }
+    }
+    return { type, ...sectionMeta[type], total, available, done };
+  }), [papers, attempts]);
 
-  const typeItems = useMemo(() => [
-    { zh: "阅读理解 Part A", en: "Reading Part A", done: readingAStats.done, total: readingAStats.total, zhUnit: "篇", enUnit: "passages", icon: BookOpen },
-    { zh: "阅读理解 Part B", en: "Reading Part B", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: FileText },
-    { zh: "完形填空", en: "Cloze", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: TextCursorInput },
-    { zh: "翻译", en: "Translation", done: 0, total: 2, zhUnit: "篇", enUnit: "passages", icon: Languages },
-    { zh: "写作", en: "Writing", done: 0, total: 4, zhUnit: "题", enUnit: "tasks", icon: PenLine },
-  ], [readingAStats.done, readingAStats.total]);
+  const selectedType = typeItems[activeType];
+  const articles = selectedType?.type === "reading_a" && selectedPaper ? selectedPaper.readingA : [];
 
   const yearStats = (yearValue: number) => {
     const paper = papers[String(yearValue)];
     if (!paper) return null;
-    const done = paper.readingA.filter((article) => article.id && attempts[article.id] === "submitted").length;
+    const done = paper.readingA.filter((article) => attempts[article.id] === "submitted").length;
     return { done, total: paper.readingA.length };
   };
 
-  const articleDone = articles.filter((article) => article.id && attempts[article.id] === "submitted").length;
-  const articleTotal = articles.length || selectedPaper?.sections.readingA || 0;
-  const selectedType = typeItems[activeType];
+  const articleDone = articles.filter((article) => attempts[article.id] === "submitted").length;
+  const sectionItemCount = selectedPaper?.sections.find((section) => section.type === selectedType?.type)?.itemCount ?? 0;
+  const articleTotal = articles.length || sectionItemCount;
 
   useEffect(() => {
     const savedLanguage = window.localStorage.getItem("ui-language");
@@ -183,20 +196,24 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
               </div>
             </header>
             <section className="question-types">
-              <div className="type-tabs">{typeItems.map(({ zh, en, done, total, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={zh} onClick={() => setActiveType(index)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`}</small><span className="type-progress-copy"><span>{isEnglish ? "Completed" : "已累计完成"}</span><strong>{done} / {total}</strong></span><i className="type-progress"><b style={{ width: `${(done / total) * 100}%` }} /></i></button>)}</div>
+              <div className="type-tabs">{typeItems.map(({ type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={type} onClick={() => setActiveType(index)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`}</small><span className="type-progress-copy"><span>{available ? (isEnglish ? "Completed" : "已累计完成") : (isEnglish ? "Not open yet" : "尚未开放")}</span><strong>{available ? `${done} / ${total}` : "—"}</strong></span><i className="type-progress"><b style={{ width: available && total ? `${(done / total) * 100}%` : "0%" }} /></i></button>)}</div>
             </section>
 
             <section className="year-library">
               <div className="paper-browser">
-                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{Array.from({ length: 17 }, (_, index) => 2026 - index).map((value) => { const available = String(value) in papers; const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => setYear(value)}><strong>{value}</strong><small>{available && stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
+                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => { const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => setYear(value)} aria-pressed={year === value}><strong>{value}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
                 <div className="article-group">
                   <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {articleDone} / {articleTotal}</span><i><b style={{ width: `${articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>
                   <div className="article-list">{articles.length ? articles.map((article) => {
-                    const state = article.id ? attempts[article.id] : undefined;
+                    const state = attempts[article.id];
+                    // 答案未录入的篇目提交时无法判分，直接标记为待开放而不是引导作答。
+                    if (!article.gradable) {
+                      return <article key={article.number} className="article-row status-wait"><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questions.length} questions` : `${article.wordCount} 词 · ${article.questions.length} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{isEnglish ? "Answer key pending" : "答案待录入"}</span><small>{isEnglish ? "Practice opens once the answer key is imported." : "答案与解析录入后开放练习。"}</small></div><span className="article-action is-disabled">{isEnglish ? "Not open yet" : "暂未开放"}</span></div></article>;
+                    }
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const action = state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
                     return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questions.length} questions` : `${article.wordCount} 词 · ${article.questions.length} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Intensive reading unlocked" : "已解锁精读") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><a className="article-action secondary" href={`/practice/${year}/${article.number}`}>{isEnglish ? "Redo" : "重新练习"}</a><a className="article-action primary" href={`/intensive/${year}/${article.number}`}>{isEnglish ? "Study deeply" : "进入精读"}<ChevronRight /></a></div> : <a className="article-action" href={`/practice/${year}/${article.number}`}>{action}<ChevronRight /></a>}</div></article>;
-                  }) : <div className="article-empty"><p>{selectedPaper ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "The source paper has not been imported yet." : "该年份真题尚未导入。")}</p></div>}</div>
+                  }) : <div className="article-empty"><p>{!selectedPaper ? (isEnglish ? "No paper has been imported yet." : "题库尚未导入任何真题。") : selectedType?.available ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "This section is not open yet." : "该题型尚未开放。")}</p></div>}</div>
                 </div>
               </div>
             </section>

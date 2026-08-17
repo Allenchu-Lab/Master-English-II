@@ -199,6 +199,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .article-action { min-height: 40px; padding: 0 4px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; border: 0; border-radius: 6px; background: transparent; color: rgba(0,0,0,.72); font-size: 12px; line-height: 18px; font-weight: 500; transition: color 200ms ease, background-color 200ms ease; }
 .article-action:hover { color: var(--blue-dark); background: transparent; }
 .article-action svg { width: 16px; }
+.article-action.is-disabled { color: var(--muted); cursor: default; }
 .article-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 .article-actions .article-action.primary { color: var(--blue-dark); }
 .article-actions .article-action.secondary { color: var(--muted); }

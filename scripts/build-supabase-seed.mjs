@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
-const source = readFileSync("src/data/exam-papers.ts", "utf8")
+// 题库导入源。刻意放在 content/ 而非 src/，它只在生成 seed 时使用，
+// 不参与应用构建：运行时题库一律从数据库读取。
+const source = readFileSync("content/exam-papers.ts", "utf8")
   .replace(/^export const examPapers = /, "")
   .replace(/ as const;[\s\S]*$/, "");
 const papers = JSON.parse(source);
