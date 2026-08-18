@@ -6,7 +6,6 @@ import { ArrowLeft, BookOpen, Check, Clock3, LoaderCircle, Pause, Play, RotateCc
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
 
-type SaveState = "connecting" | "saved" | "saving" | "error";
 type GradedQuestion = { questionNumber: number; selectedOption: number; correctOption: number; isCorrect: boolean; promptZh: string; optionTranslations: string[]; explanation: string };
 type GradeResult = { score: number; total: number; questions: GradedQuestion[] };
 
@@ -21,7 +20,14 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
    */
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [saveState, setSaveState] = useState<SaveState>("connecting");
+  /**
+   * 界面不展示自动保存的过程。它属于后台行为，摆到用户面前只会分散注意力，
+   * 何况提交时会重发完整答案，中途某次没存上也不影响结果。
+   * 只有提交是用户主动发起的，需要在按钮上给出反馈。
+   */
+  const [submitting, setSubmitting] = useState(false);
+  // 提交很快时不闪 loading，只有超过 400 毫秒才显示，避免一次无意义的闪动。
+  const [showSubmitSpinner, setShowSubmitSpinner] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -58,10 +64,7 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
   const openAttempt = useCallback(async (): Promise<string | null> => {
     try {
       const response = await fetch(`/api/attempts/${passage.id}`);
-      if (!response.ok) {
-        setSaveState("error");
-        return null;
-      }
+      if (!response.ok) return null;
       const { attempt: current, grade } = await response.json() as { attempt: { id: string; answers: Record<string, number>; submitted_at: string | null }; grade?: GradeResult };
       setAttemptId(current.id);
       setAnswers(current.answers ?? {});
@@ -69,11 +72,9 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
       // 而不是让用户面对一份空白的答题页。
       setGradeResult(grade ?? null);
       setSubmitted(Boolean(grade));
-      setSaveState("saved");
       return current.id;
     } catch {
       // fetch 抛异常代表请求没能送达，与服务端明确返回错误是两种不同情况。
-      setSaveState("error");
       return null;
     }
   }, [passage.id]);
@@ -104,25 +105,18 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ attemptId, answers }),
         });
-        if (cancelled) return;
-        if (response.ok) {
-          setSaveState("saved");
-          return;
-        }
+        if (cancelled || response.ok) return;
         retry(attempt, response.status);
       } catch {
         if (!cancelled) retry(attempt);
       }
     };
 
-    // 退避重试：1 秒、2 秒、4 秒。期间状态保持“正在保存”，不弹提示。
+    // 退避重试：1 秒、2 秒、4 秒。全程不提示，失败也不打断做题。
     const retry = (attempt: number, status?: number) => {
       // 400 和 404 是请求本身的问题，重试不会有不同结果，直接放弃。
       const worthRetrying = status === undefined || status >= 500 || status === 409;
-      if (attempt >= 3 || !worthRetrying) {
-        setSaveState("error");
-        return;
-      }
+      if (attempt >= 3 || !worthRetrying) return;
       timer = window.setTimeout(() => { void save(attempt + 1); }, 1000 * 2 ** attempt);
     };
 
@@ -147,7 +141,6 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
       setSubmitted(false);
       setElapsedSeconds(0);
       setTimerRunning(false);
-      setSaveState("saved");
     } catch {
       setSubmitError(isEnglish ? "Could not reach the server. Please try again." : "无法连接服务器，请稍后再试。");
     }
@@ -159,35 +152,43 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
       return;
     }
     setSubmitError(null);
-    setSaveState("saving");
-    // 编号缺失时当场补建再继续提交。原先直接 return，点按钮毫无反应，
-    // 用户答完一整篇得不到任何提示，也无法自行恢复。
-    const activeId = attemptId ?? await openAttempt();
-    if (!activeId) {
-      setSubmitError(isEnglish
-        ? "Could not reach the server, so this attempt was not submitted. Please try again."
-        : "无法连接服务器，本次作答未提交，请重试。");
-      return;
-    }
-    let response: Response;
+    setSubmitting(true);
+    const spinnerTimer = window.setTimeout(() => setShowSubmitSpinner(true), 400);
+    const finish = () => {
+      window.clearTimeout(spinnerTimer);
+      setShowSubmitSpinner(false);
+      setSubmitting(false);
+    };
+
     try {
-      response = await fetch(`/api/attempts/${passage.id}/submit`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attemptId: activeId, answers }) });
-    } catch {
-      setSubmitError(isEnglish ? "Could not reach the server. Please try again." : "无法连接服务器，请稍后再试。");
-      setSaveState("error");
-      return;
+      // 编号缺失时当场补建再继续提交。原先直接 return，点按钮毫无反应，
+      // 用户答完一整篇得不到任何提示，也无法自行恢复。
+      const activeId = attemptId ?? await openAttempt();
+      if (!activeId) {
+        setSubmitError(isEnglish
+          ? "Could not reach the server, so this attempt was not submitted. Please try again."
+          : "无法连接服务器，本次作答未提交，请重试。");
+        return;
+      }
+      let response: Response;
+      try {
+        response = await fetch(`/api/attempts/${passage.id}/submit`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attemptId: activeId, answers }) });
+      } catch {
+        setSubmitError(isEnglish ? "Could not reach the server. Please try again." : "无法连接服务器，请稍后再试。");
+        return;
+      }
+      const data = await response.json().catch(() => ({})) as GradeResult & { error?: string };
+      if (!response.ok) {
+        // 带上状态码，便于用户反馈时一眼定位，不再是一句笼统的失败。
+        setSubmitError(`${data.error ?? (isEnglish ? "Unable to grade this passage." : "当前文章暂时无法判分。")}（${response.status}）`);
+        return;
+      }
+      setGradeResult(data);
+      setSubmitted(true);
+      setTimerRunning(false);
+    } finally {
+      finish();
     }
-    const data = await response.json().catch(() => ({})) as GradeResult & { error?: string };
-    if (!response.ok) {
-      // 带上状态码，便于用户反馈时一眼定位，不再是一句笼统的失败。
-      setSubmitError(`${data.error ?? (isEnglish ? "Unable to grade this passage." : "当前文章暂时无法判分。")}（${response.status}）`);
-      setSaveState("error");
-      return;
-    }
-    setGradeResult(data);
-    setSubmitted(true);
-    setTimerRunning(false);
-    setSaveState("saved");
   };
 
   const answeredCount = Object.keys(answers).length;
@@ -205,8 +206,9 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
           <button className="timer-reset" onClick={() => { setTimerRunning(false); setElapsedSeconds(0); }} disabled={submitted || elapsedSeconds === 0} aria-label={isEnglish ? "Reset timer" : "重新计时"} title={isEnglish ? "Reset timer" : "重新计时"}><RotateCcw /></button>
         </div>
         <div className="practice-header-actions">
-          <span className={`save-indicator is-${saveState}`}>{saveState === "saving" && <LoaderCircle />}{saveState === "saved" && <Check />}{saveState === "connecting" ? (isEnglish ? "Connecting" : "正在连接") : saveState === "saving" ? (isEnglish ? "Saving" : "正在保存") : saveState === "saved" ? (isEnglish ? "Saved" : "已自动保存") : (isEnglish ? "Will save on submit" : "提交时一并保存")}</span>
-          {submitted ? <span className="header-submitted"><Check />{isEnglish ? "Submitted" : "已提交"}</span> : <button className="header-submit" onClick={submit} disabled={saveState === "connecting" || saveState === "saving"}>{isEnglish ? "Submit" : "提交作答"}</button>}
+          {submitted
+            ? <span className="header-submitted"><Check />{isEnglish ? "Submitted" : "已提交"}</span>
+            : <button className="header-submit" onClick={submit} disabled={submitting}>{showSubmitSpinner && <LoaderCircle className="spin" />}{isEnglish ? "Submit" : "提交作答"}</button>}
         </div>
       </header>
 

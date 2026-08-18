@@ -199,8 +199,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .article-action { min-height: 40px; padding: 0 4px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; border: 0; border-radius: 6px; background: transparent; color: rgba(0,0,0,.72); font-size: 12px; line-height: 18px; font-weight: 500; transition: color 200ms ease, background-color 200ms ease; }
 .article-action:hover { color: var(--blue-dark); background: transparent; }
 .article-action svg { width: 16px; }
-.practice-restart { min-height: 40px; padding: 0 16px; border: 1px solid rgba(0,0,0,.14); border-radius: 8px; background: #FFFFFF; color: #000000; font-size: 14px; line-height: 22px; font-weight: 500; transition: border-color 200ms ease; }
-.practice-restart:hover { border-color: rgba(0,0,0,.28); }
+
 .article-action.is-disabled { color: var(--muted); cursor: default; }
 .article-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 .article-actions .article-action.primary { color: var(--blue-dark); }
@@ -218,10 +217,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .practice-header nav a, .practice-header nav > span { color: var(--muted); }
 .practice-header nav strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 500; }
 .practice-header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.save-indicator { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; white-space: nowrap; }
-.save-indicator svg { width: 14px; height: 14px; }
-.save-indicator.is-error { color: #b42318; }
-.save-indicator.is-saving svg { animation: practice-spin .8s linear infinite; }
+
 .practice-timer-group { position: absolute; left: 50%; top: 50%; display: flex; align-items: center; gap: 4px; transform: translate(-50%, -50%); }
 .practice-timer { height: 34px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(0,0,0,.1); border-radius: 6px; background: #fff; color: rgba(0,0,0,.72); }
 .practice-timer:hover { border-color: rgba(0,0,0,.2); }
@@ -233,7 +229,9 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .timer-reset:hover:not(:disabled) { color: var(--ink); border-color: rgba(0,0,0,.2); }
 .timer-reset:disabled { opacity: .35; cursor: default; }
 .timer-reset svg { width: 14px; height: 14px; }
-.header-submit { height: 36px; padding: 0 15px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 12px; font-weight: 500; }
+.header-submit { height: 36px; padding: 0 15px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 12px; font-weight: 500; }
+.header-submit:disabled { opacity: .72; cursor: wait; }
+.header-submit .spin { width: 14px; height: 14px; animation: practice-spin .8s linear infinite; }
 .header-submit:hover { background: var(--blue-dark); }
 .header-submit:disabled { opacity: .5; cursor: wait; }
 .header-submitted { height: 36px; padding: 0 11px; display: flex; align-items: center; gap: 5px; color: var(--blue-dark); font-size: 12px; font-weight: 500; }
@@ -290,6 +288,9 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .practice-submit-actions { display: flex; align-items: center; gap: 8px; }
 .practice-submit-actions .secondary { border: 1px solid rgba(0,0,0,.12); background: #fff; color: rgba(0,0,0,.72); }
 .practice-submit-actions .secondary:hover { border-color: rgba(0,0,0,.22); background: #fff; }
+/* 需要包含父类才能盖住上面 .practice-submit button 的蓝底规则，两者特异度相同而它在后。 */
+.practice-submit-actions .practice-restart { border: 1px solid rgba(0,0,0,.12); background: #fff; color: rgba(0,0,0,.72); }
+.practice-submit-actions .practice-restart:hover { border-color: rgba(0,0,0,.22); background: #fff; }
 @keyframes practice-spin { to { transform: rotate(360deg); } }
 
 .intensive-page { height: 100dvh; overflow: hidden; background: #fff; }
@@ -421,7 +422,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
   .article-group-head > div:last-child { display: none; }
   .practice-header { padding-inline: 12px; }
   .practice-header nav > span { display: none; }
-  .save-indicator, .practice-timer small { display: none; }
+  .practice-timer small { display: none; }
   .practice-header-actions { gap: 6px; }
   .practice-timer-group { position: static; margin-left: auto; transform: none; }
   .practice-timer { padding-inline: 8px; }
