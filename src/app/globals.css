@@ -58,6 +58,11 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .account-button div { display: grid; }
 .account-button strong, .account-button small { font-size: 12px; line-height: 16px; }
 .account-button small { color: var(--muted); font-weight: 400; }
+/* 未开放的登录入口：去掉 hover 反馈并弱化头像，避免看起来仍可点击。 */
+.account-button:disabled { cursor: default; }
+.account-button:disabled:hover { background: transparent; }
+.account-button:disabled strong { color: var(--muted); font-weight: 500; }
+.account-button:disabled > img { opacity: .5; }
 .product-main { min-width: 0; height: 100%; display: grid; grid-template-rows: 56px minmax(0, 1fr); overflow: hidden; background: #fff; }
 .content-header { min-width: 0; padding: 0 16px 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: #fff; }
 .content-header .account-button { width: auto; }

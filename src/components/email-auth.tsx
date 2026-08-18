@@ -101,10 +101,32 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
     }
   };
 
+  /**
+   * 邮箱登录暂不开放：发信服务尚未配置，此时点进去只会等到一句发送失败。
+   * 已登录的用户仍需要能进入对话框退出登录，因此只关闭未登录这一侧的入口。
+   * 做题进度本身不依赖登录，匿名身份已在服务端保存，因此关闭入口不影响使用。
+   */
+  const signInEnabled = false;
+  const entryDisabled = !signedIn && !signInEnabled;
+
   return <>
-    <button className="account-button" onClick={() => setOpen(true)} aria-label={isEnglish ? "User account" : "个人账户"}>
+    <button
+      className="account-button"
+      onClick={() => setOpen(true)}
+      disabled={entryDisabled}
+      aria-disabled={entryDisabled}
+      title={entryDisabled ? (isEnglish ? "Coming soon. Your progress is already saved." : "即将上线，你的进度已自动保存") : undefined}
+      aria-label={isEnglish ? "User account" : "个人账户"}
+    >
       <Image src="/default-student-avatar.png" alt="" width={28} height={28} />
-      <div><strong>{signedIn ? user?.email : (isEnglish ? "Sign in" : "登录 / 注册")}</strong><small>{signedIn ? (isEnglish ? "Email account" : "邮箱账户") : (isEnglish ? "Continue your progress" : "同步学习进度")}</small></div>
+      <div>
+        <strong>{signedIn ? user?.email : (isEnglish ? "Sign in" : "登录 / 注册")}</strong>
+        <small>{signedIn
+          ? (isEnglish ? "Email account" : "邮箱账户")
+          : entryDisabled
+            ? (isEnglish ? "Coming soon" : "即将上线")
+            : (isEnglish ? "Continue your progress" : "同步学习进度")}</small>
+      </div>
     </button>
 
     {open && <div className="auth-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
