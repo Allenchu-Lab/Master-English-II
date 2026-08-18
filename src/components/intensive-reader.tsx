@@ -120,7 +120,7 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
         <nav className="intensive-mobile-index" aria-label={isEnglish ? "Select a paragraph" : "选择精读段落"}>{paragraphs.map((_, index) => <button key={index} className={activeParagraph === index ? "active" : ""} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>{index + 1}{analyses[index] && <Check />}</button>)}</nav>
         {paragraphs.map((paragraph, index) => <button key={index} className={`intensive-paragraph ${activeParagraph === index ? "active" : ""}`} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>
           <span className="intensive-paragraph-number">{String(index + 1).padStart(2, "0")}</span>
-          <SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} />
+          <SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} isEnglish={isEnglish} />
           {analyses[index] && <Check className="intensive-paragraph-check" />}
         </button>)}
       </article>

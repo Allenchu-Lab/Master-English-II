@@ -204,6 +204,22 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .article-action:hover { color: var(--blue-dark); background: transparent; }
 .article-action svg { width: 16px; }
 
+.selectable-highlight { position: relative; }
+.selectable-highlight mark.is-open { outline: 1px solid var(--blue); outline-offset: 1px; }
+/* 查词弹层是浮层，按规范这里允许使用阴影。 */
+.word-lookup { position: absolute; z-index: 20; left: 0; top: 100%; margin-top: 6px; width: min(320px, 90vw); padding: 12px 14px; display: grid; gap: 8px; border: 1px solid var(--border); border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.12); text-align: left; }
+.word-lookup-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.word-lookup-head strong { font-size: 16px; line-height: 26px; font-weight: 700; }
+.word-lookup-head em { color: var(--muted); font-size: 12px; line-height: 18px; font-style: normal; }
+.word-lookup-head i { padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,.06); color: var(--muted); font-size: 12px; line-height: 18px; font-style: normal; }
+.word-lookup-state { color: var(--muted); font-size: 12px; line-height: 18px; }
+.word-lookup-state.is-error { color: #b42318; }
+.word-lookup-meaning { font-size: 14px; line-height: 22px; }
+.word-lookup-context { display: block; padding-top: 8px; border-top: 1px solid var(--border); color: rgba(0,0,0,.72); font-size: 14px; line-height: 22px; }
+.word-lookup-context b { margin-right: 6px; color: var(--muted); font-size: 12px; font-weight: 500; }
+.word-lookup-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.word-lookup-actions button { min-height: 40px; padding: 0 14px; border: 1px solid rgba(0,0,0,.12); border-radius: 8px; background: #fff; color: rgba(0,0,0,.72); font-size: 14px; font-weight: 500; }
+.word-lookup-actions button:hover { border-color: rgba(0,0,0,.22); }
 .article-action.is-disabled { color: var(--muted); cursor: default; }
 .article-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 .article-actions .article-action.primary { color: var(--blue-dark); }

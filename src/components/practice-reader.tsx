@@ -216,14 +216,14 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
         <section className="passage-pane">
           <div className="passage-meta"><span>{passage.year} · Text {passage.number}</span><span>{passage.wordCount} {isEnglish ? "words" : "词"}</span></div>
           <HighlightGuide isEnglish={isEnglish} />
-          <article>{passage.paragraphs.length ? passage.paragraphs.map((paragraph, index) => <p key={index}><SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} /></p>) : <p><SelectableHighlight text={passage.body} scope="passage:0" storageKey={highlightStorageKey} /></p>}</article>
+          <article>{passage.paragraphs.length ? passage.paragraphs.map((paragraph, index) => <p key={index}><SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} isEnglish={isEnglish} /></p>) : <p><SelectableHighlight text={passage.body} scope="passage:0" storageKey={highlightStorageKey} isEnglish={isEnglish} /></p>}</article>
         </section>
 
         <aside className="question-pane">
           <div className="question-progress"><strong>Text {passage.number}</strong><i><b style={{ width: `${answeredCount / passage.questions.length * 100}%` }} /></i><span>{isEnglish ? `${answeredCount} / ${passage.questions.length} answered` : `${answeredCount} / ${passage.questions.length} 已作答`}</span></div>
           <div className="question-scroll">
             {passage.questions.map((question) => <section className={`question-item ${submitted ? "is-disabled" : ""}`} key={question.id} role="group" aria-labelledby={`question-${question.number}`}>
-              <h2 id={`question-${question.number}`}><span>{question.number}</span><SelectableHighlight text={question.prompt} scope={`question:${question.id}`} storageKey={highlightStorageKey} /></h2>
+              <h2 id={`question-${question.number}`}><span>{question.number}</span><SelectableHighlight text={question.prompt} scope={`question:${question.id}`} storageKey={highlightStorageKey} isEnglish={isEnglish} /></h2>
               <div className="option-list">{question.options.map((option) => {
                 const selected = answers[String(question.number)] === option.index;
                 const graded = gradeResult?.questions.find((item) => item.questionNumber === question.number);
