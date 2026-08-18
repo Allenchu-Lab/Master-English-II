@@ -199,9 +199,6 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .article-action { min-height: 40px; padding: 0 4px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; border: 0; border-radius: 6px; background: transparent; color: rgba(0,0,0,.72); font-size: 12px; line-height: 18px; font-weight: 500; transition: color 200ms ease, background-color 200ms ease; }
 .article-action:hover { color: var(--blue-dark); background: transparent; }
 .article-action svg { width: 16px; }
-.practice-alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 24px 12px; padding: 12px 16px; border: 1px solid rgba(0,0,0,.14); border-radius: 8px; background: var(--amber-soft); }
-.practice-alert span { color: rgba(0,0,0,.72); font-size: 14px; line-height: 22px; }
-.practice-alert button { min-height: 40px; padding: 0 16px; border: 1px solid rgba(0,0,0,.14); border-radius: 8px; background: #FFFFFF; color: #000000; font-size: 14px; font-weight: 500; }
 .practice-restart { min-height: 40px; padding: 0 16px; border: 1px solid rgba(0,0,0,.14); border-radius: 8px; background: #FFFFFF; color: #000000; font-size: 14px; line-height: 22px; font-weight: 500; transition: border-color 200ms ease; }
 .practice-restart:hover { border-color: rgba(0,0,0,.28); }
 .article-action.is-disabled { color: var(--muted); cursor: default; }

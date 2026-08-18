@@ -32,7 +32,7 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
    * 再拼——这样取记录的函数不必依赖语言状态，避免它因语言变化而重新生成、
    * 连带触发多余的请求。
    */
-  const [connectIssue, setConnectIssue] = useState<{ status?: number; message?: string } | null>(null);
+
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">("zh");
   const isEnglish = uiLanguage === "en";
 
@@ -50,17 +50,15 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
   }, [timerRunning, submitted]);
 
   /**
-   * 取得（或新建）本篇的练习记录。返回记录编号，失败时返回 null 并记下原因。
+   * 取得（或新建）本篇的练习记录。返回记录编号，失败时返回 null。
    *
-   * 编号是保存和提交的前提，缺了它两者都无法进行。原先失败后只把状态标成
-   * error 就不再重试，用户会在毫不知情的情况下继续答题，答案全部丢失。
+   * 编号是保存和提交的前提。失败不在界面上打扰用户：提交时会再取一次，
+   * 并把完整答案一起发出，所以此处只把状态标成待保存即可。
    */
   const openAttempt = useCallback(async (): Promise<string | null> => {
     try {
       const response = await fetch(`/api/attempts/${passage.id}`);
       if (!response.ok) {
-        const detail = await response.json().catch(() => null) as { error?: string } | null;
-        setConnectIssue({ status: response.status, message: detail?.error });
         setSaveState("error");
         return null;
       }
@@ -71,12 +69,10 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
       // 而不是让用户面对一份空白的答题页。
       setGradeResult(grade ?? null);
       setSubmitted(Boolean(grade));
-      setConnectIssue(null);
       setSaveState("saved");
       return current.id;
     } catch {
       // fetch 抛异常代表请求没能送达，与服务端明确返回错误是两种不同情况。
-      setConnectIssue({});
       setSaveState("error");
       return null;
     }
@@ -89,22 +85,49 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void openAttempt(); }, [openAttempt]);
 
-  // 依赖 attemptId：编号到位后本副作用会自动重新运行，不会像之前那样错过时机。
+  /**
+   * 保存作答。依赖 attemptId，编号到位后会自动重新运行。
+   *
+   * 失败由程序自己退避重试，不打断做题：保存是后台行为，网络抖动不该变成
+   * 用户要处理的事情。即使全部重试都失败也不会丢答案——提交时会把完整
+   * 答案再发一遍，所以这里只需安静地把状态显示出来。
+   */
   useEffect(() => {
     if (!attemptId || submitted) return;
-    const timer = window.setTimeout(async () => {
-      // 放在定时器内而非副作用体内：避免每次选择答案都同步触发一次额外渲染。
-      setSaveState("saving");
+    let cancelled = false;
+    let timer = 0;
+
+    const save = async (attempt: number) => {
       try {
-        const response = await fetch(`/api/attempts/${passage.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attemptId, answers }) });
-        setSaveState(response.ok ? "saved" : "error");
-        setConnectIssue(response.ok ? null : { status: response.status });
+        const response = await fetch(`/api/attempts/${passage.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ attemptId, answers }),
+        });
+        if (cancelled) return;
+        if (response.ok) {
+          setSaveState("saved");
+          return;
+        }
+        retry(attempt, response.status);
       } catch {
-        setSaveState("error");
-        setConnectIssue({});
+        if (!cancelled) retry(attempt);
       }
-    }, 500);
-    return () => window.clearTimeout(timer);
+    };
+
+    // 退避重试：1 秒、2 秒、4 秒。期间状态保持“正在保存”，不弹提示。
+    const retry = (attempt: number, status?: number) => {
+      // 400 和 404 是请求本身的问题，重试不会有不同结果，直接放弃。
+      const worthRetrying = status === undefined || status >= 500 || status === 409;
+      if (attempt >= 3 || !worthRetrying) {
+        setSaveState("error");
+        return;
+      }
+      timer = window.setTimeout(() => { void save(attempt + 1); }, 1000 * 2 ** attempt);
+    };
+
+    timer = window.setTimeout(() => { void save(0); }, 200);
+    return () => { cancelled = true; window.clearTimeout(timer); };
   }, [answers, attemptId, passage.id, submitted]);
 
   /** 重做：请服务端新建一条记录，历史提交保留不动。 */
@@ -112,8 +135,9 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
     setSubmitError(null);
     try {
       const response = await fetch(`/api/attempts/${passage.id}`, { method: "POST" });
+      // 重做是用户主动发起的操作，失败必须告知；后台保存才适合静默重试。
       if (!response.ok) {
-        setConnectIssue({ status: response.status });
+        setSubmitError(isEnglish ? "Could not start a new attempt. Please try again." : "无法开始新一轮练习，请稍后再试。");
         return;
       }
       const { attempt: fresh } = await response.json() as { attempt: { id: string } };
@@ -123,10 +147,9 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
       setSubmitted(false);
       setElapsedSeconds(0);
       setTimerRunning(false);
-      setConnectIssue(null);
       setSaveState("saved");
     } catch {
-      setConnectIssue({});
+      setSubmitError(isEnglish ? "Could not reach the server. Please try again." : "无法连接服务器，请稍后再试。");
     }
   };
 
@@ -182,19 +205,10 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
           <button className="timer-reset" onClick={() => { setTimerRunning(false); setElapsedSeconds(0); }} disabled={submitted || elapsedSeconds === 0} aria-label={isEnglish ? "Reset timer" : "重新计时"} title={isEnglish ? "Reset timer" : "重新计时"}><RotateCcw /></button>
         </div>
         <div className="practice-header-actions">
-          <span className={`save-indicator is-${saveState}`}>{saveState === "saving" && <LoaderCircle />}{saveState === "saved" && <Check />}{saveState === "connecting" ? (isEnglish ? "Connecting" : "正在连接") : saveState === "saving" ? (isEnglish ? "Saving" : "正在保存") : saveState === "saved" ? (isEnglish ? "Saved" : "已自动保存") : (isEnglish ? "Save failed" : "保存失败")}</span>
+          <span className={`save-indicator is-${saveState}`}>{saveState === "saving" && <LoaderCircle />}{saveState === "saved" && <Check />}{saveState === "connecting" ? (isEnglish ? "Connecting" : "正在连接") : saveState === "saving" ? (isEnglish ? "Saving" : "正在保存") : saveState === "saved" ? (isEnglish ? "Saved" : "已自动保存") : (isEnglish ? "Will save on submit" : "提交时一并保存")}</span>
           {submitted ? <span className="header-submitted"><Check />{isEnglish ? "Submitted" : "已提交"}</span> : <button className="header-submit" onClick={submit} disabled={saveState === "connecting" || saveState === "saving"}>{isEnglish ? "Submit" : "提交作答"}</button>}
         </div>
       </header>
-
-      {connectIssue && <div className="practice-alert" role="alert">
-        <span>{connectIssue.message
-          ? `${connectIssue.message}${connectIssue.status ? `（${connectIssue.status}）` : ""}`
-          : connectIssue.status
-            ? (isEnglish ? `Your answers are not being saved (${connectIssue.status}).` : `作答未能保存到服务器（${connectIssue.status}）。`)
-            : (isEnglish ? "Could not reach the server. Your answers are not being saved." : "无法连接服务器，你的作答目前没有被保存。")}</span>
-        <button onClick={() => { void openAttempt(); }}>{isEnglish ? "Retry" : "重试"}</button>
-      </div>}
 
       <div className="practice-layout">
         <section className="passage-pane">
