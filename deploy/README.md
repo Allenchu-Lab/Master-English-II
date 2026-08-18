@@ -143,6 +143,32 @@ gunzip -c /var/backups/master-english/master-english-20260817-030000.sql.gz \
       -d "$(awk -F= '/^POSTGRES_DB=/{print $2}' .env)"
 ```
 
+## 页面能打开但完全没有交互
+
+症状是页面正常显示，但点击切换语言、题型、年份都没有反应。原因通常是浏览器加载脚本时连接被截断，Turbopack 运行时脚本不完整，后续所有脚本都不会执行。
+
+判断方法（`curl` 单次请求测不出来，因为它不复用连接）：
+
+```bash
+bash deploy/check-stability.sh http://你的地址
+```
+
+该脚本用无头 Chrome 打开页面并收集控制台错误与失败请求，出现 `ERR_INCOMPLETE_CHUNKED_ENCODING` 即为此问题。
+
+已知成因是 Nginx 配置里声明了 `proxy_http_version 1.1` 却没有清空 `Connection` 头、也没有配置上游连接池。仓库中的两份配置都已修正，确认服务器上生效：
+
+```bash
+grep -A2 "upstream master_english_app" /etc/nginx/sites-available/master-english
+grep 'proxy_set_header Connection' /etc/nginx/sites-available/master-english
+```
+
+两条都应有输出。缺失则重新部署配置：
+
+```bash
+sudo cp deploy/nginx/master-english.conf /etc/nginx/sites-available/master-english
+sudo nginx -t && sudo systemctl reload nginx
+```
+
 ## 查看错误日志
 
 应用的错误日志是单行 JSON，输出到容器的标准错误，用 Docker 查看：
