@@ -1,17 +1,17 @@
 export type ExamSectionType = "cloze" | "reading_a" | "reading_b" | "translation" | "writing";
 
-export interface ExamQuestion {
-  number: number;
-  prompt: string;
-  options: string[];
-}
-
+/**
+ * 首页文章列表用的轻量结构。
+ *
+ * 刻意不包含正文、题干和选项：列表只显示词数与题数，把这些内容一并查出来
+ * 会让每次打开首页都白传八篇英文原文和一百多个选项，在低带宽下明显拖慢加载。
+ * 正文与选项由练习页按需单独获取。
+ */
 export interface ExamPassage {
   id: string;
   number: number;
-  passage: string;
   wordCount: number;
-  questions: ExamQuestion[];
+  questionCount: number;
   sourcePages: readonly [number, number];
   /**
    * 该篇是否具备完整答案与解析，可以判分。
