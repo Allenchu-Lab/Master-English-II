@@ -87,11 +87,9 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
       try {
         const response = await fetch("/api/attempts");
         if (!response.ok || cancelled) return;
-        const { attempts: data } = await response.json() as { attempts: { passage_id: string; submitted_at: string | null }[] };
-        setAttempts(data.reduce<Record<string, "draft" | "submitted">>((result, attempt) => {
-          result[attempt.passage_id] = attempt.submitted_at || result[attempt.passage_id] === "submitted" ? "submitted" : "draft";
-          return result;
-        }, {}));
+        // 接口已按文章聚合，每篇一条结论，无需再依赖返回顺序累积推断。
+        const { attempts: data } = await response.json() as { attempts: { passage_id: string; submitted: boolean }[] };
+        setAttempts(Object.fromEntries(data.map((attempt) => [attempt.passage_id, attempt.submitted ? "submitted" : "draft"] as const)));
       } catch { /* The library remains usable when account setup is unavailable. */ }
     }
     loadAttempts();
@@ -169,8 +167,10 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
         <aside className="product-nav">
           <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><Image src="/favicon.svg" width={22} height={22} alt="" aria-hidden="true" /><strong>{isEnglish ? "Master English II" : "吃透英语二"}</strong></div>
           <nav>
-            <button className="active"><BookOpen /><span>{isEnglish ? "Practice" : "刷题"}</span></button>
-            <button><BarChart3 /><span>{isEnglish ? "Statistics" : "统计"}</span></button>
+            <button className="active" aria-current="page"><BookOpen /><span>{isEnglish ? "Practice" : "刷题"}</span></button>
+            {/* 统计页尚未实现。保持可见以交代产品结构，但明确标为不可用，
+                而不是留一个点下去毫无反应的按钮。 */}
+            <button disabled aria-disabled="true" title={isEnglish ? "Coming soon" : "即将上线"}><BarChart3 /><span>{isEnglish ? "Statistics" : "统计"}</span><small>{isEnglish ? "Soon" : "即将上线"}</small></button>
           </nav>
           <div className="sidebar-tools"><button className="language-switch" onClick={switchLanguage} aria-label={isEnglish ? "Switch to Chinese" : "切换到英文"} aria-pressed={isEnglish}><Languages /><span>{isEnglish ? "中文" : "English"}</span></button></div>
         </aside>

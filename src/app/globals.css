@@ -43,6 +43,10 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .product-nav nav button.active { color: rgba(0,0,0,.9); background: rgba(0,0,0,.06); }
 .product-nav nav button.active:hover { color: var(--ink); background: rgba(0,0,0,.08); }
 .product-nav nav button svg { width: 20px; }
+/* 未实现的入口：去掉 hover 反馈，避免看起来仍然可点。 */
+.product-nav nav button:disabled { color: var(--muted); cursor: default; }
+.product-nav nav button:disabled:hover { color: var(--muted); background: transparent; }
+.product-nav nav button small { margin-left: auto; padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,.06); color: var(--muted); font-size: 12px; line-height: 18px; font-weight: 400; }
 .sidebar-tools { margin-top: auto; display: grid; gap: 4px; }
 .language-switch, .account-button { display: flex; align-items: center; width: 100%; }
 .language-switch, .account-button { min-height: 40px; border: 0; border-radius: 6px; background: transparent; transition: background-color 200ms ease; }
@@ -384,7 +388,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
   .product-shell { grid-template-columns: 72px minmax(0, 1fr); }
   .product-nav { padding-inline: 10px; }
   .product-brand { display: none; }
-  .product-nav nav button span, .language-switch span { display: none; }
+  .product-nav nav button span, .product-nav nav button small, .language-switch span { display: none; }
   .product-nav nav button { justify-content: center; padding: 0; }
   .language-switch { justify-content: center; padding-inline: 0; }
   .library { padding-inline: 24px; }
