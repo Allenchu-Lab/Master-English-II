@@ -12,6 +12,43 @@ const MAX_TERM_LENGTH = 60;
 /** 只把标记附近的文字作为语境送出，整段过长且对释义无益。 */
 const CONTEXT_RADIUS = 220;
 
+/**
+ * 释义缓存，模块级共享并持久化。
+ *
+ * 原先缓存放在组件内，每个段落各存一份：同一个词在另一段要重新查，刷新后
+ * 全部作废。考研词汇高度复现，这让"正在查询"出现得远比必要频繁。
+ * 改为全页共享并写入本地存储后，一个词在整个应用里只查一次。
+ */
+const cacheStorageKey = "dictionary-cache";
+const CACHE_LIMIT = 300;
+const dictionaryCache = new Map<string, DictionaryEntry>();
+let cacheLoaded = false;
+
+function loadCache() {
+  if (cacheLoaded) return;
+  cacheLoaded = true;
+  try {
+    const saved = window.localStorage.getItem(cacheStorageKey);
+    if (!saved) return;
+    for (const [term, value] of Object.entries(JSON.parse(saved) as Record<string, DictionaryEntry>)) {
+      dictionaryCache.set(term, value);
+    }
+  } catch { /* 缓存损坏时忽略，重新查询即可。 */ }
+}
+
+function rememberEntry(term: string, value: DictionaryEntry) {
+  dictionaryCache.set(term, value);
+  // 超出上限时丢弃最早写入的条目，避免本地存储无限增长。
+  while (dictionaryCache.size > CACHE_LIMIT) {
+    const oldest = dictionaryCache.keys().next().value;
+    if (oldest === undefined) break;
+    dictionaryCache.delete(oldest);
+  }
+  try {
+    window.localStorage.setItem(cacheStorageKey, JSON.stringify(Object.fromEntries(dictionaryCache)));
+  } catch { /* 存储写满时仅失去持久化，内存缓存仍然有效。 */ }
+}
+
 function mergeHighlights(highlights: Highlight[]) {
   return [...highlights]
     .sort((a, b) => a.start - b.start)
@@ -33,9 +70,8 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
   const [lookup, setLookup] = useState<{ index: number; term: string } | null>(null);
   const [entry, setEntry] = useState<DictionaryEntry | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
+  // 只有查询真正慢下来才显示提示，命中缓存或很快返回时不出现。
   const [looking, setLooking] = useState(false);
-  // 同一个词重复点击不再请求，既省调用也避开限流。
-  const cache = useRef(new Map<string, DictionaryEntry>());
 
   useEffect(() => {
     const restore = window.setTimeout(() => {
@@ -110,7 +146,9 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     setLookupError(null);
     setEntry(null);
 
-    const cached = cache.current.get(trimmed.toLowerCase());
+    loadCache();
+    const key = trimmed.toLowerCase();
+    const cached = dictionaryCache.get(key);
     if (cached) {
       setEntry(cached);
       return;
@@ -125,7 +163,8 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     const context = at === -1 ? text.slice(0, CONTEXT_RADIUS * 2)
       : text.slice(Math.max(0, at - CONTEXT_RADIUS), at + trimmed.length + CONTEXT_RADIUS);
 
-    setLooking(true);
+    // 延迟 300 毫秒再显示提示：快的请求不会闪出一行字又立刻消失。
+    const slowTimer = window.setTimeout(() => setLooking(true), 300);
     try {
       const response = await fetch("/api/dictionary", {
         method: "POST",
@@ -137,11 +176,12 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
         setLookupError(data?.error ?? (isEnglish ? "Could not look up this word." : "查词失败，请稍后再试。"));
         return;
       }
-      cache.current.set(trimmed.toLowerCase(), data);
+      rememberEntry(key, data);
       setEntry(data);
     } catch {
       setLookupError(isEnglish ? "Could not reach the server." : "无法连接服务器，请稍后再试。");
     } finally {
+      window.clearTimeout(slowTimer);
       setLooking(false);
     }
   };
