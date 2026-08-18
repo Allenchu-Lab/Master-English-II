@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOrCreateSessionUser } from "@/lib/auth/session";
 import { transaction } from "@/lib/db";
+import { hasCompleteAnswers, KEYS_SQL, PUBLISHED_QUESTION_COUNT_SQL, toGradeResult, type KeyRow } from "@/data/grade-attempt";
 import { logError, logWarn } from "@/lib/log";
 
 /**
@@ -17,8 +18,6 @@ type ExpectedCode = keyof typeof EXPECTED;
 
 const isExpected = (value: unknown): value is ExpectedCode => typeof value === "string" && value in EXPECTED;
 
-type KeyRow = { question_number: number; correct_option: number; prompt_zh: string; option_translations: string[]; explanation: string };
-
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request, { params }: { params: Promise<{ passageId: string }> }) {
@@ -32,23 +31,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ pas
     const result = await transaction(async (client) => {
       const attempt = await client.query("select 1 from practice_attempts where id = $1 and user_id = $2 and passage_id = $3 and submitted_at is null for update", [attemptId, user.id, passageId]);
       if (!attempt.rowCount) throw new Error("ATTEMPT_NOT_FOUND");
-      const keys = await client.query<KeyRow>(
-        `select q.question_number, k.correct_option, k.prompt_zh, k.option_translations, k.explanation
-         from questions q join private.question_keys k on k.question_id = q.id
-         where q.passage_id = $1 and q.status = 'published' order by q.question_number`,
-        [passageId],
-      );
-      const questionCount = await client.query<{ count: string }>("select count(*) from questions where passage_id = $1 and status = 'published'", [passageId]);
+      const keys = await client.query<KeyRow>(KEYS_SQL, [passageId]);
+      const questionCount = await client.query<{ count: string }>(PUBLISHED_QUESTION_COUNT_SQL, [passageId]);
       if (!keys.rowCount || keys.rowCount !== Number(questionCount.rows[0].count)) throw new Error("KEYS_UNAVAILABLE");
-      if (keys.rows.some((item) => !Number.isInteger(answers[String(item.question_number)]) || answers[String(item.question_number)] < 0 || answers[String(item.question_number)] > 3)) throw new Error("INCOMPLETE");
-      const questions = keys.rows.map((item) => ({
-        questionNumber: item.question_number, selectedOption: answers[String(item.question_number)], correctOption: item.correct_option,
-        isCorrect: answers[String(item.question_number)] === item.correct_option, promptZh: item.prompt_zh,
-        optionTranslations: item.option_translations, explanation: item.explanation,
-      }));
-      const score = questions.filter((item) => item.isCorrect).length;
-      await client.query("update practice_attempts set answers = $1, submitted_at = now(), score = $2 where id = $3", [answers, score, attemptId]);
-      return { score, total: questions.length, questions };
+      if (!hasCompleteAnswers(keys.rows, answers)) throw new Error("INCOMPLETE");
+      const result = toGradeResult(keys.rows, answers);
+      await client.query("update practice_attempts set answers = $1, submitted_at = now(), score = $2 where id = $3", [answers, result.score, attemptId]);
+      return result;
     });
     return NextResponse.json(result);
   } catch (error) {

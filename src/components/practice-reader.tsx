@@ -64,10 +64,13 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
         setSaveState("error");
         return null;
       }
-      const { attempt: current } = await response.json() as { attempt: { id: string; answers: Record<string, number> } };
+      const { attempt: current, grade } = await response.json() as { attempt: { id: string; answers: Record<string, number>; submitted_at: string | null }; grade?: GradeResult };
       setAttemptId(current.id);
       setAnswers(current.answers ?? {});
-      setSubmitted(false);
+      // 带回判分结果说明这条记录已提交，直接恢复复盘视图，
+      // 而不是让用户面对一份空白的答题页。
+      setGradeResult(grade ?? null);
+      setSubmitted(Boolean(grade));
       setConnectIssue(null);
       setSaveState("saved");
       return current.id;
@@ -103,6 +106,29 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
     }, 500);
     return () => window.clearTimeout(timer);
   }, [answers, attemptId, passage.id, submitted]);
+
+  /** 重做：请服务端新建一条记录，历史提交保留不动。 */
+  const restart = async () => {
+    setSubmitError(null);
+    try {
+      const response = await fetch(`/api/attempts/${passage.id}`, { method: "POST" });
+      if (!response.ok) {
+        setConnectIssue({ status: response.status });
+        return;
+      }
+      const { attempt: fresh } = await response.json() as { attempt: { id: string } };
+      setAttemptId(fresh.id);
+      setAnswers({});
+      setGradeResult(null);
+      setSubmitted(false);
+      setElapsedSeconds(0);
+      setTimerRunning(false);
+      setConnectIssue(null);
+      setSaveState("saved");
+    } catch {
+      setConnectIssue({});
+    }
+  };
 
   const submit = async () => {
     if (Object.keys(answers).length !== passage.questions.length) {
@@ -201,7 +227,7 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
               </div>}
             </section>)}
           </div>
-          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href="/">{isEnglish ? "Back to library" : "返回首页"}</Link><Link href={`/intensive/${passage.year}/${passage.number}`}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
+          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href="/">{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" onClick={() => { void restart(); }}>{isEnglish ? "Redo" : "重新练习"}</button><Link href={`/intensive/${passage.year}/${passage.number}`}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
         </aside>
       </div>
 
