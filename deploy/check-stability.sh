@@ -25,10 +25,13 @@ CHROME_PID=$!
 # 先等 Chrome 退出再删配置目录，否则它仍在写文件会导致删除失败。
 trap 'kill $CHROME_PID 2>/dev/null; wait $CHROME_PID 2>/dev/null; rm -rf "$PROFILE" 2>/dev/null' EXIT
 
-for _ in $(seq 1 20); do
-  curl -s --max-time 2 "http://127.0.0.1:$PORT/json/version" >/dev/null 2>&1 && break
+# 等待调试接口就绪。启动失败必须明确报出来，否则会被误读成被检查的站点有问题。
+READY=0
+for _ in $(seq 1 30); do
+  if curl -s --max-time 2 "http://127.0.0.1:$PORT/json/version" >/dev/null 2>&1; then READY=1; break; fi
   sleep 0.5
 done
+[ "$READY" -eq 1 ] || { echo "Chrome 调试接口未能在 15 秒内就绪，无法执行检查（端口 $PORT 可能被占用）" >&2; exit 2; }
 
 FAILED=0
 for round in $(seq 1 "$ROUNDS"); do
@@ -56,6 +59,11 @@ for round in $(seq 1 "$ROUNDS"); do
   ' 2>&1)"
   if [ "$OUT" = "OK" ]; then
     echo "  未发现问题"
+  elif printf '%s' "$OUT" | grep -q "ECONNREFUSED\|TypeError\|node:internal"; then
+    # 探测脚本自身出错，不能算作被检查站点的问题，否则结论会误导。
+    echo "$OUT" | sed 's/^/  /'
+    echo "  以上为检查工具自身报错，本轮结果无效"
+    TOOL_ERROR=1
   else
     echo "$OUT" | sed 's/^/  /'
     FAILED=1
