@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PassagePendingGate } from "@/components/passage-pending-gate";
 import { PracticeReader } from "@/components/practice-reader";
@@ -8,6 +9,11 @@ type Props = {
   params: Promise<{ year: string; text: string }>;
   searchParams: Promise<{ redo?: string | string[]; lang?: string | string[] }>;
 };
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const [{ year, text }, { lang }] = await Promise.all([params, searchParams]);
+  return { title: lang === "en" ? `ChiTouEN II · ${year} Text ${text}` : `吃透英语二 · ${year} Text ${text}` };
+}
 
 export default async function PracticePage({ params, searchParams }: Props) {
   const [{ year: yearParam, text: textParam }, { redo, lang }] = await Promise.all([params, searchParams]);
