@@ -275,7 +275,10 @@ export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
   const startButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const show = window.setTimeout(() => setVisible(window.localStorage.getItem(guideStorageKey) !== "true"), 0);
+    const show = window.setTimeout(() => {
+      const forcePreview = new URLSearchParams(window.location.search).get("guide") === "1";
+      setVisible(forcePreview || window.localStorage.getItem(guideStorageKey) !== "true");
+    }, 0);
     const complete = () => setVisible(false);
     window.addEventListener("reading-highlight-created", complete);
     return () => {
