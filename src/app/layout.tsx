@@ -9,7 +9,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("ui-language")==="en"){document.title="ChiTouEN II";document.documentElement.lang="en"}}catch{}` }} />
+      </head>
       <body>{children}</body>
     </html>
   );

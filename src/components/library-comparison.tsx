@@ -83,6 +83,8 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
 
   const switchLanguage = () => {
     const nextLanguage = isEnglish ? "zh" : "en";
+    document.title = nextLanguage === "en" ? "ChiTouEN II" : "吃透英语二";
+    document.documentElement.lang = nextLanguage === "en" ? "en" : "zh-CN";
     setUiLanguage(nextLanguage);
     window.localStorage.setItem("ui-language", nextLanguage);
   };
