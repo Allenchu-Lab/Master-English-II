@@ -312,8 +312,7 @@ export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
 
       <div className="highlight-demo" aria-hidden="true">
         <span className="highlight-demo-label">Text 1</span>
-        <p>Reading becomes easier when you <mark>notice the key idea</mark> in each sentence.</p>
-        <MousePointer2 className="highlight-demo-cursor" />
+        <p>Reading becomes easier when you <span className="highlight-demo-target"><mark>notice the key idea</mark><MousePointer2 className="highlight-demo-cursor" /></span> in each sentence.</p>
         <span className="highlight-demo-tip">{isEnglish ? "Drag to highlight · Click to remove" : "拖动划重点 · 点击取消"}</span>
       </div>
 

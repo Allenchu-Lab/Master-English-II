@@ -292,15 +292,16 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .highlight-demo { position: relative; min-height: 150px; margin: 22px 0 20px; padding: 20px 22px 38px; overflow: hidden; border: 1px solid rgba(0,0,0,.08); border-radius: 8px; background: #f8faf9; }
 .highlight-demo-label { display: block; margin-bottom: 13px; color: var(--blue-dark); font-family: var(--font-ui); font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: .08em; }
 .highlight-demo p { margin: 0; color: rgba(0,0,0,.8); font-family: Georgia, "Times New Roman", serif; font-size: 16px; line-height: 30px; }
+.highlight-demo-target { position: relative; display: inline-block; white-space: nowrap; }
 .highlight-demo mark { padding: 1px 2px; background-color: transparent; background-image: linear-gradient(rgba(255,218,82,.58), rgba(255,218,82,.58)); background-position: left center; background-repeat: no-repeat; background-size: 0 82%; color: inherit; animation: highlight-demo-mark 4s ease-in-out infinite; }
-.highlight-demo-cursor { position: absolute; left: 39%; top: 78px; width: 18px; color: var(--blue-dark); filter: drop-shadow(0 1px 1px rgba(0,0,0,.12)); animation: highlight-demo-cursor 4s ease-in-out infinite; }
+.highlight-demo-cursor { position: absolute; z-index: 1; left: 0; top: 17px; width: 18px; color: var(--blue-dark); filter: drop-shadow(0 1px 1px rgba(0,0,0,.12)); animation: highlight-demo-cursor 4s ease-in-out infinite; }
 .highlight-demo-tip { position: absolute; right: 14px; bottom: 10px; color: var(--muted); font-size: 10px; line-height: 16px; }
 .highlight-onboarding-start { width: 100%; min-height: 42px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; }
 .highlight-onboarding-start:hover { background: var(--blue-dark); }
 @keyframes highlight-backdrop-in { from { opacity: 0; } }
 @keyframes highlight-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
 @keyframes highlight-demo-mark { 0%, 17%, 100% { background-size: 0 82%; } 42%, 74% { background-size: 100% 82%; } 86% { background-size: 0 82%; } }
-@keyframes highlight-demo-cursor { 0%, 8% { opacity: 0; transform: translate(-8px, 10px); } 16% { opacity: 1; transform: translate(-8px, 10px); } 42% { opacity: 1; transform: translate(92px, 10px); } 60% { opacity: 1; transform: translate(46px, 3px); } 67% { opacity: 1; transform: translate(46px, 3px) scale(.82); } 73% { opacity: 1; transform: translate(46px, 3px) scale(1); } 86%, 100% { opacity: 0; transform: translate(46px, 3px); } }
+@keyframes highlight-demo-cursor { 0%, 8% { left: 0; opacity: 0; transform: translate(-5px, 0); } 16% { left: 0; opacity: 1; transform: translate(-5px, 0); } 42% { left: 100%; opacity: 1; transform: translate(-8px, 0); } 60% { left: 50%; opacity: 1; transform: translate(-5px, -1px); } 67% { left: 50%; opacity: 1; transform: translate(-5px, -1px) scale(.82); } 73% { left: 50%; opacity: 1; transform: translate(-5px, -1px) scale(1); } 86%, 100% { left: 50%; opacity: 0; transform: translate(-5px, -1px); } }
 @media (prefers-reduced-motion: reduce) { .highlight-onboarding-backdrop, .highlight-onboarding { animation: none; } .highlight-demo mark { animation: none; background-size: 100% 82%; } .highlight-demo-cursor { display: none; } }
 .question-pane { min-width: 0; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; background: #fcfcfc; }
 .question-progress { min-height: 56px; padding: 0 28px; display: grid; grid-template-columns: auto minmax(48px, 1fr) auto; align-items: center; gap: 16px; border-bottom: 1px solid var(--border); }
