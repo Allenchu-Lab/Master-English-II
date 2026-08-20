@@ -23,14 +23,14 @@ const sectionMeta: Record<ExamSectionType, { zh: string; en: string; zhUnit: str
 
 const sectionOrder: ExamSectionType[] = ["reading_a", "reading_b", "cloze", "translation", "writing"];
 
-export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
+export function LibraryComparison({ papers, initialLanguage = "zh" }: { papers: ExamPaperMap; initialLanguage?: "zh" | "en" }) {
   const pageRef = useRef<HTMLElement>(null);
   const sketchRef = useRef<HTMLDivElement>(null);
   const firstContentRender = useRef(true);
   const years = useMemo(() => Object.values(papers).map((paper) => paper.year).sort((a, b) => b - a), [papers]);
   const [year, setYear] = useState(() => years[0] ?? 0);
   const [activeType, setActiveType] = useState(0);
-  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">("zh");
+  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
   const [authRevision, setAuthRevision] = useState(0);
   const isEnglish = uiLanguage === "en";
@@ -70,6 +70,11 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
   const articleTotal = articles.length || sectionItemCount;
 
   useEffect(() => {
+    const urlLanguage = new URLSearchParams(window.location.search).get("lang");
+    if (urlLanguage === "en" || urlLanguage === "zh") {
+      window.localStorage.setItem("ui-language", urlLanguage);
+      return;
+    }
     const savedLanguage = window.localStorage.getItem("ui-language");
     if (savedLanguage !== "en" && savedLanguage !== "zh") return;
     const timer = window.setTimeout(() => setUiLanguage(savedLanguage), 0);
@@ -86,7 +91,13 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
     document.documentElement.lang = nextLanguage === "en" ? "en" : "zh-CN";
     setUiLanguage(nextLanguage);
     window.localStorage.setItem("ui-language", nextLanguage);
+    const url = new URL(window.location.href);
+    if (nextLanguage === "en") url.searchParams.set("lang", "en");
+    else url.searchParams.delete("lang");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
   };
+
+  const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
   useEffect(() => {
     let cancelled = false;
@@ -220,7 +231,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
                     }
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const action = state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
-                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Intensive reading unlocked" : "已解锁精读") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><Link className="article-action secondary" href={`/practice/${year}/${article.number}?redo=1`}>{isEnglish ? "Redo" : "重新练习"}</Link><Link className="article-action primary" href={`/intensive/${year}/${article.number}`}>{isEnglish ? "Study deeply" : "进入精读"}<ChevronRight /></Link></div> : <Link className="article-action" href={`/practice/${year}/${article.number}`}>{action}<ChevronRight /></Link>}</div></article>;
+                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Intensive reading unlocked" : "已解锁精读") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><Link className="article-action secondary" href={languageHref(`/practice/${year}/${article.number}?redo=1`)}>{isEnglish ? "Redo" : "重新练习"}</Link><Link className="article-action primary" href={languageHref(`/intensive/${year}/${article.number}`)}>{isEnglish ? "Study deeply" : "进入精读"}<ChevronRight /></Link></div> : <Link className="article-action" href={languageHref(`/practice/${year}/${article.number}`)}>{action}<ChevronRight /></Link>}</div></article>;
                   }) : <div className="article-empty"><p>{!selectedPaper ? (isEnglish ? "No paper has been imported yet." : "题库尚未导入任何真题。") : selectedType?.available ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "This section is not open yet." : "该题型尚未开放。")}</p></div>}</div>
                 </div>
               </div>

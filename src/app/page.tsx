@@ -3,7 +3,8 @@ import { getExamPapers } from "@/data/get-exam-papers";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ lang?: string | string[] }> }) {
+  const { lang } = await searchParams;
   const papers = await getExamPapers();
-  return <LibraryComparison papers={papers} />;
+  return <LibraryComparison papers={papers} initialLanguage={lang === "en" ? "en" : "zh"} />;
 }

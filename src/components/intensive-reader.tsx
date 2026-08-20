@@ -15,7 +15,7 @@ type ParagraphAnalysis = {
   examTip: string;
 };
 
-export function IntensiveReader({ passage }: { passage: PracticePassage }) {
+export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: PracticePassage; initialLanguage?: "zh" | "en" }) {
   const paragraphs = useMemo(() => passage.paragraphs.length ? passage.paragraphs : [passage.body], [passage.body, passage.paragraphs]);
   const [accessState, setAccessState] = useState<AccessState>("checking");
   const [activeParagraph, setActiveParagraph] = useState(0);
@@ -23,10 +23,15 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [loadingParagraph, setLoadingParagraph] = useState<number | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">("zh");
+  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
   const isEnglish = uiLanguage === "en";
 
   useEffect(() => {
+    const urlLanguage = new URLSearchParams(window.location.search).get("lang");
+    if (urlLanguage === "en" || urlLanguage === "zh") {
+      window.localStorage.setItem("ui-language", urlLanguage);
+      return;
+    }
     const savedLanguage = window.localStorage.getItem("ui-language");
     if (savedLanguage !== "en" && savedLanguage !== "zh") return;
     const timer = window.setTimeout(() => setUiLanguage(savedLanguage), 0);
@@ -103,20 +108,21 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
       <div>{accessState === "checking" ? <LoaderCircle className="is-spinning" /> : <LockKeyhole />}</div>
       <h1>{accessState === "checking" ? (isEnglish ? "Checking your progress" : "正在确认学习进度") : accessState === "denied" ? (isEnglish ? "Submit your answers to unlock intensive reading" : "完成作答后解锁精读") : (isEnglish ? "Unable to check your progress" : "暂时无法确认学习进度")}</h1>
       <p>{accessState === "checking" ? (isEnglish ? "Please wait…" : "请稍候……") : accessState === "denied" ? (isEnglish ? "Intensive reading begins after submission. Complete this passage first, then return to study it paragraph by paragraph." : "精读属于提交后的学习阶段。先独立完成并提交这篇文章，再回来逐段吃透。") : (isEnglish ? "Check your connection and try again, or return to the library." : "请检查网络连接后重试，或先返回首页。")}</p>
-      {accessState !== "checking" && <div className="intensive-gate-actions"><Link href={`/practice/${passage.year}/${passage.number}`}>{accessState === "denied" ? (isEnglish ? "Complete practice" : "去完成作答") : (isEnglish ? "Try again" : "重试进入")}</Link><Link href="/" className="secondary">{isEnglish ? "Back to library" : "返回首页"}</Link></div>}
+      {accessState !== "checking" && <div className="intensive-gate-actions"><Link href={isEnglish ? `/practice/${passage.year}/${passage.number}?lang=en` : `/practice/${passage.year}/${passage.number}`}>{accessState === "denied" ? (isEnglish ? "Complete practice" : "去完成作答") : (isEnglish ? "Try again" : "重试进入")}</Link><Link href={isEnglish ? "/?lang=en" : "/"} className="secondary">{isEnglish ? "Back to library" : "返回首页"}</Link></div>}
     </main>;
   }
 
   const analysis = analyses[activeParagraph];
   const completedCount = Object.keys(analyses).length;
   const highlightStorageKey = `reading-highlights:${passage.id}`;
+  const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
   return <main className="intensive-page">
     <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number} · Intensive Reading` : `吃透英语二 · ${passage.year} Text ${passage.number} · 精读`}</title>
     <header className="intensive-header">
-      <Link href="/" className="practice-back" aria-label={isEnglish ? "Back to library" : "返回首页"}><ArrowLeft /></Link>
-      <nav><BookOpen /><Link href="/">{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number} {isEnglish ? "Intensive Reading" : "精读"}</strong></nav>
-      <Link className="intensive-review-link" href={`/practice/${passage.year}/${passage.number}`}><RotateCcw />{isEnglish ? "Review answers" : "回看作答"}</Link>
+      <Link href={languageHref("/")} className="practice-back" aria-label={isEnglish ? "Back to library" : "返回首页"}><ArrowLeft /></Link>
+      <nav><BookOpen /><Link href={languageHref("/")}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number} {isEnglish ? "Intensive Reading" : "精读"}</strong></nav>
+      <Link className="intensive-review-link" href={languageHref(`/practice/${passage.year}/${passage.number}`)}><RotateCcw />{isEnglish ? "Review answers" : "回看作答"}</Link>
     </header>
 
     <div className="intensive-layout">
@@ -155,7 +161,7 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
 
         <footer className="intensive-panel-nav">
           <button disabled={activeParagraph === 0} onClick={() => setActiveParagraph((current) => current - 1)}><ChevronLeft />{isEnglish ? "Previous" : "上一段"}</button>
-          {activeParagraph < paragraphs.length - 1 ? <button className="primary" onClick={() => setActiveParagraph((current) => current + 1)}>{isEnglish ? "Next" : "下一段"}<ChevronRight /></button> : <Link href="/">{isEnglish ? "Finish and return" : "完成精读，返回首页"}<Check /></Link>}
+          {activeParagraph < paragraphs.length - 1 ? <button className="primary" onClick={() => setActiveParagraph((current) => current + 1)}>{isEnglish ? "Next" : "下一段"}<ChevronRight /></button> : <Link href={languageHref("/")}>{isEnglish ? "Finish and return" : "完成精读，返回首页"}<Check /></Link>}
         </footer>
       </aside>
     </div>

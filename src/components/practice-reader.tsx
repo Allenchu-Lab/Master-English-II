@@ -9,7 +9,7 @@ import { HighlightGuide, SelectableHighlight } from "@/components/selectable-hig
 type GradedQuestion = { questionNumber: number; selectedOption: number; correctOption: number; isCorrect: boolean; promptZh: string; optionTranslations: string[]; explanation: string };
 type GradeResult = { score: number; total: number; questions: GradedQuestion[] };
 
-export function PracticeReader({ passage, startFresh = false }: { passage: PracticePassage; startFresh?: boolean }) {
+export function PracticeReader({ passage, startFresh = false, initialLanguage = "zh" }: { passage: PracticePassage; startFresh?: boolean; initialLanguage?: "zh" | "en" }) {
   const openedRef = useRef(false);
   /**
    * 练习记录编号必须是 state 而不是 ref。
@@ -40,10 +40,15 @@ export function PracticeReader({ passage, startFresh = false }: { passage: Pract
    * 连带触发多余的请求。
    */
 
-  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">("zh");
+  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
   const isEnglish = uiLanguage === "en";
 
   useEffect(() => {
+    const urlLanguage = new URLSearchParams(window.location.search).get("lang");
+    if (urlLanguage === "en" || urlLanguage === "zh") {
+      window.localStorage.setItem("ui-language", urlLanguage);
+      return;
+    }
     const savedLanguage = window.localStorage.getItem("ui-language");
     if (savedLanguage !== "en" && savedLanguage !== "zh") return;
     const timer = window.setTimeout(() => setUiLanguage(savedLanguage), 0);
@@ -79,7 +84,7 @@ export function PracticeReader({ passage, startFresh = false }: { passage: Pract
       setSubmitted(Boolean(grade));
       // Redo 只在入口消费一次。清掉查询参数，刷新页面时继续当前这轮，
       // 不会因为地址仍带 redo 而重复新建练习记录。
-      if (fresh) window.history.replaceState(window.history.state, "", `/practice/${passage.year}/${passage.number}`);
+      if (fresh) window.history.replaceState(window.history.state, "", `/practice/${passage.year}/${passage.number}${new URLSearchParams(window.location.search).get("lang") === "en" ? "?lang=en" : ""}`);
       return current.id;
     } catch {
       // fetch 抛异常代表请求没能送达，与服务端明确返回错误是两种不同情况。
@@ -204,12 +209,13 @@ export function PracticeReader({ passage, startFresh = false }: { passage: Pract
   const answeredCount = Object.keys(answers).length;
   const elapsed = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
   const highlightStorageKey = `reading-highlights:${passage.id}`;
+  const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
   return (
     <main className="practice-page">
       <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number}` : `吃透英语二 · ${passage.year} Text ${passage.number}`}</title>
       <header className="practice-header">
-        <Link href="/" className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
-        <nav><BookOpen /><Link href="/">{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number}</strong></nav>
+        <Link href={languageHref("/")} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
+        <nav><BookOpen /><Link href={languageHref("/")}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number}</strong></nav>
         <div className="practice-timer-group">
           <button className={`practice-timer ${timerRunning ? "is-running" : ""}`} onClick={() => setTimerRunning((running) => !running)} disabled={submitted} aria-label={timerRunning ? (isEnglish ? "Pause timer" : "暂停计时") : (isEnglish ? "Start timer" : "开始计时")}>
             {timerRunning ? <Pause /> : elapsedSeconds ? <Play /> : <Clock3 />}<span>{elapsed}</span><small>{timerRunning ? (isEnglish ? "Pause" : "暂停") : elapsedSeconds ? (isEnglish ? "Resume" : "继续") : (isEnglish ? "Start" : "开始")}</small>
@@ -254,7 +260,7 @@ export function PracticeReader({ passage, startFresh = false }: { passage: Pract
               </div>}
             </section>)}
           </div>
-          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href="/">{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" onClick={() => { void restart(); }}>{isEnglish ? "Redo" : "重新练习"}</button><Link href={`/intensive/${passage.year}/${passage.number}`}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
+          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href={languageHref("/")}>{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" onClick={() => { void restart(); }}>{isEnglish ? "Redo" : "重新练习"}</button><Link href={languageHref(`/intensive/${passage.year}/${passage.number}`)}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
         </aside>
       </div>
 
