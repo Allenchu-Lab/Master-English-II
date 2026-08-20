@@ -210,7 +210,6 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .article-action svg { width: 16px; }
 
 .selectable-highlight { position: relative; }
-.selectable-highlight mark.is-open { outline: 1px solid var(--blue); outline-offset: 1px; }
 /* 查词弹层是浮层，按规范这里允许使用阴影。 */
 .word-lookup { position: absolute; z-index: 20; left: 0; top: 100%; margin-top: 6px; width: min(320px, 90vw); padding: 12px 14px; display: grid; gap: 8px; border: 1px solid var(--border); border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.12); text-align: left; }
 .word-lookup-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }

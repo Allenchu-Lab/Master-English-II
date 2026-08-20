@@ -237,9 +237,8 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       ? <span key={index}>{segment.text}</span>
       : <mark
           key={index}
-          className={lookup?.index === segment.highlightIndex ? "is-open" : ""}
-          onClick={(event) => { event.stopPropagation(); void openLookup(segment.text, highlights[segment.highlightIndex!].start, event.currentTarget, segment.highlightIndex); }}
-          title={isEnglish ? "Look up this word" : "点击查看释义"}
+          onClick={(event) => { event.stopPropagation(); removeHighlight(segment.highlightIndex!); }}
+          title={isEnglish ? "Remove highlight" : "点击取消标记"}
         >{segment.text}</mark>)}
 
     {lookup && <span className="word-lookup" style={lookup.x === undefined ? undefined : { left: lookup.x, top: lookup.y }} role="dialog" aria-label={isEnglish ? "Word meaning" : "词汇释义"} onClick={(event) => event.stopPropagation()}>
@@ -286,7 +285,7 @@ export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
 
   return <aside className="highlight-guide" aria-label={isEnglish ? "Highlight guide" : "划词标记引导"}>
     <span aria-hidden="true">Highlight</span>
-    <p>{isEnglish ? "Drag over text to highlight it, then click the highlight to see what it means." : "拖选文字即可标记，点击标记可查看释义。"}</p>
+    <p>{isEnglish ? "Drag over text to highlight it. Click a highlight to remove it." : "拖选文字即可标记，点击高亮可取消标记。"}</p>
     <button type="button" onClick={dismiss} aria-label={isEnglish ? "Dismiss guide" : "关闭引导"}>×</button>
   </aside>;
 }
