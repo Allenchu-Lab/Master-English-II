@@ -297,9 +297,9 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .highlight-demo mark { padding: 1px 2px; background-color: transparent; background-image: linear-gradient(rgba(255,218,82,.58), rgba(255,218,82,.58)); background-position: left center; background-repeat: no-repeat; background-size: 0 82%; color: inherit; animation: highlight-demo-mark 4s ease-in-out infinite; }
 .highlight-demo-cursor { position: absolute; z-index: 1; left: 0; top: 17px; width: 18px; color: var(--blue-dark); filter: drop-shadow(0 1px 1px rgba(0,0,0,.12)); animation: highlight-demo-cursor 4s ease-in-out infinite; }
 .highlight-demo-tip { position: absolute; right: 14px; bottom: 10px; color: var(--muted); font-size: 10px; line-height: 16px; }
-.highlight-onboarding-start { width: 100%; min-height: 42px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; }
+.highlight-onboarding-start { width: 100%; min-height: 42px; border: 0; outline: 0; border-radius: 6px; background: var(--blue); box-shadow: none; color: #fff; font-size: 14px; font-weight: 600; }
 .highlight-onboarding-start:hover { background: var(--blue-dark); }
-.highlight-onboarding-start:focus-visible { outline: none; background: var(--blue-dark); }
+.highlight-onboarding-start:focus, .highlight-onboarding-start:focus-visible { border: 0; outline: 0; outline-offset: 0; background: var(--blue-dark); box-shadow: none; }
 @keyframes highlight-backdrop-in { from { opacity: 0; } }
 @keyframes highlight-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
 @keyframes highlight-demo-mark { 0%, 17%, 100% { background-size: 0 82%; } 42%, 74% { background-size: 100% 82%; } 86% { background-size: 0 82%; } }
