@@ -71,8 +71,6 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
   const [lookup, setLookup] = useState<{ index?: number; term: string; start: number; x?: number; y?: number } | null>(null);
   const [entry, setEntry] = useState<DictionaryEntry | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
-  // 只有查询真正慢下来才显示提示，命中缓存或很快返回时不出现。
-  const [looking, setLooking] = useState(false);
 
   useEffect(() => {
     if (mode !== "highlight") return;
@@ -95,7 +93,6 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     if (!lookup) return;
     const close = () => {
       lookupRequestRef.current += 1;
-      setLooking(false);
       setLookup(null);
     };
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") close(); };
@@ -167,7 +164,6 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     const trimmed = term.trim();
     if (lookup?.term === trimmed && lookup.start === start) {
       lookupRequestRef.current += 1;
-      setLooking(false);
       setLookup(null);
       return;
     }
@@ -178,8 +174,8 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     const x = containerRect ? Math.min(anchorRect.left - containerRect.left, Math.max(0, containerRect.width - popoverWidth)) : undefined;
     const y = containerRect ? anchorRect.bottom - containerRect.top : undefined;
     const requestId = ++lookupRequestRef.current;
-    setLookup({ index, term: trimmed, start, x, y });
-    setLooking(false);
+    const nextLookup = { index, term: trimmed, start, x, y };
+    setLookup(null);
     setLookupError(null);
     setEntry(null);
 
@@ -187,10 +183,12 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     const key = trimmed.toLowerCase();
     const cached = dictionaryCache.get(key);
     if (cached) {
+      setLookup(nextLookup);
       setEntry(cached);
       return;
     }
     if (trimmed.length > MAX_TERM_LENGTH) {
+      setLookup(nextLookup);
       setLookupError(isEnglish ? "Select a shorter phrase to look up." : "选中的内容过长，请选更短的词或短语。");
       return;
     }
@@ -198,10 +196,6 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     // 只截取标记周围的文字作为语境，帮助 AI 判断该词在本句中的含义。
     const context = text.slice(Math.max(0, start - CONTEXT_RADIUS), start + trimmed.length + CONTEXT_RADIUS);
 
-    // 延迟 300 毫秒再显示提示：快的请求不会闪出一行字又立刻消失。
-    const slowTimer = window.setTimeout(() => {
-      if (requestId === lookupRequestRef.current) setLooking(true);
-    }, 300);
     try {
       const response = await fetch("/api/dictionary", {
         method: "POST",
@@ -210,6 +204,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       });
       const data = await response.json().catch(() => null) as (DictionaryEntry & { error?: string }) | null;
       if (requestId !== lookupRequestRef.current) return;
+      setLookup(nextLookup);
       if (!response.ok || !data?.meaning) {
         setLookupError(data?.error ?? (isEnglish ? "Could not look up this word." : "查词失败，请稍后再试。"));
         return;
@@ -217,10 +212,10 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       rememberEntry(key, data);
       setEntry(data);
     } catch {
-      if (requestId === lookupRequestRef.current) setLookupError(isEnglish ? "Could not reach the server." : "无法连接服务器，请稍后再试。");
-    } finally {
-      window.clearTimeout(slowTimer);
-      if (requestId === lookupRequestRef.current) setLooking(false);
+      if (requestId === lookupRequestRef.current) {
+        setLookup(nextLookup);
+        setLookupError(isEnglish ? "Could not reach the server." : "无法连接服务器，请稍后再试。");
+      }
     }
   };
 
@@ -247,7 +242,6 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
         {entry?.phonetic && <em>{entry.phonetic}</em>}
         {entry?.partOfSpeech && <i>{entry.partOfSpeech}</i>}
       </span>
-      {looking && <span className="word-lookup-state">{isEnglish ? "Looking up…" : "正在查询…"}</span>}
       {lookupError && <span className="word-lookup-state is-error">{lookupError}</span>}
       {entry && <>
         <span className="word-lookup-meaning">{entry.meaning}</span>
@@ -257,7 +251,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       </>}
       <span className="word-lookup-actions">
         {lookup.index !== undefined && <button type="button" onClick={() => removeHighlight(lookup.index!)}>{isEnglish ? "Remove highlight" : "取消标记"}</button>}
-        <button type="button" onClick={() => { lookupRequestRef.current += 1; setLooking(false); setLookup(null); }}>{isEnglish ? "Close" : "关闭"}</button>
+        <button type="button" onClick={() => { lookupRequestRef.current += 1; setLookup(null); }}>{isEnglish ? "Close" : "关闭"}</button>
       </span>
     </span>}
   </span>;
