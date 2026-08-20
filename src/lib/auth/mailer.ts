@@ -10,7 +10,7 @@ import nodemailer from "nodemailer";
  * 腾讯云 SES 配置（SES_SECRET_ID / SES_SECRET_KEY / SES_REGION / SES_FROM_EMAIL）：
  * 1. 控制台开通邮件推送，完成发信域名验证（含 SPF/DKIM）；
  * 2. 在"发信地址"中创建发信地址，SES_FROM_EMAIL 填该地址（可带别名，如
- *    "Master English II <noreply@yourdomain.com>"，别名与邮箱间必须有一个空格）；
+ *    "ChiTouEN II <noreply@yourdomain.com>"，别名与邮箱间必须有一个空格）；
  * 3. 在访问管理 CAM 中创建子账号，授权 QcloudSESFullAccess，得到 SecretId/SecretKey。
  */
 
@@ -63,7 +63,7 @@ async function sendViaSmtp(email: string, subject: string, text: string, html: s
 }
 
 export async function sendLoginCode(email: string, code: string) {
-  const subject = "Master English II 登录验证码";
+  const subject = "ChiTouEN II 登录验证码";
   const text = `你的登录验证码是：${code}。验证码 10 分钟内有效，请勿转发给他人。`;
   const html = `<p>你的登录验证码是：</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p><p>验证码 10 分钟内有效，请勿转发给他人。</p>`;
 

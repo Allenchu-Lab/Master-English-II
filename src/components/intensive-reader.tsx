@@ -34,6 +34,11 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
   }, []);
 
   useEffect(() => {
+    document.title = isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number} · Intensive Reading` : `吃透英语二 · ${passage.year} Text ${passage.number} · 精读`;
+    document.documentElement.lang = isEnglish ? "en" : "zh-CN";
+  }, [isEnglish, passage.number, passage.year]);
+
+  useEffect(() => {
     let cancelled = false;
     async function checkAccess() {
       try {

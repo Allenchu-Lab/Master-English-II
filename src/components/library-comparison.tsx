@@ -76,6 +76,11 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    document.title = isEnglish ? "ChiTouEN II" : "吃透英语二";
+    document.documentElement.lang = isEnglish ? "en" : "zh-CN";
+  }, [isEnglish]);
+
   const switchLanguage = () => {
     const nextLanguage = isEnglish ? "zh" : "en";
     setUiLanguage(nextLanguage);
@@ -166,7 +171,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
     <main className="comparison" ref={pageRef}>
       <div className="product-shell">
         <aside className="product-nav">
-          <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><Image src="/favicon.svg" width={22} height={22} alt="" aria-hidden="true" /><strong>{isEnglish ? "Master English II" : "吃透英语二"}</strong></div>
+          <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><Image src="/favicon.svg" width={22} height={22} alt="" aria-hidden="true" /><strong>{isEnglish ? "ChiTouEN II" : "吃透英语二"}</strong></div>
           <nav>
             <button className="active" aria-current="page"><BookOpen /><span>{isEnglish ? "Practice" : "刷题"}</span></button>
             {/* 统计页尚未实现。保持可见以交代产品结构，但明确标为不可用，

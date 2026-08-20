@@ -51,6 +51,11 @@ export function PracticeReader({ passage, startFresh = false }: { passage: Pract
   }, []);
 
   useEffect(() => {
+    document.title = isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number}` : `吃透英语二 · ${passage.year} Text ${passage.number}`;
+    document.documentElement.lang = isEnglish ? "en" : "zh-CN";
+  }, [isEnglish, passage.number, passage.year]);
+
+  useEffect(() => {
     if (!timerRunning || submitted) return;
     const timer = window.setInterval(() => setElapsedSeconds((seconds) => seconds + 1), 1000);
     return () => window.clearInterval(timer);
