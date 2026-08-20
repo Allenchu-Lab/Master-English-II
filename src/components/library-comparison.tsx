@@ -77,7 +77,6 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
   }, []);
 
   useEffect(() => {
-    document.title = isEnglish ? "ChiTouEN II" : "吃透英语二";
     document.documentElement.lang = isEnglish ? "en" : "zh-CN";
   }, [isEnglish]);
 
@@ -171,6 +170,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
 
   return (
     <main className="comparison" ref={pageRef}>
+      <title>{isEnglish ? "ChiTouEN II" : "吃透英语二"}</title>
       <div className="product-shell">
         <aside className="product-nav">
           <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><Image src="/favicon.svg" width={22} height={22} alt="" aria-hidden="true" /><strong>{isEnglish ? "ChiTouEN II" : "吃透英语二"}</strong></div>

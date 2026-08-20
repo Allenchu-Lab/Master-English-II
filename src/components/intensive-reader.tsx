@@ -34,7 +34,6 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
   }, []);
 
   useEffect(() => {
-    document.title = isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number} · Intensive Reading` : `吃透英语二 · ${passage.year} Text ${passage.number} · 精读`;
     document.documentElement.lang = isEnglish ? "en" : "zh-CN";
   }, [isEnglish, passage.number, passage.year]);
 
@@ -100,6 +99,7 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
 
   if (accessState !== "allowed") {
     return <main className="intensive-gate">
+      <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number} · Intensive Reading` : `吃透英语二 · ${passage.year} Text ${passage.number} · 精读`}</title>
       <div>{accessState === "checking" ? <LoaderCircle className="is-spinning" /> : <LockKeyhole />}</div>
       <h1>{accessState === "checking" ? (isEnglish ? "Checking your progress" : "正在确认学习进度") : accessState === "denied" ? (isEnglish ? "Submit your answers to unlock intensive reading" : "完成作答后解锁精读") : (isEnglish ? "Unable to check your progress" : "暂时无法确认学习进度")}</h1>
       <p>{accessState === "checking" ? (isEnglish ? "Please wait…" : "请稍候……") : accessState === "denied" ? (isEnglish ? "Intensive reading begins after submission. Complete this passage first, then return to study it paragraph by paragraph." : "精读属于提交后的学习阶段。先独立完成并提交这篇文章，再回来逐段吃透。") : (isEnglish ? "Check your connection and try again, or return to the library." : "请检查网络连接后重试，或先返回首页。")}</p>
@@ -112,6 +112,7 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
   const highlightStorageKey = `reading-highlights:${passage.id}`;
 
   return <main className="intensive-page">
+    <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number} · Intensive Reading` : `吃透英语二 · ${passage.year} Text ${passage.number} · 精读`}</title>
     <header className="intensive-header">
       <Link href="/" className="practice-back" aria-label={isEnglish ? "Back to library" : "返回首页"}><ArrowLeft /></Link>
       <nav><BookOpen /><Link href="/">{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number} {isEnglish ? "Intensive Reading" : "精读"}</strong></nav>

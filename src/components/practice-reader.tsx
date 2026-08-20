@@ -51,7 +51,6 @@ export function PracticeReader({ passage, startFresh = false }: { passage: Pract
   }, []);
 
   useEffect(() => {
-    document.title = isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number}` : `吃透英语二 · ${passage.year} Text ${passage.number}`;
     document.documentElement.lang = isEnglish ? "en" : "zh-CN";
   }, [isEnglish, passage.number, passage.year]);
 
@@ -207,6 +206,7 @@ export function PracticeReader({ passage, startFresh = false }: { passage: Pract
   const highlightStorageKey = `reading-highlights:${passage.id}`;
   return (
     <main className="practice-page">
+      <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number}` : `吃透英语二 · ${passage.year} Text ${passage.number}`}</title>
       <header className="practice-header">
         <Link href="/" className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
         <nav><BookOpen /><Link href="/">{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number}</strong></nav>
