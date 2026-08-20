@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, LoaderCircle, LockKeyhole, RotateCcw, Sparkles } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
-import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
+import { SelectableHighlight } from "@/components/selectable-highlight";
 
 type AccessState = "checking" | "allowed" | "denied" | "error";
 type ParagraphAnalysis = {
@@ -115,14 +115,13 @@ export function IntensiveReader({ passage }: { passage: PracticePassage }) {
 
     <div className="intensive-layout">
       <article className="intensive-paper">
-        <header><span>{passage.year} · TEXT {passage.number}</span><h1>{isEnglish ? "Paragraph Study" : "逐段精读"}</h1><p>{isEnglish ? "Read independently first, then use AI to check your understanding. Select a paragraph to switch." : "先自己读，再让 AI 帮你核对理解。点击段落可切换。"}</p></header>
-        <HighlightGuide isEnglish={isEnglish} />
+        <header><span>{passage.year} · TEXT {passage.number}</span><h1>{isEnglish ? "Paragraph Study" : "逐段精读"}</h1><p>{isEnglish ? "Click an unfamiliar word for its meaning. Select a paragraph to study it." : "点击不认识的单词查看释义，选择段落进行精读。"}</p></header>
         <nav className="intensive-mobile-index" aria-label={isEnglish ? "Select a paragraph" : "选择精读段落"}>{paragraphs.map((_, index) => <button key={index} className={activeParagraph === index ? "active" : ""} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>{index + 1}{analyses[index] && <Check />}</button>)}</nav>
-        {paragraphs.map((paragraph, index) => <button key={index} className={`intensive-paragraph ${activeParagraph === index ? "active" : ""}`} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>
-          <span className="intensive-paragraph-number">{String(index + 1).padStart(2, "0")}</span>
-          <SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} isEnglish={isEnglish} />
+        {paragraphs.map((paragraph, index) => <div key={index} className={`intensive-paragraph ${activeParagraph === index ? "active" : ""}`} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>
+          <button type="button" className="intensive-paragraph-number" onClick={(event) => { event.stopPropagation(); setActiveParagraph(index); setAnalysisError(null); }} aria-label={isEnglish ? `Select paragraph ${index + 1}` : `选择第 ${index + 1} 段`}>{String(index + 1).padStart(2, "0")}</button>
+          <SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} isEnglish={isEnglish} mode="lookup" />
           {analyses[index] && <Check className="intensive-paragraph-check" />}
-        </button>)}
+        </div>)}
       </article>
 
       <aside className="intensive-insight">

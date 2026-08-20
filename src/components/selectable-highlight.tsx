@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Highlight = { start: number; end: number };
+type InteractionMode = "highlight" | "lookup";
 const guideStorageKey = "reading-highlight-guide-complete";
 
 type DictionaryEntry = { term: string; phonetic?: string; partOfSpeech?: string; meaning: string; contextMeaning?: string };
@@ -60,20 +61,21 @@ function mergeHighlights(highlights: Highlight[]) {
     }, []);
 }
 
-export function SelectableHighlight({ text, scope, storageKey, isEnglish = false }: { text: string; scope: string; storageKey: string; isEnglish?: boolean }) {
+export function SelectableHighlight({ text, scope, storageKey, isEnglish = false, mode = "highlight" }: { text: string; scope: string; storageKey: string; isEnglish?: boolean; mode?: InteractionMode }) {
   const containerRef = useRef<HTMLSpanElement>(null);
+  const lookupRequestRef = useRef(0);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const scopedStorageKey = `${storageKey}:${scope}`;
 
-  // 查词弹层：只在点击已有标记时打开，避免每次划词都触发一次 AI 调用。
-  const [lookup, setLookup] = useState<{ index: number; term: string } | null>(null);
+  const [lookup, setLookup] = useState<{ index?: number; term: string; start: number; x?: number; y?: number } | null>(null);
   const [entry, setEntry] = useState<DictionaryEntry | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
   // 只有查询真正慢下来才显示提示，命中缓存或很快返回时不出现。
   const [looking, setLooking] = useState(false);
 
   useEffect(() => {
+    if (mode !== "highlight") return;
     const restore = window.setTimeout(() => {
       try {
         const saved = window.localStorage.getItem(scopedStorageKey);
@@ -82,18 +84,23 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       setHydrated(true);
     }, 0);
     return () => window.clearTimeout(restore);
-  }, [scopedStorageKey]);
+  }, [mode, scopedStorageKey]);
 
   useEffect(() => {
-    if (hydrated) window.localStorage.setItem(scopedStorageKey, JSON.stringify(highlights));
-  }, [highlights, hydrated, scopedStorageKey]);
+    if (mode === "highlight" && hydrated) window.localStorage.setItem(scopedStorageKey, JSON.stringify(highlights));
+  }, [highlights, hydrated, mode, scopedStorageKey]);
 
   // 按 Esc 或点击弹层外部关闭，符合浮层的一般预期。
   useEffect(() => {
     if (!lookup) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setLookup(null); };
+    const close = () => {
+      lookupRequestRef.current += 1;
+      setLooking(false);
+      setLookup(null);
+    };
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") close(); };
     const onOutside = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setLookup(null);
+      if (!containerRef.current?.contains(event.target as Node)) close();
     };
     window.addEventListener("keydown", onKey);
     document.addEventListener("mousedown", onOutside);
@@ -115,7 +122,23 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     return result;
   }, [highlights, text]);
 
+  const wordSegments = useMemo(() => {
+    if (mode !== "lookup") return [];
+    const result: { text: string; start: number; word: boolean }[] = [];
+    const pattern = /[A-Za-z]+(?:['’][A-Za-z]+|-[A-Za-z]+)*/g;
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const start = match.index;
+      if (start > cursor) result.push({ text: text.slice(cursor, start), start: cursor, word: false });
+      result.push({ text: match[0], start, word: true });
+      cursor = start + match[0].length;
+    }
+    if (cursor < text.length) result.push({ text: text.slice(cursor), start: cursor, word: false });
+    return result;
+  }, [mode, text]);
+
   const addSelection = () => {
+    if (mode !== "highlight") return;
     const selection = window.getSelection();
     const container = containerRef.current;
     if (!selection || selection.isCollapsed || !selection.rangeCount || !container) return;
@@ -140,9 +163,23 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     setLookup(null);
   };
 
-  const openLookup = async (index: number, term: string) => {
+  const openLookup = async (term: string, start: number, anchor: HTMLElement, index?: number) => {
     const trimmed = term.trim();
-    setLookup({ index, term: trimmed });
+    if (lookup?.term === trimmed && lookup.start === start) {
+      lookupRequestRef.current += 1;
+      setLooking(false);
+      setLookup(null);
+      return;
+    }
+
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    const anchorRect = anchor.getBoundingClientRect();
+    const popoverWidth = Math.min(320, window.innerWidth * 0.9);
+    const x = containerRect ? Math.min(anchorRect.left - containerRect.left, Math.max(0, containerRect.width - popoverWidth)) : undefined;
+    const y = containerRect ? anchorRect.bottom - containerRect.top : undefined;
+    const requestId = ++lookupRequestRef.current;
+    setLookup({ index, term: trimmed, start, x, y });
+    setLooking(false);
     setLookupError(null);
     setEntry(null);
 
@@ -159,12 +196,12 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     }
 
     // 只截取标记周围的文字作为语境，帮助 AI 判断该词在本句中的含义。
-    const at = text.indexOf(trimmed);
-    const context = at === -1 ? text.slice(0, CONTEXT_RADIUS * 2)
-      : text.slice(Math.max(0, at - CONTEXT_RADIUS), at + trimmed.length + CONTEXT_RADIUS);
+    const context = text.slice(Math.max(0, start - CONTEXT_RADIUS), start + trimmed.length + CONTEXT_RADIUS);
 
     // 延迟 300 毫秒再显示提示：快的请求不会闪出一行字又立刻消失。
-    const slowTimer = window.setTimeout(() => setLooking(true), 300);
+    const slowTimer = window.setTimeout(() => {
+      if (requestId === lookupRequestRef.current) setLooking(true);
+    }, 300);
     try {
       const response = await fetch("/api/dictionary", {
         method: "POST",
@@ -172,6 +209,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
         body: JSON.stringify({ term: trimmed, context }),
       });
       const data = await response.json().catch(() => null) as (DictionaryEntry & { error?: string }) | null;
+      if (requestId !== lookupRequestRef.current) return;
       if (!response.ok || !data?.meaning) {
         setLookupError(data?.error ?? (isEnglish ? "Could not look up this word." : "查词失败，请稍后再试。"));
         return;
@@ -179,24 +217,32 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       rememberEntry(key, data);
       setEntry(data);
     } catch {
-      setLookupError(isEnglish ? "Could not reach the server." : "无法连接服务器，请稍后再试。");
+      if (requestId === lookupRequestRef.current) setLookupError(isEnglish ? "Could not reach the server." : "无法连接服务器，请稍后再试。");
     } finally {
       window.clearTimeout(slowTimer);
-      setLooking(false);
+      if (requestId === lookupRequestRef.current) setLooking(false);
     }
   };
 
-  return <span ref={containerRef} className="selectable-highlight" onMouseUp={addSelection} onTouchEnd={addSelection}>
-    {segments.map((segment, index) => segment.highlightIndex === undefined
+  return <span ref={containerRef} className={`selectable-highlight ${mode === "lookup" ? "lookup-by-word" : ""}`} onMouseUp={addSelection} onTouchEnd={addSelection}>
+    {mode === "lookup" ? wordSegments.map((segment) => segment.word
+      ? <button
+          type="button"
+          key={segment.start}
+          className={`lookup-word ${lookup?.start === segment.start ? "is-open" : ""}`}
+          onClick={(event) => { void openLookup(segment.text, segment.start, event.currentTarget); }}
+          aria-label={isEnglish ? `Look up ${segment.text}` : `查询 ${segment.text}`}
+        >{segment.text}</button>
+      : <span key={segment.start}>{segment.text}</span>) : segments.map((segment, index) => segment.highlightIndex === undefined
       ? <span key={index}>{segment.text}</span>
       : <mark
           key={index}
           className={lookup?.index === segment.highlightIndex ? "is-open" : ""}
-          onClick={(event) => { event.stopPropagation(); void openLookup(segment.highlightIndex!, segment.text); }}
+          onClick={(event) => { event.stopPropagation(); void openLookup(segment.text, highlights[segment.highlightIndex!].start, event.currentTarget, segment.highlightIndex); }}
           title={isEnglish ? "Look up this word" : "点击查看释义"}
         >{segment.text}</mark>)}
 
-    {lookup && <span className="word-lookup" role="dialog" aria-label={isEnglish ? "Word meaning" : "词汇释义"} onClick={(event) => event.stopPropagation()}>
+    {lookup && <span className="word-lookup" style={lookup.x === undefined ? undefined : { left: lookup.x, top: lookup.y }} role="dialog" aria-label={isEnglish ? "Word meaning" : "词汇释义"} onClick={(event) => event.stopPropagation()}>
       <span className="word-lookup-head">
         <strong>{lookup.term}</strong>
         {entry?.phonetic && <em>{entry.phonetic}</em>}
@@ -211,8 +257,8 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
         </span>}
       </>}
       <span className="word-lookup-actions">
-        <button type="button" onClick={() => removeHighlight(lookup.index)}>{isEnglish ? "Remove highlight" : "取消标记"}</button>
-        <button type="button" onClick={() => setLookup(null)}>{isEnglish ? "Close" : "关闭"}</button>
+        {lookup.index !== undefined && <button type="button" onClick={() => removeHighlight(lookup.index!)}>{isEnglish ? "Remove highlight" : "取消标记"}</button>}
+        <button type="button" onClick={() => { lookupRequestRef.current += 1; setLooking(false); setLookup(null); }}>{isEnglish ? "Close" : "关闭"}</button>
       </span>
     </span>}
   </span>;
