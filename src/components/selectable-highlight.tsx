@@ -71,6 +71,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
   const [lookup, setLookup] = useState<{ index?: number; term: string; start: number; x?: number; y?: number } | null>(null);
   const [entry, setEntry] = useState<DictionaryEntry | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [pendingLookupStart, setPendingLookupStart] = useState<number | null>(null);
 
   useEffect(() => {
     if (mode !== "highlight") return;
@@ -162,6 +163,11 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
 
   const openLookup = async (term: string, start: number, anchor: HTMLElement, index?: number) => {
     const trimmed = term.trim();
+    if (pendingLookupStart === start) {
+      lookupRequestRef.current += 1;
+      setPendingLookupStart(null);
+      return;
+    }
     if (lookup?.term === trimmed && lookup.start === start) {
       lookupRequestRef.current += 1;
       setLookup(null);
@@ -175,6 +181,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     const y = containerRect ? anchorRect.bottom - containerRect.top : undefined;
     const requestId = ++lookupRequestRef.current;
     const nextLookup = { index, term: trimmed, start, x, y };
+    setPendingLookupStart(start);
     setLookup(null);
     setLookupError(null);
     setEntry(null);
@@ -183,11 +190,13 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     const key = trimmed.toLowerCase();
     const cached = dictionaryCache.get(key);
     if (cached) {
+      setPendingLookupStart(null);
       setLookup(nextLookup);
       setEntry(cached);
       return;
     }
     if (trimmed.length > MAX_TERM_LENGTH) {
+      setPendingLookupStart(null);
       setLookup(nextLookup);
       setLookupError(isEnglish ? "Select a shorter phrase to look up." : "选中的内容过长，请选更短的词或短语。");
       return;
@@ -204,6 +213,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       });
       const data = await response.json().catch(() => null) as (DictionaryEntry & { error?: string }) | null;
       if (requestId !== lookupRequestRef.current) return;
+      setPendingLookupStart(null);
       setLookup(nextLookup);
       if (!response.ok || !data?.meaning) {
         setLookupError(data?.error ?? (isEnglish ? "Could not look up this word." : "查词失败，请稍后再试。"));
@@ -213,6 +223,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       setEntry(data);
     } catch {
       if (requestId === lookupRequestRef.current) {
+        setPendingLookupStart(null);
         setLookup(nextLookup);
         setLookupError(isEnglish ? "Could not reach the server." : "无法连接服务器，请稍后再试。");
       }
@@ -224,8 +235,9 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       ? <button
           type="button"
           key={segment.start}
-          className={`lookup-word ${lookup?.start === segment.start ? "is-open" : ""}`}
+          className={`lookup-word ${lookup?.start === segment.start ? "is-open" : ""} ${pendingLookupStart === segment.start ? "is-looking" : ""}`}
           onClick={(event) => { void openLookup(segment.text, segment.start, event.currentTarget); }}
+          aria-busy={pendingLookupStart === segment.start}
           aria-label={isEnglish ? `Look up ${segment.text}` : `查询 ${segment.text}`}
         >{segment.text}</button>
       : <span key={segment.start}>{segment.text}</span>) : segments.map((segment, index) => segment.highlightIndex === undefined
