@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "verify": "npm run lint && npm run build",
+    "test:smoke": "node tests/smoke.mjs",
+    "test:core": "node tests/core-flow.mjs",
     "build:seed": "node scripts/build-supabase-seed.mjs",
     "build:keys": "node scripts/build-answer-keys.mjs"
   },
