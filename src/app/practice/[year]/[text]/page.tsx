@@ -4,8 +4,13 @@ import { PracticeReader } from "@/components/practice-reader";
 import { getPracticePassage } from "@/data/get-practice-passage";
 import { isPassageGradable } from "@/data/passage-gradable";
 
-export default async function PracticePage({ params }: { params: Promise<{ year: string; text: string }> }) {
-  const { year: yearParam, text: textParam } = await params;
+type Props = {
+  params: Promise<{ year: string; text: string }>;
+  searchParams: Promise<{ redo?: string | string[] }>;
+};
+
+export default async function PracticePage({ params, searchParams }: Props) {
+  const [{ year: yearParam, text: textParam }, { redo }] = await Promise.all([params, searchParams]);
   const year = Number(yearParam);
   const text = Number(textParam);
   if (!Number.isInteger(year) || !Number.isInteger(text)) notFound();
@@ -16,5 +21,5 @@ export default async function PracticePage({ params }: { params: Promise<{ year:
   // 答案未录入时不进入作答界面，避免用户答完一整篇后在提交环节才失败。
   if (!await isPassageGradable(passage.id)) return <PassagePendingGate year={year} number={text} />;
 
-  return <PracticeReader passage={passage} />;
+  return <PracticeReader passage={passage} startFresh={redo === "1"} />;
 }

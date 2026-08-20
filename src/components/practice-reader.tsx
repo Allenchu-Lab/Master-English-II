@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, Check, Clock3, LoaderCircle, Pause, Play, RotateCcw } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
@@ -9,7 +9,8 @@ import { HighlightGuide, SelectableHighlight } from "@/components/selectable-hig
 type GradedQuestion = { questionNumber: number; selectedOption: number; correctOption: number; isCorrect: boolean; promptZh: string; optionTranslations: string[]; explanation: string };
 type GradeResult = { score: number; total: number; questions: GradedQuestion[] };
 
-export function PracticeReader({ passage }: { passage: PracticePassage }) {
+export function PracticeReader({ passage, startFresh = false }: { passage: PracticePassage; startFresh?: boolean }) {
+  const openedRef = useRef(false);
   /**
    * 练习记录编号必须是 state 而不是 ref。
    *
@@ -61,9 +62,9 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
    * 编号是保存和提交的前提。失败不在界面上打扰用户：提交时会再取一次，
    * 并把完整答案一起发出，所以此处只把状态标成待保存即可。
    */
-  const openAttempt = useCallback(async (): Promise<string | null> => {
+  const openAttempt = useCallback(async (fresh = false): Promise<string | null> => {
     try {
-      const response = await fetch(`/api/attempts/${passage.id}`);
+      const response = await fetch(`/api/attempts/${passage.id}`, fresh ? { method: "POST" } : undefined);
       if (!response.ok) return null;
       const { attempt: current, grade } = await response.json() as { attempt: { id: string; answers: Record<string, number>; submitted_at: string | null }; grade?: GradeResult };
       setAttemptId(current.id);
@@ -72,19 +73,24 @@ export function PracticeReader({ passage }: { passage: PracticePassage }) {
       // 而不是让用户面对一份空白的答题页。
       setGradeResult(grade ?? null);
       setSubmitted(Boolean(grade));
+      // Redo 只在入口消费一次。清掉查询参数，刷新页面时继续当前这轮，
+      // 不会因为地址仍带 redo 而重复新建练习记录。
+      if (fresh) window.history.replaceState(window.history.state, "", `/practice/${passage.year}/${passage.number}`);
       return current.id;
     } catch {
       // fetch 抛异常代表请求没能送达，与服务端明确返回错误是两种不同情况。
       return null;
     }
-  }, [passage.id]);
+  }, [passage.id, passage.number, passage.year]);
 
   // 不做取消处理：请求返回后即便组件已卸载，写入 state 也是无害的；
   // 而丢弃结果会让编号永久为空，那正是之前保存彻底失效的原因。
-  // openAttempt 内部的 state 写入都发生在 await 之后，并非同步执行，
-  // 这条规则无法穿过 await 边界判断，故在此关闭。
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { void openAttempt(); }, [openAttempt]);
+  // openAttempt 内部的 state 写入都发生在 await 之后，并非同步执行。
+  useEffect(() => {
+    if (openedRef.current) return;
+    openedRef.current = true;
+    void openAttempt(startFresh);
+  }, [openAttempt, startFresh]);
 
   /**
    * 保存作答。依赖 attemptId，编号到位后会自动重新运行。

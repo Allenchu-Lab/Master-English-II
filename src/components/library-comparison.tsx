@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -212,7 +213,7 @@ export function LibraryComparison({ papers }: { papers: ExamPaperMap }) {
                     }
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const action = state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
-                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Intensive reading unlocked" : "已解锁精读") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><a className="article-action secondary" href={`/practice/${year}/${article.number}`}>{isEnglish ? "Redo" : "重新练习"}</a><a className="article-action primary" href={`/intensive/${year}/${article.number}`}>{isEnglish ? "Study deeply" : "进入精读"}<ChevronRight /></a></div> : <a className="article-action" href={`/practice/${year}/${article.number}`}>{action}<ChevronRight /></a>}</div></article>;
+                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Intensive reading unlocked" : "已解锁精读") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><Link className="article-action secondary" href={`/practice/${year}/${article.number}?redo=1`}>{isEnglish ? "Redo" : "重新练习"}</Link><Link className="article-action primary" href={`/intensive/${year}/${article.number}`}>{isEnglish ? "Study deeply" : "进入精读"}<ChevronRight /></Link></div> : <Link className="article-action" href={`/practice/${year}/${article.number}`}>{action}<ChevronRight /></Link>}</div></article>;
                   }) : <div className="article-empty"><p>{!selectedPaper ? (isEnglish ? "No paper has been imported yet." : "题库尚未导入任何真题。") : selectedType?.available ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "This section is not open yet." : "该题型尚未开放。")}</p></div>}</div>
                 </div>
               </div>

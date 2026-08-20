@@ -405,6 +405,11 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .intensive-gate-actions a.secondary { border: 1px solid rgba(0,0,0,.12); background: #fff; color: rgba(0,0,0,.72); }
 .is-spinning { animation: practice-spin .8s linear infinite; }
 
+.route-loading { min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 8px; background: #fff; color: var(--ink); }
+.route-loading-mark { width: 22px; height: 22px; margin-bottom: 6px; border: 2px solid rgba(0,0,0,.1); border-top-color: var(--blue); border-radius: 50%; animation: practice-spin .8s linear infinite; }
+.route-loading strong { font-size: 14px; line-height: 22px; font-weight: 500; }
+.route-loading span { color: var(--muted); font-size: 12px; line-height: 18px; }
+
 @media (max-width: 1199px) {
   .product-shell { grid-template-columns: 72px minmax(0, 1fr); }
   .product-nav { padding-inline: 10px; }
