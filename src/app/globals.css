@@ -274,10 +274,12 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .lookup-word { position: relative; display: inline; margin: 0; padding: 0 .04em; border: 0; border-radius: 2px; background: transparent; color: inherit; font: inherit; line-height: inherit; text-align: inherit; cursor: pointer; transition: background-color 140ms ease, box-shadow 140ms ease; }
 .lookup-word:hover { background: rgba(22,135,91,.09); }
 .lookup-word.is-open { background: rgba(22,135,91,.13); box-shadow: inset 0 -1px 0 rgba(22,135,91,.5); }
-.lookup-word.is-looking { background: rgba(22,135,91,.09); box-shadow: inset 0 -1px 0 rgba(22,135,91,.42); }
-.lookup-word.is-looking::after { content: ""; position: absolute; right: -3px; bottom: 1px; width: 3px; height: 3px; border-radius: 50%; background: var(--blue); animation: lookup-pulse 720ms ease-in-out infinite alternate; }
-@keyframes lookup-pulse { from { opacity: .28; transform: scale(.75); } to { opacity: 1; transform: scale(1); } }
-@media (prefers-reduced-motion: reduce) { .lookup-word.is-looking::after { animation: none; } }
+.lookup-word.is-looking { animation: lookup-pulse 900ms ease-in-out infinite alternate; }
+@keyframes lookup-pulse {
+  from { background: rgba(22,135,91,.08); box-shadow: inset 0 -1px 0 rgba(22,135,91,.38), 0 0 0 0 rgba(22,135,91,.04); }
+  to { background: rgba(22,135,91,.2); box-shadow: inset 0 -1px 0 rgba(22,135,91,.65), 0 0 0 3px rgba(22,135,91,.1); }
+}
+@media (prefers-reduced-motion: reduce) { .lookup-word.is-looking { animation: none; background: rgba(22,135,91,.14); box-shadow: inset 0 -1px 0 rgba(22,135,91,.5); } }
 .lookup-word:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .highlight-guide { max-width: 740px; min-height: 36px; margin: 16px 0 0; padding: 7px 9px; display: flex; align-items: center; gap: 9px; border: 1px solid rgba(0,0,0,.08); border-radius: 6px; background: rgba(255,255,255,.72); color: var(--muted); animation: highlight-guide-in 220ms var(--ease) both; }
 .highlight-guide > span { padding: 0 3px; flex: 0 0 auto; background: rgba(255,218,82,.5); color: rgba(0,0,0,.72); font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 18px; }
