@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MousePointer2, X } from "lucide-react";
 
 type Highlight = { start: number; end: number };
 type InteractionMode = "highlight" | "lookup";
-const guideStorageKey = "reading-highlight-guide-complete";
+const guideStorageKey = "reading-highlight-onboarding-complete-v2";
 
 type DictionaryEntry = { term: string; phonetic?: string; partOfSpeech?: string; meaning: string; contextMeaning?: string };
 
@@ -271,6 +272,7 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
 
 export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
   const [visible, setVisible] = useState(false);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const show = window.setTimeout(() => setVisible(window.localStorage.getItem(guideStorageKey) !== "true"), 0);
@@ -282,6 +284,18 @@ export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!visible) return;
+    startButtonRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      window.localStorage.setItem(guideStorageKey, "true");
+      setVisible(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [visible]);
+
   if (!visible) return null;
 
   const dismiss = () => {
@@ -289,9 +303,21 @@ export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
     setVisible(false);
   };
 
-  return <aside className="highlight-guide" aria-label={isEnglish ? "Highlight guide" : "划词标记引导"}>
-    <span aria-hidden="true">Highlight</span>
-    <p>{isEnglish ? "Drag over text to highlight it. Click a highlight to remove it." : "拖选文字即可标记，点击高亮可取消标记。"}</p>
-    <button type="button" onClick={dismiss} aria-label={isEnglish ? "Dismiss guide" : "关闭引导"}>×</button>
-  </aside>;
+  return <div className="highlight-onboarding-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) dismiss(); }}>
+    <section className="highlight-onboarding" role="dialog" aria-modal="true" aria-labelledby="highlight-onboarding-title">
+      <button className="highlight-onboarding-close" type="button" onClick={dismiss} aria-label={isEnglish ? "Close guide" : "关闭引导"}><X /></button>
+      <span className="highlight-onboarding-eyebrow">{isEnglish ? "Reading tool" : "阅读小工具"}</span>
+      <h2 id="highlight-onboarding-title">{isEnglish ? "Highlight what matters" : "划出重点，读得更清楚"}</h2>
+      <p>{isEnglish ? "Drag across any important phrase to save a highlight. Click it once to remove it." : "拖动选中重要内容即可留下高亮，再点击一次就能取消。"}</p>
+
+      <div className="highlight-demo" aria-hidden="true">
+        <span className="highlight-demo-label">Text 1</span>
+        <p>Reading becomes easier when you <mark>notice the key idea</mark> in each sentence.</p>
+        <MousePointer2 className="highlight-demo-cursor" />
+        <span className="highlight-demo-tip">{isEnglish ? "Drag to highlight · Click to remove" : "拖动划重点 · 点击取消"}</span>
+      </div>
+
+      <button ref={startButtonRef} className="highlight-onboarding-start" type="button" onClick={dismiss}>{isEnglish ? "Start practice" : "知道了，开始做题"}</button>
+    </section>
+  </div>;
 }

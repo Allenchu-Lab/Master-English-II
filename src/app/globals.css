@@ -281,12 +281,27 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 }
 @media (prefers-reduced-motion: reduce) { .lookup-word.is-looking { animation: none; background: rgba(22,135,91,.14); box-shadow: inset 0 -1px 0 rgba(22,135,91,.5); } }
 .lookup-word:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-.highlight-guide { max-width: 740px; min-height: 36px; margin: 16px 0 0; padding: 7px 9px; display: flex; align-items: center; gap: 9px; border: 1px solid rgba(0,0,0,.08); border-radius: 6px; background: rgba(255,255,255,.72); color: var(--muted); animation: highlight-guide-in 220ms var(--ease) both; }
-.highlight-guide > span { padding: 0 3px; flex: 0 0 auto; background: rgba(255,218,82,.5); color: rgba(0,0,0,.72); font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 18px; }
-.highlight-guide p { margin: 0; flex: 1; font-family: var(--font-ui); font-size: 11px; line-height: 18px; }
-.highlight-guide button { width: 24px; height: 24px; padding: 0; display: grid; place-items: center; flex: 0 0 auto; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; }
-.highlight-guide button:hover { background: rgba(0,0,0,.05); color: var(--ink); }
-@keyframes highlight-guide-in { from { opacity: 0; transform: translateY(-3px); } }
+.highlight-onboarding-backdrop { position: fixed; z-index: 100; inset: 0; padding: 24px; display: grid; place-items: center; background: rgba(15,23,20,.42); backdrop-filter: blur(3px); animation: highlight-backdrop-in 180ms ease-out both; }
+.highlight-onboarding { position: relative; width: min(440px, 100%); padding: 28px; border: 1px solid rgba(0,0,0,.08); border-radius: 12px; background: #fff; box-shadow: 0 18px 54px rgba(0,0,0,.18); color: var(--ink); font-family: var(--font-ui); animation: highlight-dialog-in 220ms var(--ease) both; }
+.highlight-onboarding-close { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--muted); }
+.highlight-onboarding-close:hover { background: rgba(0,0,0,.05); color: var(--ink); }
+.highlight-onboarding-close svg { width: 16px; }
+.highlight-onboarding-eyebrow { color: var(--blue-dark); font-size: 11px; line-height: 18px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.highlight-onboarding h2 { margin: 7px 36px 6px 0; font-size: 24px; line-height: 34px; letter-spacing: -.02em; }
+.highlight-onboarding > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 22px; text-wrap: pretty; }
+.highlight-demo { position: relative; min-height: 150px; margin: 22px 0 20px; padding: 20px 22px 38px; overflow: hidden; border: 1px solid rgba(0,0,0,.08); border-radius: 8px; background: #f8faf9; }
+.highlight-demo-label { display: block; margin-bottom: 13px; color: var(--blue-dark); font-family: var(--font-ui); font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: .08em; }
+.highlight-demo p { margin: 0; color: rgba(0,0,0,.8); font-family: Georgia, "Times New Roman", serif; font-size: 16px; line-height: 30px; }
+.highlight-demo mark { padding: 1px 2px; background-color: transparent; background-image: linear-gradient(rgba(255,218,82,.58), rgba(255,218,82,.58)); background-position: left center; background-repeat: no-repeat; background-size: 0 82%; color: inherit; animation: highlight-demo-mark 4s ease-in-out infinite; }
+.highlight-demo-cursor { position: absolute; left: 39%; top: 78px; width: 18px; color: var(--blue-dark); filter: drop-shadow(0 1px 1px rgba(0,0,0,.12)); animation: highlight-demo-cursor 4s ease-in-out infinite; }
+.highlight-demo-tip { position: absolute; right: 14px; bottom: 10px; color: var(--muted); font-size: 10px; line-height: 16px; }
+.highlight-onboarding-start { width: 100%; min-height: 42px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; }
+.highlight-onboarding-start:hover { background: var(--blue-dark); }
+@keyframes highlight-backdrop-in { from { opacity: 0; } }
+@keyframes highlight-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+@keyframes highlight-demo-mark { 0%, 17%, 100% { background-size: 0 82%; } 42%, 74% { background-size: 100% 82%; } 86% { background-size: 0 82%; } }
+@keyframes highlight-demo-cursor { 0%, 8% { opacity: 0; transform: translate(-8px, 10px); } 16% { opacity: 1; transform: translate(-8px, 10px); } 42% { opacity: 1; transform: translate(92px, 10px); } 60% { opacity: 1; transform: translate(46px, 3px); } 67% { opacity: 1; transform: translate(46px, 3px) scale(.82); } 73% { opacity: 1; transform: translate(46px, 3px) scale(1); } 86%, 100% { opacity: 0; transform: translate(46px, 3px); } }
+@media (prefers-reduced-motion: reduce) { .highlight-onboarding-backdrop, .highlight-onboarding { animation: none; } .highlight-demo mark { animation: none; background-size: 100% 82%; } .highlight-demo-cursor { display: none; } }
 .question-pane { min-width: 0; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; background: #fcfcfc; }
 .question-progress { min-height: 56px; padding: 0 28px; display: grid; grid-template-columns: auto minmax(48px, 1fr) auto; align-items: center; gap: 16px; border-bottom: 1px solid var(--border); }
 .question-progress strong { font-size: 14px; line-height: 22px; }
