@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, Check, LoaderCircle, LogOut, X } from "lucide-react";
 import { getAuthUser, isEmailUser, requestEmailOtp, signOut, verifyEmailOtp, type AuthUser } from "@/lib/auth/email-otp";
+import { isValidEmail } from "@/lib/auth/email-validation";
 
 type Step = "email" | "code";
 
@@ -18,9 +19,15 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
   const [emailError, setEmailError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const signedIn = isEmailUser(user);
+  const [signInEnabled, setSignInEnabled] = useState(false);
+  const [localMail, setLocalMail] = useState(false);
 
   useEffect(() => {
-    getAuthUser().then(({ user: current }) => setUser(current)).catch(() => setUser(null));
+    getAuthUser().then(({ user: current, signInEnabled: enabled, localMail: local }) => {
+      setUser(current);
+      setSignInEnabled(enabled);
+      setLocalMail(local);
+    }).catch(() => setUser(null));
   }, []);
 
   const close = () => {
@@ -42,7 +49,7 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
         setEmailError(isEnglish ? "Enter your email address." : "请输入邮箱地址。");
         return;
       }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      if (!isValidEmail(normalizedEmail)) {
         setEmailError(isEnglish ? "Enter a valid email address." : "请输入正确的邮箱地址。");
         return;
       }
@@ -101,12 +108,7 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
     }
   };
 
-  /**
-   * 邮箱登录暂不开放：发信服务尚未配置，此时点进去只会等到一句发送失败。
-   * 已登录的用户仍需要能进入对话框退出登录，因此只关闭未登录这一侧的入口。
-   * 做题进度本身不依赖登录，匿名身份已在服务端保存，因此关闭入口不影响使用。
-   */
-  const signInEnabled = false;
+  // The server keeps sign-in closed until explicitly enabled and mail is configured.
   const entryDisabled = !signedIn && !signInEnabled;
 
   return <>
@@ -143,20 +145,23 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
           <span className="auth-status-mark"><Check /></span>
           <h2 id="auth-title">{isEnglish ? "Signed in" : "已登录"}</h2>
           <p>{user?.email}</p>
-          <small>{isEnglish ? "Your practice and intensive-reading progress is synced to this account." : "做题记录与精读进度已同步至此账户。"}</small>
+          <small>{isEnglish ? "Your answers, scores and intensive-reading access sync across devices. Highlights and AI analyses stay in this browser." : "答案、成绩与精读解锁状态会跨设备同步；划词高亮与 AI 解析仍保存在当前浏览器。"}</small>
           <button className="auth-secondary-action" onClick={handleSignOut} disabled={loading}>{loading ? <LoaderCircle className="is-spinning" /> : <LogOut />}{isEnglish ? "Sign out" : "退出登录"}</button>
           {error && <p className="auth-error">{error}</p>}
         </div> : step === "email" ? <form onSubmit={sendCode} key="email" noValidate>
           <h2 id="auth-title">{isEnglish ? "Sign in with email" : "邮箱验证码登录"}</h2>
-          <p>{isEnglish ? "No password needed. We will send a one-time code to your email." : "无需设置密码，我们会向你的邮箱发送一次性验证码。"}</p>
-          <label><input className={emailError ? "has-error" : ""} type="email" value={email} onChange={(event) => { setEmail(event.target.value); setEmailError(null); }} placeholder={isEnglish ? "Enter your email address" : "请输入邮箱地址"} aria-label={isEnglish ? "Email" : "邮箱"} aria-invalid={Boolean(emailError)} aria-describedby={emailError ? "auth-email-error" : undefined} autoComplete="email" autoFocus />{emailError && <span className="auth-field-error" id="auth-email-error">{emailError}</span>}</label>
+          <p>{localMail ? (isEnglish ? "Local test: no email will be sent. Find the code in .local-db/mail.jsonl." : "本地测试：不会发送真实邮件，验证码保存在 .local-db/mail.jsonl。") : (isEnglish ? "No password needed. We will send a one-time code to your email." : "无需设置密码，我们会向你的邮箱发送一次性验证码。")}</p>
+          <label><input className={emailError ? "has-error" : ""} type="email" value={email} onChange={(event) => { setEmail(event.target.value); setEmailError(null); }} onBlur={() => {
+            const value = email.trim();
+            setEmailError(value && !isValidEmail(value) ? (isEnglish ? "Enter a valid email address." : "请输入正确的邮箱地址。") : null);
+          }} placeholder={isEnglish ? "Enter your email address" : "请输入邮箱地址"} aria-label={isEnglish ? "Email" : "邮箱"} aria-invalid={Boolean(emailError)} aria-describedby={emailError ? "auth-email-error" : undefined} autoComplete="email" autoFocus />{emailError && <span className="auth-field-error" id="auth-email-error" role="alert">{emailError}</span>}</label>
           <button className="auth-primary-action" disabled={loading}>{loading ? <LoaderCircle className="is-spinning" /> : null}{isEnglish ? "Send code" : "发送验证码"}</button>
           <small className="auth-privacy">{isEnglish ? "Your email is used only for login and progress sync." : "邮箱仅用于登录和同步学习进度。"}</small>
           {error && <p className="auth-error">{error}</p>}
         </form> : <form onSubmit={verifyCode} key="code" noValidate>
           <button type="button" className="auth-back" onClick={() => { setStep("email"); setError(null); }}><ArrowLeft />{isEnglish ? "Change email" : "更换邮箱"}</button>
           <h2 id="auth-title">{isEnglish ? "Enter verification code" : "输入邮箱验证码"}</h2>
-          <p>{isEnglish ? <>A verification code was sent to <strong>{email}</strong></> : <>验证码已发送至 <strong>{email}</strong></>}</p>
+          <p>{localMail ? (isEnglish ? "The test code is in .local-db/mail.jsonl; no email was sent." : "测试验证码已写入 .local-db/mail.jsonl，没有发送真实邮件。") : (isEnglish ? <>A verification code was sent to <strong>{email}</strong></> : <>验证码已发送至 <strong>{email}</strong></>)}</p>
           <label><span>{isEnglish ? "Verification code" : "验证码"}</span><input className="auth-code-input" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="000000" autoFocus /></label>
           <button className="auth-primary-action" disabled={loading || code.length < 6}>{loading ? <LoaderCircle className="is-spinning" /> : null}{isEnglish ? "Verify and sign in" : "验证并登录"}</button>
           {notice && <p className="auth-notice">{notice}</p>}

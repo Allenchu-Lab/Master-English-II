@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MousePointer2, X } from "lucide-react";
+import { requestAi } from "@/lib/ai-request";
 
 type Highlight = { start: number; end: number };
 type InteractionMode = "highlight" | "lookup";
@@ -19,9 +20,9 @@ const CONTEXT_RADIUS = 220;
  *
  * 原先缓存放在组件内，每个段落各存一份：同一个词在另一段要重新查，刷新后
  * 全部作废。考研词汇高度复现，这让"正在查询"出现得远比必要频繁。
- * 改为全页共享并写入本地存储后，一个词在整个应用里只查一次。
+ * 相同词语与语境共享结果，不混用不同句子里的语境释义。
  */
-const cacheStorageKey = "dictionary-cache";
+const cacheStorageKey = "dictionary-cache-v2";
 const CACHE_LIMIT = 300;
 const dictionaryCache = new Map<string, DictionaryEntry>();
 let cacheLoaded = false;
@@ -92,10 +93,11 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
 
   // 按 Esc 或点击弹层外部关闭，符合浮层的一般预期。
   useEffect(() => {
-    if (!lookup) return;
+    if (!lookup && pendingLookupStart === null) return;
     const close = () => {
       lookupRequestRef.current += 1;
       setLookup(null);
+      setPendingLookupStart(null);
     };
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") close(); };
     const onOutside = (event: MouseEvent) => {
@@ -107,7 +109,9 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onOutside);
     };
-  }, [lookup]);
+  }, [lookup, pendingLookupStart]);
+
+  useEffect(() => () => { lookupRequestRef.current += 1; }, []);
 
   const segments = useMemo(() => {
     const result: { text: string; highlightIndex?: number }[] = [];
@@ -188,7 +192,8 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     setEntry(null);
 
     loadCache();
-    const key = trimmed.toLowerCase();
+    const context = text.slice(Math.max(0, start - CONTEXT_RADIUS), start + trimmed.length + CONTEXT_RADIUS);
+    const key = JSON.stringify([trimmed.toLowerCase(), context]);
     const cached = dictionaryCache.get(key);
     if (cached) {
       setPendingLookupStart(null);
@@ -204,23 +209,17 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
     }
 
     // 只截取标记周围的文字作为语境，帮助 AI 判断该词在本句中的含义。
-    const context = text.slice(Math.max(0, start - CONTEXT_RADIUS), start + trimmed.length + CONTEXT_RADIUS);
-
     try {
-      const response = await fetch("/api/dictionary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ term: trimmed, context }),
-      });
-      const data = await response.json().catch(() => null) as (DictionaryEntry & { error?: string }) | null;
+      const response = await requestAi("/api/dictionary", { term: trimmed.toLowerCase(), context });
+      const data = response.data as (DictionaryEntry & { error?: string }) | null;
+      if (response.ok && data?.meaning) rememberEntry(key, data);
       if (requestId !== lookupRequestRef.current) return;
       setPendingLookupStart(null);
       setLookup(nextLookup);
       if (!response.ok || !data?.meaning) {
-        setLookupError(data?.error ?? (isEnglish ? "Could not look up this word." : "查词失败，请稍后再试。"));
+        setLookupError(isEnglish ? "Could not look up this word. Click it to try again." : (data?.error ?? "查词失败，请点击单词重试。"));
         return;
       }
-      rememberEntry(key, data);
       setEntry(data);
     } catch {
       if (requestId === lookupRequestRef.current) {

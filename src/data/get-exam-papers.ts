@@ -1,5 +1,6 @@
 import type { ExamPaperMap, ExamPassage, ExamSectionType } from "@/data/exam-types";
 import { query } from "@/lib/db";
+import { localContentPreviewEnabled } from "@/lib/content-preview";
 
 /**
  * 题库唯一来源是数据库，代码中不保留任何题目内容或数量的兜底值。
@@ -17,19 +18,20 @@ type CoverageRow = { passage_id: string; question_count: string; key_count: stri
 
 export async function getExamPapers(): Promise<ExamPaperMap> {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not configured");
+  const preview = localContentPreviewEnabled();
 
   const sectionResult = await query<SectionRow>(`
     select p.year, p.title, p.source_file, s.type, s.item_count, s.status
     from exam_papers p join exam_sections s on s.paper_id = p.id
-    where p.status = 'published'
+    where p.status = 'published' or ($1 and p.status = 'draft')
     order by p.year, s.position
-  `);
+  `, [preview]);
 
   const papers: ExamPaperMap = {};
   for (const row of sectionResult.rows) {
     const key = String(row.year);
     papers[key] ??= { year: row.year, title: row.title, sourceFile: row.source_file, sections: [], readingA: [] };
-    papers[key].sections.push({ type: row.type, itemCount: row.item_count, available: row.status === "published" });
+    papers[key].sections.push({ type: row.type, itemCount: row.item_count, available: row.status === "published" || (preview && row.type === "reading_a" && row.status === "draft") });
   }
   if (!Object.keys(papers).length) return papers;
 
@@ -40,13 +42,13 @@ export async function getExamPapers(): Promise<ExamPaperMap> {
         g.source_page_start, g.source_page_end,
         count(q.id) question_count
       from exam_papers p
-      join exam_sections s on s.paper_id = p.id and s.type = 'reading_a' and s.status = 'published'
-      join passages g on g.section_id = s.id and g.status = 'published'
-      left join questions q on q.passage_id = g.id and q.status = 'published'
-      where p.status = 'published'
+      join exam_sections s on s.paper_id = p.id and s.type = 'reading_a' and (s.status = 'published' or ($1 and s.status = 'draft'))
+      join passages g on g.section_id = s.id and (g.status = 'published' or ($1 and g.status = 'draft'))
+      left join questions q on q.passage_id = g.id and (q.status = 'published' or ($1 and q.status = 'draft'))
+      where p.status = 'published' or ($1 and p.status = 'draft')
       group by p.year, g.id, g.passage_number, g.word_count, g.source_page_start, g.source_page_end
       order by p.year, g.passage_number
-    `),
+    `, [preview]),
     // 判分能力取决于答案表覆盖是否完整，缺答案的篇目在界面上标记为未开放。
     query<CoverageRow>(`
       select g.id passage_id,

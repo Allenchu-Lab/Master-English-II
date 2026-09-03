@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+本项目采用本地开发测试 + 正式环境。请先阅读 [本地开发与发布检查流程](LOCAL-DEVELOPMENT.md)。`npm run dev` 会启动独立本地数据库，并禁用真实邮件和 AI 调用。
+
 First, run the development server:
 
 ```bash

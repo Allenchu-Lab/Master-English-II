@@ -14,7 +14,7 @@ export function isEmailUser(user: AuthUser | null) {
 }
 
 export async function getAuthUser() {
-  return api<{ user: AuthUser | null }>("/api/auth/session");
+  return api<{ user: AuthUser | null; signInEnabled: boolean; localMail: boolean }>("/api/auth/session");
 }
 
 export async function requestEmailOtp(email: string) {

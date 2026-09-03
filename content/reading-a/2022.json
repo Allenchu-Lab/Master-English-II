@@ -1,0 +1,294 @@
+{
+  "year": 2022,
+  "title": "2022年全国硕士研究生招生考试英语（二）",
+  "sourceFile": "2022年考研英语二.pdf",
+  "sourceSha256": "b57fdd456374d973dfdb023963140d8576f788bd1e37e472e2ae2c521ab8490b",
+  "status": "draft",
+  "answerStatus": "pending",
+  "sections": {
+    "cloze": 0,
+    "readingA": 4,
+    "readingB": 0,
+    "translation": 0,
+    "writing": 0
+  },
+  "readingA": [
+    {
+      "number": 1,
+      "passage": "On a recent sunny day, 13,000 chickens roam over Larry Brown’s 40 windswept acres in Shiner, Texas. Some rest in the shade of a parked car. Others drink water with the cows. This all seems random, but it’s by design, part of what the $6.1 billion U.S. egg industry bets will be its next big thing: climate-friendly eggs. These eggs, which are making their debut now on shelves for as much as $8 a dozen, are still labeled organic and animal-friendly, but they’re also from birds that live on farms using regenerative agriculture — special techniques to cultivate rich soils that can trap greenhouse gases. Such eggs could be marketed as helping to fight climate change. “I’m excited about our progress,” says Brown, who harvests eggs for Denver-based NestFresh Eggs and is adding more cover crops that draw worms and crickets for the chickens to eat. The birds’ waste then fertilizes fields. Such improvements “allow our hens to forage for higher-quality natural feed that will be good for the land, the hens, and the eggs that we supply to our customers.” The egg industry’s push is the first major test of whether animal products from regenerative farms can become the next premium offering. In barely more than a decade, organic eggs went from being dismissed as a niche product in natural foods stores to being sold at Walmart. More recently there were similar doubts about probiotics and plant-based meats, but both have exploded into major supermarket categories. If the sustainable-egg rollout is successful, it could open the floodgates for regenerative beef, broccoli, and beyond. Regenerative products could be a hard sell, because the concept is tough to define quickly, says Julie Stanton, associate professor of agricultural economics at Pennsylvania State University Brandywine. Such farming also brings minimal, if any, improvement to the food products (though some producers say their eggs have more protein). The industry is betting that the same consumers paying more for premium attributes such as free-range, non-GMO, and pasture-raised eggs will embrace sustainability. Surveys show that younger generations are more concerned about climate change, and some of the success of plant-based meat can be chalked up to shoppers wanting to signal their desire to protect the environment. Young adults “really care about the planet,” says John Brunnquell, president of Egg Innovations. “They are absolutely altering the food chain beyond what I think even if they understand what they’re doing.”",
+      "wordCount": 402,
+      "questions": [
+        {
+          "number": 21,
+          "prompt": "The climate-friendly eggs are produced ____",
+          "options": [
+            "at a considerably low cost.",
+            "at the demand of regular shoppers.",
+            "as a replacement for organic eggs.",
+            "on specially designed farms."
+          ]
+        },
+        {
+          "number": 22,
+          "prompt": "Larry Brown is excited about his progress in ____",
+          "options": [
+            "reducing the damage of worms.",
+            "accelerating the disposal of wastes.",
+            "creating a sustainable system.",
+            "attracting customers to his products."
+          ]
+        },
+        {
+          "number": 23,
+          "prompt": "The example of organic eggs is used in the paragraph 4 to suggest ____",
+          "options": [
+            "the doubts over natural feeds.",
+            "the setbacks in the eggs industry.",
+            "the potential of regenerative products.",
+            "the promotional success of supermarkets."
+          ]
+        },
+        {
+          "number": 24,
+          "prompt": "It can be learned from the paragraph 6 that young people ____",
+          "options": [
+            "are reluctant to change their diet.",
+            "are likely to buy climate-friendly eggs.",
+            "are curious about new food.",
+            "are amazed at agricultural advances."
+          ]
+        },
+        {
+          "number": 25,
+          "prompt": "John Brunnquell would disagree with Julie Stanton over regenerative products’ ____",
+          "options": [
+            "nutritional value.",
+            "standard definition.",
+            "market prospect.",
+            "moral implication."
+          ]
+        }
+      ],
+      "sourcePages": [
+        3,
+        4
+      ],
+      "paragraphs": [
+        "On a recent sunny day, 13,000 chickens roam over Larry Brown’s 40 windswept acres in Shiner, Texas. Some rest in the shade of a parked car. Others drink water with the cows. This all seems random, but it’s by design, part of what the $6.1 billion U.S. egg industry bets will be its next big thing: climate-friendly eggs.",
+        "These eggs, which are making their debut now on shelves for as much as $8 a dozen, are still labeled organic and animal-friendly, but they’re also from birds that live on farms using regenerative agriculture — special techniques to cultivate rich soils that can trap greenhouse gases. Such eggs could be marketed as helping to fight climate change.",
+        "“I’m excited about our progress,” says Brown, who harvests eggs for Denver-based NestFresh Eggs and is adding more cover crops that draw worms and crickets for the chickens to eat. The birds’ waste then fertilizes fields. Such improvements “allow our hens to forage for higher-quality natural feed that will be good for the land, the hens, and the eggs that we supply to our customers.”",
+        "The egg industry’s push is the first major test of whether animal products from regenerative farms can become the next premium offering. In barely more than a decade, organic eggs went from being dismissed as a niche product in natural foods stores to being sold at Walmart. More recently there were similar doubts about probiotics and plant-based meats, but both have exploded into major supermarket categories. If the sustainable-egg rollout is successful, it could open the floodgates for regenerative beef, broccoli, and beyond.",
+        "Regenerative products could be a hard sell, because the concept is tough to define quickly, says Julie Stanton, associate professor of agricultural economics at Pennsylvania State University Brandywine. Such farming also brings minimal, if any, improvement to the food products (though some producers say their eggs have more protein).",
+        "The industry is betting that the same consumers paying more for premium attributes such as free-range, non-GMO, and pasture-raised eggs will embrace sustainability. Surveys show that younger generations are more concerned about climate change, and some of the success of plant-based meat can be chalked up to shoppers wanting to signal their desire to protect the environment. Young adults “really care about the planet,” says John Brunnquell, president of Egg Innovations. “They are absolutely altering the food chain beyond what I think even if they understand what they’re doing.”"
+      ]
+    },
+    {
+      "number": 2,
+      "passage": "More Americans are opting to work well into retirement, a growing trend that threatens to upend the old workforce model. One in three Americans who are at least 40 have or plan to have a job in retirement to prepare for a longer life, according to a survey conducted by Harris Poll for TD Ameritrade. Even more surprising is that more than half of “unretirees” — those who plan to work in retirement or went back to work after retiring — said they would be employed in their later years even if they had enough money to settle down, the survey showed. Financial needs aren’t the only culprit for the “unretirement” trend. Other reasons, according to the study, include personal fulfillment such as staying mentally fit, preventing boredom or avoiding depression. About 72% of “unretire” respondents said that they would return to work once retired to keep mentally fit while 59% said it would be tied to making ends meet. “The concept of retirement is evolving,” said Christine Russell, senior manager of retirement at TD Ameritrade. “It’s not just about finances. The value of work is also driving folks to continue working past retirement.” One reason for the change in retirement patterns: Americans are living longer. The share of the population 65 and older was 16% in 2018, up 3.2% from the prior year, according to the U.S. Census Bureau. That’s also up 30.2% since 2010. Older Americans are also the fastest-growing segment of the U.S. workforce, and boomers are expected to live longer than previous generations. The percentage of retirement-age people in the labor force has doubled over the past three decades. About 20% of people 65 and older were in the workforce in February, up from an all-time low of 10% in January 1985, according to money manager United Income. Because of longer life spans, Americans are also boosting their savings to preserve their nest eggs, the TD Ameritrade study showed, which surveyed 2,000 adults between 40 to 79. Six in 10 “unretirees” are increasing their savings in anticipation of a longer life, according to the survey. Among the most popular ways they are doing this, the company said, is by reducing their overall expenses, securing life insurance or maximizing their contributions to retirement accounts. Seniors are living longer, but planning for the extended years is key. Unfortunately, many people who are opting to work in retirement are preparing to do so because they are worried about making ends meet in their later years, said Brent Weiss, a co-founder at Baltimore-based financial-planning firm Facet Wealth. He suggested that preretirees should speak with a financial adviser to set long-term financial goals. “The most challenging moments in life are getting married, starting a family and ultimately retiring,” Weiss said. “It’s not just a financial decision, but an emotional one. Many people believe they can’t retire.”",
+      "wordCount": 475,
+      "questions": [
+        {
+          "number": 26,
+          "prompt": "The survey conducted by Harris Poll indicates that ____",
+          "options": [
+            "over half of the retirees are physically fit for work.",
+            "the old workforce is as active as the younger one.",
+            "one in three Americans enjoy earlier retirement.",
+            "more Americans are willing to work in retirement."
+          ]
+        },
+        {
+          "number": 27,
+          "prompt": "It can be inferred from Paragraph 3 that Americans tend to think that ____",
+          "options": [
+            "retirement may cause problems for them.",
+            "boredom can be relieved after retirement.",
+            "the mental health of retirees is overlooked.",
+            "“unretirement” contributes to the economy."
+          ]
+        },
+        {
+          "number": 28,
+          "prompt": "Retirement patterns are changing partly due to ____",
+          "options": [
+            "labor shortage.",
+            "population growth.",
+            "longer life expectancy.",
+            "rising living costs."
+          ]
+        },
+        {
+          "number": 29,
+          "prompt": "Many “unretirees” are increasing their savings by ____",
+          "options": [
+            "investing more in stocks.",
+            "taking up odd jobs.",
+            "getting well-paid work.",
+            "spending less."
+          ]
+        },
+        {
+          "number": 30,
+          "prompt": "With regard to retirement, Brent Weiss thinks that many people are ____",
+          "options": [
+            "unprepared.",
+            "unafraid.",
+            "disappointed.",
+            "enthusiastic."
+          ]
+        }
+      ],
+      "sourcePages": [
+        5,
+        6
+      ],
+      "paragraphs": [
+        "More Americans are opting to work well into retirement, a growing trend that threatens to upend the old workforce model.",
+        "One in three Americans who are at least 40 have or plan to have a job in retirement to prepare for a longer life, according to a survey conducted by Harris Poll for TD Ameritrade. Even more surprising is that more than half of “unretirees” — those who plan to work in retirement or went back to work after retiring — said they would be employed in their later years even if they had enough money to settle down, the survey showed.",
+        "Financial needs aren’t the only culprit for the “unretirement” trend. Other reasons, according to the study, include personal fulfillment such as staying mentally fit, preventing boredom or avoiding depression. About 72% of “unretire” respondents said that they would return to work once retired to keep mentally fit while 59% said it would be tied to making ends meet.",
+        "“The concept of retirement is evolving,” said Christine Russell, senior manager of retirement at TD Ameritrade. “It’s not just about finances. The value of work is also driving folks to continue working past retirement.”",
+        "One reason for the change in retirement patterns: Americans are living longer. The share of the population 65 and older was 16% in 2018, up 3.2% from the prior year, according to the U.S. Census Bureau. That’s also up 30.2% since 2010. Older Americans are also the fastest-growing segment of the U.S. workforce, and boomers are expected to live longer than previous generations. The percentage of retirement-age people in the labor force has doubled over the past three decades. About 20% of people 65 and older were in the workforce in February, up from an all-time low of 10% in January 1985, according to money manager United Income.",
+        "Because of longer life spans, Americans are also boosting their savings to preserve their nest eggs, the TD Ameritrade study showed, which surveyed 2,000 adults between 40 to 79. Six in 10 “unretirees” are increasing their savings in anticipation of a longer life, according to the survey. Among the most popular ways they are doing this, the company said, is by reducing their overall expenses, securing life insurance or maximizing their contributions to retirement accounts. Seniors are living longer, but planning for the extended years is key.",
+        "Unfortunately, many people who are opting to work in retirement are preparing to do so because they are worried about making ends meet in their later years, said Brent Weiss, a co-founder at Baltimore-based financial-planning firm Facet Wealth. He suggested that preretirees should speak with a financial adviser to set long-term financial goals.",
+        "“The most challenging moments in life are getting married, starting a family and ultimately retiring,” Weiss said. “It’s not just a financial decision, but an emotional one. Many people believe they can’t retire.”"
+      ]
+    },
+    {
+      "number": 3,
+      "passage": "We have all encountered them, in both our personal and professional lives. Think about the times you felt tricked or frustrated by a membership or subscription that had a seamless signup process but was later difficult to cancel. Something that should be simple and transparent can be complicated, intentionally or unintentionally, in ways that impair consumer choice. These are examples of dark patterns. First coined in 2010 by user experience expert Harry Brignull, “dark patterns” is a catch-all term for practices that manipulate user interfaces to influence the decision-making ability of users. Brignull identifies 12 types of common dark patterns, ranging from misdirection and hidden costs to “roach motel,” where a user experience seems easy and intuitive at the start, but turns difficult when the user tries to get out. In a 2019 study of 53,000 product pages and 11,000 websites, researchers found that about one in 10 employs these design practices. Though widely prevalent, the concept of dark patterns is still not well understood. Business and nonprofit leaders should be aware of dark patterns and try to avoid the gray areas they engender. Where is the line between ethical, persuasive design and dark patterns? Businesses should engage in conversations with IT, compliance, risk, and legal teams to review their privacy policy, and include in the discussion the customer/user experience designers and coders responsible for the company’s user interface, as well as the marketers and advertisers responsible for sign-ups, checkout baskets, pricing, and promotions. Any or all these teams can play a role in creating or avoiding “digital deception.” Lawmakers and regulators are slowly starting to address the ambiguity around dark patterns, most recently at the state level. In March, the California Attorney General announced the approval of additional regulations under the California Consumer Privacy Act (CCPA) that “ensure that consumers will not be confused or misled when seeking to exercise their data privacy rights.” The regulations aim to ban dark patterns — this means prohibiting companies from using “confusing language or unnecessary steps such as forcing them to click through multiple screens or listen to reasons why they shouldn’t opt out.” As more states consider promulgating additional regulations, there is a need for greater accountability from within the business community. Dark patterns also can be addressed on a self-regulatory basis, but only if organizations hold themselves accountable, not just to legal requirements but also to industry best practices and standards.",
+      "wordCount": 401,
+      "questions": [
+        {
+          "number": 31,
+          "prompt": "It can be learned from the first two paragraphs that dark patterns ____",
+          "options": [
+            "improve user experiences.",
+            "leak user information for profit.",
+            "undermine users’ decision-making.",
+            "remind users of hidden costs."
+          ]
+        },
+        {
+          "number": 32,
+          "prompt": "The 2019 study on dark patterns is mentioned to show ____",
+          "options": [
+            "their major flaws.",
+            "their complex designs.",
+            "their severe damage.",
+            "their strong presence."
+          ]
+        },
+        {
+          "number": 33,
+          "prompt": "To handle digital deception, businesses should ____",
+          "options": [
+            "listen to customer feedback.",
+            "talk with relevant teams.",
+            "turn to independent agencies.",
+            "rely on professional training."
+          ]
+        },
+        {
+          "number": 34,
+          "prompt": "The additional regulations under the CCPA are intended to ____",
+          "options": [
+            "guide users through opt-out processes.",
+            "protect consumers from being tricked.",
+            "grant companies data privacy rights.",
+            "restrict access to problematic content."
+          ]
+        },
+        {
+          "number": 35,
+          "prompt": "According to the last paragraph, a key to coping with dark patterns is ____",
+          "options": [
+            "new legal requirements.",
+            "businesses’ self-discipline.",
+            "strict regulatory standards.",
+            "consumers safety awareness."
+          ]
+        }
+      ],
+      "sourcePages": [
+        7,
+        8
+      ],
+      "paragraphs": [
+        "We have all encountered them, in both our personal and professional lives. Think about the times you felt tricked or frustrated by a membership or subscription that had a seamless signup process but was later difficult to cancel. Something that should be simple and transparent can be complicated, intentionally or unintentionally, in ways that impair consumer choice. These are examples of dark patterns.",
+        "First coined in 2010 by user experience expert Harry Brignull, “dark patterns” is a catch-all term for practices that manipulate user interfaces to influence the decision-making ability of users. Brignull identifies 12 types of common dark patterns, ranging from misdirection and hidden costs to “roach motel,” where a user experience seems easy and intuitive at the start, but turns difficult when the user tries to get out.",
+        "In a 2019 study of 53,000 product pages and 11,000 websites, researchers found that about one in 10 employs these design practices. Though widely prevalent, the concept of dark patterns is still not well understood. Business and nonprofit leaders should be aware of dark patterns and try to avoid the gray areas they engender.",
+        "Where is the line between ethical, persuasive design and dark patterns? Businesses should engage in conversations with IT, compliance, risk, and legal teams to review their privacy policy, and include in the discussion the customer/user experience designers and coders responsible for the company’s user interface, as well as the marketers and advertisers responsible for sign-ups, checkout baskets, pricing, and promotions. Any or all these teams can play a role in creating or avoiding “digital deception.”",
+        "Lawmakers and regulators are slowly starting to address the ambiguity around dark patterns, most recently at the state level. In March, the California Attorney General announced the approval of additional regulations under the California Consumer Privacy Act (CCPA) that “ensure that consumers will not be confused or misled when seeking to exercise their data privacy rights.” The regulations aim to ban dark patterns — this means prohibiting companies from using “confusing language or unnecessary steps such as forcing them to click through multiple screens or listen to reasons why they shouldn’t opt out.”",
+        "As more states consider promulgating additional regulations, there is a need for greater accountability from within the business community. Dark patterns also can be addressed on a self-regulatory basis, but only if organizations hold themselves accountable, not just to legal requirements but also to industry best practices and standards."
+      ]
+    },
+    {
+      "number": 4,
+      "passage": "Although ethics classes are common around the world, scientists are unsure if their lessons can actually change behavior; evidence either way is weak, relying on contrived laboratory tests or sometimes unreliable self-reports. But a new study published in Cognition found that, in at least one real-world situation, a single ethics lesson may have had lasting effects. The researchers investigated one class session’s impact on eating meat. They chose this particular behavior for three reasons, according to study co-author Eric Schwitzgebel, a philosopher at the University of California, Riverside: students’ attitudes on the topic are variable and unstable, behavior is easily measurable, and ethics literature largely agrees that eating less meat is good because it reduces environmental harm and animal suffering. Half of the students in four large philosophy classes read an article on the ethics of factory-farmed meat, optionally watched an 11-minute video on the topic and joined a 50-minute discussion. The other half focused on charitable giving instead. Then, unknown to the students, the researchers studied their anonymized meal-card purchases for that semester — nearly 14,000 receipts for almost 500 students. “It’s an awesome data set,” says Nina Strohminger, a psychologist who teaches business ethics at the University of Pennsylvania and was not involved in the study. Schwitzgebel predicted the intervention would have no effect; he had previously found that ethics professors do not differ from other professors on a range of behaviors, including voting rates, blood donation and returning library books. But among student subjects who discussed meat ethics, meal purchases containing meat decreased from 52 to 45 percent — and this effect held steady for the study’s duration of several weeks. Purchases from the other group remained at 52 percent. “That’s actually a pretty large effect for a pretty small intervention,” Schwitzgebel says. Psychologist Nina Strohminger at the University of Pennsylvania, who was not involved in the study, says she wants the effect to be real but cannot rule out some unknown confounding variable. And if real, she notes, it might be reversible by another nudge: “Easy come, easy go.” Schwitzgebel suspects the greatest impact came from social influence — classmates or teaching assistants leading the discussions may have shared their own vegetarianism, showing it as achievable or more common. Second, the video may have had an emotional impact. Least rousing, he thinks, was rational argument, although his co-authors say reason might play a bigger role. Now the researchers are probing the specific effects of teaching style, teaching assistants’ eating habits and students’ video exposure. Meanwhile Schwitzgebel — who had predicted no effect — will be eating his words.",
+      "wordCount": 432,
+      "questions": [
+        {
+          "number": 36,
+          "prompt": "Scientists generally believe that the effects of ethics classes are ____",
+          "options": [
+            "hard to determine.",
+            "narrowly interpreted.",
+            "difficult to ignore.",
+            "poorly summarized."
+          ]
+        },
+        {
+          "number": 37,
+          "prompt": "Which of the following is a reason for the researchers to study meat eating?",
+          "options": [
+            "It is common among students.",
+            "It is a behavior easy to measure.",
+            "It is important to students’ health.",
+            "It is a hot topic in ethics classes."
+          ]
+        },
+        {
+          "number": 38,
+          "prompt": "Eric Schwitzgebel’s previous findings suggest that ethics professors ____",
+          "options": [
+            "are seldom critical of their students.",
+            "are less sociable than other professors.",
+            "are not sensitive to political issues.",
+            "are not necessarily ethically better."
+          ]
+        },
+        {
+          "number": 39,
+          "prompt": "Nina Strohminger thinks that the effect of the intervention is ____",
+          "options": [
+            "permanent.",
+            "predictable.",
+            "uncertain.",
+            "unrepeatable."
+          ]
+        },
+        {
+          "number": 40,
+          "prompt": "Eric Schwitzgebel suspects that the students’ change in behavior ____",
+          "options": [
+            "can bring psychological benefits.",
+            "can be analyzed statistically.",
+            "is a result of multiple factors.",
+            "is a sign of self-development."
+          ]
+        }
+      ],
+      "sourcePages": [
+        9,
+        10
+      ],
+      "paragraphs": [
+        "Although ethics classes are common around the world, scientists are unsure if their lessons can actually change behavior; evidence either way is weak, relying on contrived laboratory tests or sometimes unreliable self-reports. But a new study published in Cognition found that, in at least one real-world situation, a single ethics lesson may have had lasting effects.",
+        "The researchers investigated one class session’s impact on eating meat. They chose this particular behavior for three reasons, according to study co-author Eric Schwitzgebel, a philosopher at the University of California, Riverside: students’ attitudes on the topic are variable and unstable, behavior is easily measurable, and ethics literature largely agrees that eating less meat is good because it reduces environmental harm and animal suffering. Half of the students in four large philosophy classes read an article on the ethics of factory-farmed meat, optionally watched an 11-minute video on the topic and joined a 50-minute discussion. The other half focused on charitable giving instead. Then, unknown to the students, the researchers studied their anonymized meal-card purchases for that semester — nearly 14,000 receipts for almost 500 students. “It’s an awesome data set,” says Nina Strohminger, a psychologist who teaches business ethics at the University of Pennsylvania and was not involved in the study.",
+        "Schwitzgebel predicted the intervention would have no effect; he had previously found that ethics professors do not differ from other professors on a range of behaviors, including voting rates, blood donation and returning library books. But among student subjects who discussed meat ethics, meal purchases containing meat decreased from 52 to 45 percent — and this effect held steady for the study’s duration of several weeks. Purchases from the other group remained at 52 percent.",
+        "“That’s actually a pretty large effect for a pretty small intervention,” Schwitzgebel says. Psychologist Nina Strohminger at the University of Pennsylvania, who was not involved in the study, says she wants the effect to be real but cannot rule out some unknown confounding variable. And if real, she notes, it might be reversible by another nudge: “Easy come, easy go.”",
+        "Schwitzgebel suspects the greatest impact came from social influence — classmates or teaching assistants leading the discussions may have shared their own vegetarianism, showing it as achievable or more common. Second, the video may have had an emotional impact. Least rousing, he thinks, was rational argument, although his co-authors say reason might play a bigger role. Now the researchers are probing the specific effects of teaching style, teaching assistants’ eating habits and students’ video exposure. Meanwhile Schwitzgebel — who had predicted no effect — will be eating his words."
+      ]
+    }
+  ]
+}

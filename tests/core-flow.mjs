@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 assert.equal(process.env.ALLOW_TEST_WRITES, "1", "Set ALLOW_TEST_WRITES=1 to acknowledge that this test creates practice records.");
 
 const baseUrl = (process.env.TEST_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");
+const target = new URL(baseUrl);
+assert.ok(target.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(target.hostname),
+  "Core tests may only write to a local HTTP server, never production.");
 const year = process.env.TEST_YEAR ?? "2026";
 const text = process.env.TEST_TEXT ?? "1";
 let cookie = "";
@@ -10,7 +13,7 @@ let cookie = "";
 async function request(path, init = {}) {
   const headers = new Headers(init.headers);
   if (cookie) headers.set("cookie", cookie);
-  const response = await fetch(`${baseUrl}${path}`, { ...init, headers, signal: AbortSignal.timeout(20_000) });
+  const response = await fetch(`${baseUrl}${path}`, { ...init, headers, redirect: "error", signal: AbortSignal.timeout(20_000) });
   const setCookie = response.headers.get("set-cookie");
   if (setCookie) cookie = setCookie.split(";", 1)[0];
   return response;

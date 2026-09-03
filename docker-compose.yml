@@ -12,6 +12,7 @@ services:
       - ./supabase/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql:ro
       - ./supabase/migrations/20260813123336_add_passage_paragraphs.sql:/docker-entrypoint-initdb.d/003-paragraphs.sql:ro
       - ./deploy/postgres/003-grading.sql:/docker-entrypoint-initdb.d/004-grading.sql:ro
+      - ./deploy/postgres/011-email-send-budget.sql:/docker-entrypoint-initdb.d/011-email-send-budget.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s

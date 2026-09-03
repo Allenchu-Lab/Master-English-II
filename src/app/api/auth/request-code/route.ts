@@ -4,16 +4,18 @@ import { sendLoginCode } from "@/lib/auth/mailer";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { query } from "@/lib/db";
 import { logError, maskEmail } from "@/lib/log";
+import { emailLoginEnabled } from "@/lib/auth/config";
+import { isValidEmail } from "@/lib/auth/email-validation";
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // 每个邮箱每天最多发送的验证码数量，防止验证码轰炸
 const DAILY_CODE_LIMIT = 10;
 const codeHash = (email: string, code: string) => createHmac("sha256", process.env.OTP_SECRET ?? "").update(`${email}:${code}`).digest("hex");
 
 export async function POST(request: Request) {
-  const { email: rawEmail } = await request.json().catch(() => ({ email: "" })) as { email?: string };
-  const email = rawEmail?.trim().toLowerCase() ?? "";
-  if (!emailPattern.test(email)) return NextResponse.json({ error: "请输入正确的邮箱地址。" }, { status: 400 });
+  if (!emailLoginEnabled()) return NextResponse.json({ error: "登录服务尚未开放。" }, { status: 503 });
+  const body = await request.json().catch(() => null) as { email?: unknown } | null;
+  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (!isValidEmail(email)) return NextResponse.json({ error: "请输入正确的邮箱地址。" }, { status: 400 });
   if (!process.env.OTP_SECRET) return NextResponse.json({ error: "登录服务尚未配置。" }, { status: 503 });
 
   // 每个 IP 每小时最多 20 次发码请求（进程内限流，单实例部署）

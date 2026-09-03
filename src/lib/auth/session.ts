@@ -62,12 +62,16 @@ export async function getOrCreateSessionUser() {
 }
 
 export async function replaceSession(userId: string, previousUserId?: string) {
+  const previousToken = (await cookies()).get(cookieName)?.value;
   const token = await transaction(async (client) => {
     if (previousUserId && previousUserId !== userId) {
-      await client.query("update practice_attempts set user_id = $1 where user_id = $2", [userId, previousUserId]);
-      await client.query("delete from app_users where id = $1 and is_anonymous = true", [previousUserId]);
+      const guest = await client.query("select id from app_users where id = $1 and is_anonymous = true for update", [previousUserId]);
+      if (guest.rowCount) {
+        await client.query("update practice_attempts set user_id = $1 where user_id = $2", [userId, previousUserId]);
+        await client.query("delete from app_users where id = $1 and is_anonymous = true", [previousUserId]);
+      }
     }
-    await client.query("delete from user_sessions where user_id = $1", [userId]);
+    if (previousToken) await client.query("delete from user_sessions where token_hash = $1", [hashToken(previousToken)]);
     return createSession(client, userId);
   });
   await setSessionCookie(token);

@@ -1,0 +1,291 @@
+{
+  "year": 2021,
+  "title": "2021年全国硕士研究生招生考试英语（二）",
+  "sourceFile": "2021年考研英语二.pdf",
+  "sourceSha256": "d7e1a72471938361bdce4a651939f61783d1b7e80e901cc9083ec5f30978c54f",
+  "status": "draft",
+  "answerStatus": "pending",
+  "sections": {
+    "cloze": 0,
+    "readingA": 4,
+    "readingB": 0,
+    "translation": 0,
+    "writing": 0
+  },
+  "readingA": [
+    {
+      "number": 1,
+      "passage": "“Reskilling” is something that sounds like a buzzword but is actually a requirement if we plan to have a future in which a lot of would-be workers do not get left behind. We know we are moving into a period where the jobs in demand will change rapidly, as will the requirements of the jobs that remain. Research by the World Economic Forum finds that on average 42 percent of the “core skills” within job roles will change by 2022. That is a very short timeline. The question of who should pay for reskilling is a thorny one. For individual companies, the temptation is always to let go of workers whose skills are no longer in demand and replace them with those whose skills are. That does not always happen. AT&T is often given as the gold standard of a company that decided to do a massive reskilling program rather than go with a fire-and-hire strategy. Other companies had also pledged to create their own plans. When the skills mismatch is in the broader economy, though, the focus usually turns to government to handle. Efforts in Canada and elsewhere have been arguably languid at best, and have given us a situation where we frequently hear of employers begging for workers even at times and in regions where unemployment is high. With the pandemic, unemployment is very high indeed. In February, at 3.5 percent and 5.5 percent respectively, unemployment rates in Canada and the U.S. were at generational lows and worker shortages were everywhere. As of May, those rates had spiked up to 13.3 percent and 13.7 percent, and although many worker shortages had disappeared, not all had done so. In the medical field, to take an obvious example, the pandemic meant that there were still clear shortages of doctors, nurses and other medical personnel. Of course, it is not like you can take an unemployed waiter and train him to be a doctor in a few weeks. But even if you cannot close the gap, maybe you can close others, and doing so would be to the benefit of all concerned. That seems to be the case in Sweden: When forced to furlough 90 percent of their cabin staff, Scandinavian Airlines decided to start up a short retraining program that reskilled the laid-off workers to support hospital staff. The effort was a collective one and involved other companies as well as a Swedish university.",
+      "wordCount": 404,
+      "questions": [
+        {
+          "number": 21,
+          "prompt": "Research by the World Economic Forum suggests ____",
+          "options": [
+            "a controversy about the “core skills”.",
+            "an increase in full-time employment.",
+            "an urgent demand for new job skills.",
+            "a steady growth of job opportunities."
+          ]
+        },
+        {
+          "number": 22,
+          "prompt": "AT&T is cited to show ____",
+          "options": [
+            "an immediate need for government support.",
+            "an alternative to the fire-and-hire strategy.",
+            "the characteristics of reskilling programs.",
+            "the importance of staff appraisal standards."
+          ]
+        },
+        {
+          "number": 23,
+          "prompt": "Efforts to resolve the skills mismatch in Canada ____",
+          "options": [
+            "have appeared to be insufficient.",
+            "have driven up labour costs.",
+            "have proved to be inconsistent.",
+            "have met with fierce opposition."
+          ]
+        },
+        {
+          "number": 24,
+          "prompt": "We can learn from Paragraph 3 that there was ____",
+          "options": [
+            "a sign of economic recovery.",
+            "a call for policy adjustment.",
+            "a change in hiring practices.",
+            "a lack of medical workers."
+          ]
+        },
+        {
+          "number": 25,
+          "prompt": "Scandinavian Airlines decided to ____",
+          "options": [
+            "create job vacancies for the unemployed.",
+            "retrain their cabin staff for better services.",
+            "prepare their laid-off workers for other jobs.",
+            "finance their staff’s college education."
+          ]
+        }
+      ],
+      "sourcePages": [
+        3,
+        4
+      ],
+      "paragraphs": [
+        "“Reskilling” is something that sounds like a buzzword but is actually a requirement if we plan to have a future in which a lot of would-be workers do not get left behind. We know we are moving into a period where the jobs in demand will change rapidly, as will the requirements of the jobs that remain. Research by the World Economic Forum finds that on average 42 percent of the “core skills” within job roles will change by 2022. That is a very short timeline.",
+        "The question of who should pay for reskilling is a thorny one. For individual companies, the temptation is always to let go of workers whose skills are no longer in demand and replace them with those whose skills are. That does not always happen. AT&T is often given as the gold standard of a company that decided to do a massive reskilling program rather than go with a fire-and-hire strategy. Other companies had also pledged to create their own plans. When the skills mismatch is in the broader economy, though, the focus usually turns to government to handle. Efforts in Canada and elsewhere have been arguably languid at best, and have given us a situation where we frequently hear of employers begging for workers even at times and in regions where unemployment is high.",
+        "With the pandemic, unemployment is very high indeed. In February, at 3.5 percent and 5.5 percent respectively, unemployment rates in Canada and the U.S. were at generational lows and worker shortages were everywhere. As of May, those rates had spiked up to 13.3 percent and 13.7 percent, and although many worker shortages had disappeared, not all had done so. In the medical field, to take an obvious example, the pandemic meant that there were still clear shortages of doctors, nurses and other medical personnel.",
+        "Of course, it is not like you can take an unemployed waiter and train him to be a doctor in a few weeks. But even if you cannot close the gap, maybe you can close others, and doing so would be to the benefit of all concerned. That seems to be the case in Sweden: When forced to furlough 90 percent of their cabin staff, Scandinavian Airlines decided to start up a short retraining program that reskilled the laid-off workers to support hospital staff. The effort was a collective one and involved other companies as well as a Swedish university."
+      ]
+    },
+    {
+      "number": 2,
+      "passage": "With the global population predicted to hit close to 10 billion by 2050, and forecasts that agricultural production in some regions will need to nearly double to keep pace, food security is increasingly making headlines. In the UK, it has become a big talking point recently too, for a rather particular reason: Brexit. Brexit is seen by some as an opportunity to reverse a recent trend towards the UK importing food. The country produces only about 60 percent of the food it eats, down from almost three-quarters in the late 1980s. A move back to self-sufficiency, the argument goes, would boost the farming industry, political sovereignty and even the nation’s health. Sounds great — but how feasible is this vision? According to a report on UK food production from the University of Leeds, UK, 85 percent of the country’s total land area is associated with meat and dairy production. That supplies 80 percent of what is consumed, so even covering the whole country in livestock farms wouldn’t allow us to cover all our meat and dairy needs. There are many caveats to those figures, but they are still grave. To become much more self-sufficient, the UK would need to drastically reduce its consumption of animal foods, and probably also farm more intensively — meaning fewer green fields and more factory-style production. But switching to a mainly plant-based diet wouldn’t help. There is a good reason why the UK is dominated by animal husbandry: most of its terrain doesn’t have the right soil or climate to grow crops on a commercial basis. Just 25 percent of the country’s land is suitable for crop-growing, most of which is already occupied by arable fields. Even if we converted all the suitable land to fields of fruit and veg — which would involve taking out all the nature reserves and removing thousands of people from their homes — we would achieve only a 30 percent boost in crop production. Just 23 percent of the fruit and vegetables consumed in the UK are currently home-grown, so even with the most extreme measures we could meet only 30 percent of our fresh produce needs. That is before we look for the space to grow the grains, sugars, seeds and oils that provide us with the vast bulk of our current calorie intake.",
+      "wordCount": 386,
+      "questions": [
+        {
+          "number": 26,
+          "prompt": "Some people argue that food self-sufficiency in the UK would ____",
+          "options": [
+            "be hindered by its population growth.",
+            "contribute to the nation’s well-being.",
+            "become a priority of the government.",
+            "pose a challenge to its farming industry."
+          ]
+        },
+        {
+          "number": 27,
+          "prompt": "The report by the University of Leeds shows that in the UK ____",
+          "options": [
+            "farmland has been inefficiently utilized.",
+            "factory-style production needs reforming.",
+            "most land is used for meat and dairy production.",
+            "more green fields will be converted for farming."
+          ]
+        },
+        {
+          "number": 28,
+          "prompt": "Crop-growing in the UK is restricted due to ____",
+          "options": [
+            "its farming technology.",
+            "its dietary tradition.",
+            "its natural conditions.",
+            "its commercial interests."
+          ]
+        },
+        {
+          "number": 29,
+          "prompt": "It can be learned from the last paragraph that British people ____",
+          "options": [
+            "rely largely on imports for fresh produce.",
+            "enjoy a steady rise in fruit consumption.",
+            "are seeking effective ways to cut calorie intake.",
+            "are trying to grow new varieties of grains."
+          ]
+        },
+        {
+          "number": 30,
+          "prompt": "The author’s attitude to food self-sufficiency in the UK is ____",
+          "options": [
+            "defensive.",
+            "doubtful.",
+            "tolerant.",
+            "optimistic."
+          ]
+        }
+      ],
+      "sourcePages": [
+        5,
+        6
+      ],
+      "paragraphs": [
+        "With the global population predicted to hit close to 10 billion by 2050, and forecasts that agricultural production in some regions will need to nearly double to keep pace, food security is increasingly making headlines. In the UK, it has become a big talking point recently too, for a rather particular reason: Brexit.",
+        "Brexit is seen by some as an opportunity to reverse a recent trend towards the UK importing food. The country produces only about 60 percent of the food it eats, down from almost three-quarters in the late 1980s. A move back to self-sufficiency, the argument goes, would boost the farming industry, political sovereignty and even the nation’s health. Sounds great — but how feasible is this vision?",
+        "According to a report on UK food production from the University of Leeds, UK, 85 percent of the country’s total land area is associated with meat and dairy production. That supplies 80 percent of what is consumed, so even covering the whole country in livestock farms wouldn’t allow us to cover all our meat and dairy needs.",
+        "There are many caveats to those figures, but they are still grave. To become much more self-sufficient, the UK would need to drastically reduce its consumption of animal foods, and probably also farm more intensively — meaning fewer green fields and more factory-style production.",
+        "But switching to a mainly plant-based diet wouldn’t help. There is a good reason why the UK is dominated by animal husbandry: most of its terrain doesn’t have the right soil or climate to grow crops on a commercial basis. Just 25 percent of the country’s land is suitable for crop-growing, most of which is already occupied by arable fields. Even if we converted all the suitable land to fields of fruit and veg — which would involve taking out all the nature reserves and removing thousands of people from their homes — we would achieve only a 30 percent boost in crop production.",
+        "Just 23 percent of the fruit and vegetables consumed in the UK are currently home-grown, so even with the most extreme measures we could meet only 30 percent of our fresh produce needs. That is before we look for the space to grow the grains, sugars, seeds and oils that provide us with the vast bulk of our current calorie intake."
+      ]
+    },
+    {
+      "number": 3,
+      "passage": "When Microsoft bought task management app Wunderlist and mobile calendar Sunrise in 2015, it picked up two newcomers that were attracting considerable buzz in Silicon Valley. Microsoft’s own Office dominates the market for “productivity” software, but the start-ups represented a new wave of technology designed from the ground up for the smartphone world. Both apps, however, were later scrapped after Microsoft said it had used their best features in its own products. Their teams of engineers stayed on, making them two of the many “acqui-hires” that the biggest companies have used to feed their great hunger for tech talent. To Microsoft’s critics, the fates of Wunderlist and Sunrise are examples of a remorseless drive by Big Tech to chew up any innovative companies that lie in their path. “They bought the seedlings and closed them down,” complained Paul Arnold, a partner at San Francisco-based Switch Ventures, putting an end to businesses that might one day turn into competitors. Microsoft declined to comment. Like other start-up investors, Mr Arnold’s own business often depends on selling start-ups to larger tech companies, though he admits to mixed feelings about the result: “I think these things are good for me, if I put my selfish hat on. But are they good for the American economy? I don’t know.” The US Federal Trade Commission says it wants to find the answer to that question. This week, it asked the five most valuable US tech companies for information about their many small acquisitions over the past decade. Although only a research project at this stage, the request has raised the prospect of regulators wading into early-stage tech markets that until now have been beyond their reach. Given their combined market value of more than $5.5 trillion, rifling through such small deals — many of them much less prominent than Wunderlist and Sunrise — might seem beside the point. Between them, the five biggest tech companies have spent an average of only $3.4 billion a year on sub-$1 billion acquisitions over the past five years — a drop in the ocean compared with their massive financial reserves, and the more than $130 billion of venture capital that was invested in the US last year. However, critics say the big companies use such deals to buy their most threatening potential competitors before their businesses have a chance to gain momentum, in some cases as part of a “buy and kill” tactic to simply close them down.",
+      "wordCount": 408,
+      "questions": [
+        {
+          "number": 31,
+          "prompt": "What is true about Wunderlist and Sunrise after their acquisitions?",
+          "options": [
+            "Their engineers were retained.",
+            "Their market values declined.",
+            "Their tech features improved.",
+            "Their products were re-priced."
+          ]
+        },
+        {
+          "number": 32,
+          "prompt": "Microsoft’s critics believe that the big tech companies tend to ____",
+          "options": [
+            "exaggerate their product quality.",
+            "eliminate their potential competitors.",
+            "treat new tech talent unfairly.",
+            "ignore public opinions."
+          ]
+        },
+        {
+          "number": 33,
+          "prompt": "Paul Arnold is concerned that small acquisitions might ____",
+          "options": [
+            "weaken big tech companies.",
+            "worsen market competition.",
+            "harm the national economy.",
+            "discourage start-up investors."
+          ]
+        },
+        {
+          "number": 34,
+          "prompt": "The US Federal Trade Commission intends to ____",
+          "options": [
+            "limit Big Tech’s expansion.",
+            "encourage research collaboration.",
+            "examine small acquisitions.",
+            "supervise start-ups’ operations."
+          ]
+        },
+        {
+          "number": 35,
+          "prompt": "For the five biggest tech companies, their small acquisitions have ____",
+          "options": [
+            "brought little financial pressure.",
+            "raised few management challenges.",
+            "set an example for future deals.",
+            "generated considerable profits."
+          ]
+        }
+      ],
+      "sourcePages": [
+        7,
+        8
+      ],
+      "paragraphs": [
+        "When Microsoft bought task management app Wunderlist and mobile calendar Sunrise in 2015, it picked up two newcomers that were attracting considerable buzz in Silicon Valley. Microsoft’s own Office dominates the market for “productivity” software, but the start-ups represented a new wave of technology designed from the ground up for the smartphone world.",
+        "Both apps, however, were later scrapped after Microsoft said it had used their best features in its own products. Their teams of engineers stayed on, making them two of the many “acqui-hires” that the biggest companies have used to feed their great hunger for tech talent.",
+        "To Microsoft’s critics, the fates of Wunderlist and Sunrise are examples of a remorseless drive by Big Tech to chew up any innovative companies that lie in their path. “They bought the seedlings and closed them down,” complained Paul Arnold, a partner at San Francisco-based Switch Ventures, putting an end to businesses that might one day turn into competitors. Microsoft declined to comment.",
+        "Like other start-up investors, Mr Arnold’s own business often depends on selling start-ups to larger tech companies, though he admits to mixed feelings about the result: “I think these things are good for me, if I put my selfish hat on. But are they good for the American economy? I don’t know.”",
+        "The US Federal Trade Commission says it wants to find the answer to that question. This week, it asked the five most valuable US tech companies for information about their many small acquisitions over the past decade. Although only a research project at this stage, the request has raised the prospect of regulators wading into early-stage tech markets that until now have been beyond their reach.",
+        "Given their combined market value of more than $5.5 trillion, rifling through such small deals — many of them much less prominent than Wunderlist and Sunrise — might seem beside the point. Between them, the five biggest tech companies have spent an average of only $3.4 billion a year on sub-$1 billion acquisitions over the past five years — a drop in the ocean compared with their massive financial reserves, and the more than $130 billion of venture capital that was invested in the US last year.",
+        "However, critics say the big companies use such deals to buy their most threatening potential competitors before their businesses have a chance to gain momentum, in some cases as part of a “buy and kill” tactic to simply close them down."
+      ]
+    },
+    {
+      "number": 4,
+      "passage": "We’re fairly good at judging people based on first impressions, thin slices of experience ranging from a glimpse of a photo to a five-minute interaction, and deliberation can be not only extraneous but intrusive. In one study of the ability she called “thin slicing” the late psychologist Nalini Ambady asked participants to watch silent 10-second video clips of professors and to rate the instructor’s overall effectiveness. Their ratings correlated strongly with students’ end-of-semester ratings. Another set of participants had to count backward from 1,000 by nines as they watched the clips, occupying their conscious working memory. Their ratings were just as accurate, demonstrating the intuitive nature of the social processing. Critically, another group was asked to spend a minute writing down reasons for their judgment, before giving the rating. Accuracy dropped dramatically. Ambady suspected that deliberation focused them on vivid but misleading cues, such as certain gestures or utterances, rather than letting the complex interplay of subtle signals form a holistic impression. She found similar interference when participants watched 15-second clips of pairs of people and judged whether they were strangers, friends, or dating partners. Other research shows we’re better at detecting deception from thin slices when we rely on intuition instead of reflection. “It’s as if you’re driving a stick shift,” says Judith Hall, a psychologist at Northeastern University, “and if you start thinking about it too much, you can’t remember what you’re doing. But if you go on automatic pilot, you’re fine. Much of our social life is like that.” Thinking too much can also harm our ability to form preferences. College students’ ratings of strawberry jams and college courses aligned better with experts’ opinions when the students weren’t asked to analyze their rationale. And people made car-buying decisions that were both objectively better and more personally satisfying when asked to focus on their feelings rather than on details, but only if the decision was complex — when they had a lot of information to process. Intuition’s special powers are unleashed only in certain circumstances. In one study, participants completed a battery of eight tasks, including four that tapped reflective thinking (discerning rules, comprehending vocabulary) and four that tapped intuition and creativity (generating new products or figures of speech). Then they rated the degree to which they had used intuition (“gut feelings,” “hunches,” “my heart”). Use of their gut hurt their performance on the first four tasks, as expected, and helped them on the rest. Sometimes the heart is smarter than the head.",
+      "wordCount": 415,
+      "questions": [
+        {
+          "number": 36,
+          "prompt": "Nalini Ambady’s study deals with ____",
+          "options": [
+            "the power of people’s memory.",
+            "the reliability of first impressions.",
+            "instructor-student interaction.",
+            "people’s ability to influence others."
+          ]
+        },
+        {
+          "number": 37,
+          "prompt": "In Ambady’s study, rating accuracy dropped dramatically when participants ____",
+          "options": [
+            "focused on specific details.",
+            "gave the rating in limited time.",
+            "watched shorter video clips.",
+            "discussed with one another."
+          ]
+        },
+        {
+          "number": 38,
+          "prompt": "Judith Hall mentions driving to show that ____",
+          "options": [
+            "reflection can be distracting.",
+            "memory may be selective.",
+            "social skills must be cultivated.",
+            "deception is difficult to detect."
+          ]
+        },
+        {
+          "number": 39,
+          "prompt": "When you are making complex decisions, it is advisable to ____",
+          "options": [
+            "collect enough data.",
+            "list your preferences.",
+            "seek expert advice.",
+            "follow your feelings."
+          ]
+        },
+        {
+          "number": 40,
+          "prompt": "What can we learn from the last paragraph?",
+          "options": [
+            "Generating new products takes time.",
+            "Intuition may affect reflective task.",
+            "Vocabulary comprehension needs creativity.",
+            "Objective thinking may boost inventiveness."
+          ]
+        }
+      ],
+      "sourcePages": [
+        9,
+        10
+      ],
+      "paragraphs": [
+        "We’re fairly good at judging people based on first impressions, thin slices of experience ranging from a glimpse of a photo to a five-minute interaction, and deliberation can be not only extraneous but intrusive. In one study of the ability she called “thin slicing” the late psychologist Nalini Ambady asked participants to watch silent 10-second video clips of professors and to rate the instructor’s overall effectiveness. Their ratings correlated strongly with students’ end-of-semester ratings. Another set of participants had to count backward from 1,000 by nines as they watched the clips, occupying their conscious working memory. Their ratings were just as accurate, demonstrating the intuitive nature of the social processing.",
+        "Critically, another group was asked to spend a minute writing down reasons for their judgment, before giving the rating. Accuracy dropped dramatically. Ambady suspected that deliberation focused them on vivid but misleading cues, such as certain gestures or utterances, rather than letting the complex interplay of subtle signals form a holistic impression. She found similar interference when participants watched 15-second clips of pairs of people and judged whether they were strangers, friends, or dating partners.",
+        "Other research shows we’re better at detecting deception from thin slices when we rely on intuition instead of reflection. “It’s as if you’re driving a stick shift,” says Judith Hall, a psychologist at Northeastern University, “and if you start thinking about it too much, you can’t remember what you’re doing. But if you go on automatic pilot, you’re fine. Much of our social life is like that.”",
+        "Thinking too much can also harm our ability to form preferences. College students’ ratings of strawberry jams and college courses aligned better with experts’ opinions when the students weren’t asked to analyze their rationale. And people made car-buying decisions that were both objectively better and more personally satisfying when asked to focus on their feelings rather than on details, but only if the decision was complex — when they had a lot of information to process.",
+        "Intuition’s special powers are unleashed only in certain circumstances. In one study, participants completed a battery of eight tasks, including four that tapped reflective thinking (discerning rules, comprehending vocabulary) and four that tapped intuition and creativity (generating new products or figures of speech). Then they rated the degree to which they had used intuition (“gut feelings,” “hunches,” “my heart”). Use of their gut hurt their performance on the first four tasks, as expected, and helped them on the rest. Sometimes the heart is smarter than the head."
+      ]
+    }
+  ]
+}

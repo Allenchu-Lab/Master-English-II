@@ -9,7 +9,7 @@ import { HighlightGuide, SelectableHighlight } from "@/components/selectable-hig
 type GradedQuestion = { questionNumber: number; selectedOption: number; correctOption: number; isCorrect: boolean; promptZh: string; optionTranslations: string[]; explanation: string };
 type GradeResult = { score: number; total: number; questions: GradedQuestion[] };
 
-export function PracticeReader({ passage, startFresh = false, initialLanguage = "zh" }: { passage: PracticePassage; startFresh?: boolean; initialLanguage?: "zh" | "en" }) {
+export function PracticeReader({ passage, startFresh = false, initialLanguage = "zh", previewOnly = false }: { passage: PracticePassage; startFresh?: boolean; initialLanguage?: "zh" | "en"; previewOnly?: boolean }) {
   const openedRef = useRef(false);
   /**
    * 练习记录编号必须是 state 而不是 ref。
@@ -27,6 +27,8 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
    * 只有提交是用户主动发起的，需要在按钮上给出反馈。
    */
   const [submitting, setSubmitting] = useState(false);
+  const [restarting, setRestarting] = useState(false);
+  const actionPending = useRef(false);
   // 提交很快时不闪 loading，只有超过 400 毫秒才显示，避免一次无意义的闪动。
   const [showSubmitSpinner, setShowSubmitSpinner] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -72,6 +74,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
    * 并把完整答案一起发出，所以此处只把状态标成待保存即可。
    */
   const openAttempt = useCallback(async (fresh = false): Promise<string | null> => {
+    if (previewOnly) return null;
     try {
       const response = await fetch(`/api/attempts/${passage.id}`, fresh ? { method: "POST" } : undefined);
       if (!response.ok) return null;
@@ -90,7 +93,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
       // fetch 抛异常代表请求没能送达，与服务端明确返回错误是两种不同情况。
       return null;
     }
-  }, [passage.id, passage.number, passage.year]);
+  }, [passage.id, passage.number, passage.year, previewOnly]);
 
   // 不做取消处理：请求返回后即便组件已卸载，写入 state 也是无害的；
   // 而丢弃结果会让编号永久为空，那正是之前保存彻底失效的原因。
@@ -109,7 +112,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
    * 答案再发一遍，所以这里只需安静地把状态显示出来。
    */
   useEffect(() => {
-    if (!attemptId || submitted) return;
+    if (previewOnly || !attemptId || submitted) return;
     let cancelled = false;
     let timer = 0;
 
@@ -137,10 +140,13 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
 
     timer = window.setTimeout(() => { void save(0); }, 200);
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [answers, attemptId, passage.id, submitted]);
+  }, [answers, attemptId, passage.id, submitted, previewOnly]);
 
   /** 重做：请服务端新建一条记录，历史提交保留不动。 */
   const restart = async () => {
+    if (previewOnly || actionPending.current) return;
+    actionPending.current = true;
+    setRestarting(true);
     setSubmitError(null);
     try {
       const response = await fetch(`/api/attempts/${passage.id}`, { method: "POST" });
@@ -158,21 +164,27 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
       setTimerRunning(false);
     } catch {
       setSubmitError(isEnglish ? "Could not reach the server. Please try again." : "无法连接服务器，请稍后再试。");
+    } finally {
+      actionPending.current = false;
+      setRestarting(false);
     }
   };
 
   const submit = async () => {
+    if (previewOnly || actionPending.current) return;
     if (Object.keys(answers).length !== passage.questions.length) {
       setSubmitError(isEnglish ? "Answer every question before submitting." : "请完成全部题目后再提交。");
       return;
     }
     setSubmitError(null);
+    actionPending.current = true;
     setSubmitting(true);
     const spinnerTimer = window.setTimeout(() => setShowSubmitSpinner(true), 400);
     const finish = () => {
       window.clearTimeout(spinnerTimer);
       setShowSubmitSpinner(false);
       setSubmitting(false);
+      actionPending.current = false;
     };
 
     try {
@@ -225,12 +237,13 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
         <div className="practice-header-actions">
           {submitted
             ? <span className="header-submitted"><Check />{isEnglish ? "Submitted" : "已提交"}</span>
-            : <button className="header-submit" onClick={submit} disabled={submitting}>{showSubmitSpinner && <LoaderCircle className="spin" />}{isEnglish ? "Submit" : "提交作答"}</button>}
+            : <button className="header-submit" onClick={submit} disabled={previewOnly || submitting} aria-busy={submitting}>{showSubmitSpinner && <LoaderCircle className="spin" />}{previewOnly ? (isEnglish ? "Answer key pending" : "答案待补") : submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "提交作答")}</button>}
         </div>
       </header>
 
       <div className="practice-layout">
         <section className="passage-pane">
+          {previewOnly && <p role="status">{isEnglish ? "Local preview · Answer key pending. Selections are not saved and grading is disabled." : "本地预览 · 答案待补。选项可试点，不保存作答，也不判分。"}</p>}
           <div className="passage-meta"><span>{passage.year} · Text {passage.number}</span><span>{passage.wordCount} {isEnglish ? "words" : "词"}</span></div>
           <HighlightGuide isEnglish={isEnglish} />
           <article>{passage.paragraphs.length ? passage.paragraphs.map((paragraph, index) => <p key={index}><SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} isEnglish={isEnglish} /></p>) : <p><SelectableHighlight text={passage.body} scope="passage:0" storageKey={highlightStorageKey} isEnglish={isEnglish} /></p>}</article>
@@ -260,7 +273,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
               </div>}
             </section>)}
           </div>
-          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href={languageHref("/")}>{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" onClick={() => { void restart(); }}>{isEnglish ? "Redo" : "重新练习"}</button><Link href={languageHref(`/intensive/${passage.year}/${passage.number}`)}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
+          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href={languageHref("/")}>{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" disabled={restarting} aria-busy={restarting} onClick={() => { void restart(); }}>{restarting ? (isEnglish ? "Starting…" : "正在开始…") : (isEnglish ? "Redo" : "重新练习")}</button><Link href={languageHref(`/intensive/${passage.year}/${passage.number}`)}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
         </aside>
       </div>
 

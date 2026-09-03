@@ -19,5 +19,5 @@ export default async function IntensiveReadingPage({ params, searchParams }: Pro
   const passage = await getPracticePassage(year, text);
   if (!passage) notFound();
 
-  return <IntensiveReader passage={passage} initialLanguage={lang === "en" ? "en" : "zh"} />;
+  return <IntensiveReader key={passage.id} passage={passage} initialLanguage={lang === "en" ? "en" : "zh"} />;
 }

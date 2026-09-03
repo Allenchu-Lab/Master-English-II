@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/local.mjs dev",
+    "local:db": "node scripts/local.mjs db",
+    "local:stop": "node scripts/local.mjs stop",
+    "test:local": "node scripts/local.mjs test",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "verify": "npm run lint && npm run build",
     "test:smoke": "node tests/smoke.mjs",
     "test:core": "node tests/core-flow.mjs",
+    "test:content": "node tests/content.mjs",
     "build:seed": "node scripts/build-supabase-seed.mjs",
     "build:keys": "node scripts/build-answer-keys.mjs"
   },

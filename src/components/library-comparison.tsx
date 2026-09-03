@@ -23,7 +23,7 @@ const sectionMeta: Record<ExamSectionType, { zh: string; en: string; zhUnit: str
 
 const sectionOrder: ExamSectionType[] = ["reading_a", "reading_b", "cloze", "translation", "writing"];
 
-export function LibraryComparison({ papers, initialLanguage = "zh" }: { papers: ExamPaperMap; initialLanguage?: "zh" | "en" }) {
+export function LibraryComparison({ papers, initialLanguage = "zh", allowPreview = false }: { papers: ExamPaperMap; initialLanguage?: "zh" | "en"; allowPreview?: boolean }) {
   const pageRef = useRef<HTMLElement>(null);
   const sketchRef = useRef<HTMLDivElement>(null);
   const firstContentRender = useRef(true);
@@ -227,7 +227,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh" }: { papers: 
                     const state = attempts[article.id];
                     // 答案未录入的篇目提交时无法判分，直接标记为待开放而不是引导作答。
                     if (!article.gradable) {
-                      return <article key={article.number} className="article-row status-wait"><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{isEnglish ? "Answer key pending" : "答案待录入"}</span><small>{isEnglish ? "Practice opens once the answer key is imported." : "答案与解析录入后开放练习。"}</small></div><span className="article-action is-disabled">{isEnglish ? "Not open yet" : "暂未开放"}</span></div></article>;
+                      return <article key={article.number} className="article-row status-wait"><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{isEnglish ? "Answer key pending" : "答案待录入"}</span><small>{allowPreview ? (isEnglish ? "Local preview only · Grading disabled" : "仅本地预览 · 暂不判分") : (isEnglish ? "Practice opens once the answer key is imported." : "答案与解析录入后开放练习。")}</small></div>{allowPreview ? <Link className="article-action" href={languageHref(`/practice/${year}/${article.number}`)}>{isEnglish ? "Preview" : "预览题目"}<ChevronRight /></Link> : <span className="article-action is-disabled">{isEnglish ? "Not open yet" : "暂未开放"}</span>}</div></article>;
                     }
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const action = state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");

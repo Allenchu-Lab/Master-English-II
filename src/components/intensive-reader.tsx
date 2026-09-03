@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, LoaderCircle, LockKeyhole, RotateCcw, Sparkles } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { SelectableHighlight } from "@/components/selectable-highlight";
+import { requestAi } from "@/lib/ai-request";
 
 type AccessState = "checking" | "allowed" | "denied" | "error";
 type ParagraphAnalysis = {
@@ -21,10 +22,20 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
   const [activeParagraph, setActiveParagraph] = useState(0);
   const [analyses, setAnalyses] = useState<Record<number, ParagraphAnalysis>>({});
   const [notes, setNotes] = useState<Record<number, string>>({});
-  const [loadingParagraph, setLoadingParagraph] = useState<number | null>(null);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [loadingParagraphs, setLoadingParagraphs] = useState<Record<number, boolean>>({});
+  const pendingParagraphs = useRef(new Set<number>());
+  const mounted = useRef(true);
+  const [restored, setRestored] = useState(false);
+  const [analysisFailure, setAnalysisError] = useState<{ paragraph: number; message: string } | null>(null);
+  const analysisError = analysisFailure?.paragraph === activeParagraph ? analysisFailure.message : null;
+  const loadingParagraph = loadingParagraphs[activeParagraph] ? activeParagraph : null;
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
   const isEnglish = uiLanguage === "en";
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   useEffect(() => {
     const urlLanguage = new URLSearchParams(window.location.search).get("lang");
@@ -66,39 +77,46 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
         if (savedAnalyses) setAnalyses(JSON.parse(savedAnalyses));
         if (savedNotes) setNotes(JSON.parse(savedNotes));
       } catch { /* Ignore invalid local study data. */ }
+      setRestored(true);
     }, 0);
     return () => window.clearTimeout(restore);
   }, [passage.id]);
 
   useEffect(() => {
-    window.localStorage.setItem(`intensive-notes:${passage.id}`, JSON.stringify(notes));
-  }, [notes, passage.id]);
+    if (!restored) return;
+    try {
+      window.localStorage.setItem(`intensive-notes:${passage.id}`, JSON.stringify(notes));
+    } catch { /* Notes remain editable when browser storage is unavailable. */ }
+  }, [notes, passage.id, restored]);
+
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      window.localStorage.setItem(`intensive-analyses:${passage.id}`, JSON.stringify(analyses));
+    } catch { /* Keep the result usable if browser storage is full or disabled. */ }
+  }, [analyses, passage.id, restored]);
 
   const generateAnalysis = async () => {
-    setLoadingParagraph(activeParagraph);
+    if (!restored || pendingParagraphs.current.has(activeParagraph)) return;
+    const paragraph = activeParagraph;
+    pendingParagraphs.current.add(paragraph);
+    setLoadingParagraphs((current) => ({ ...current, [paragraph]: true }));
     setAnalysisError(null);
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 75_000);
     try {
-      const response = await fetch("/api/intensive-reading", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({ paragraph: paragraphs[activeParagraph], year: passage.year, text: passage.number, paragraphNumber: activeParagraph + 1 }),
-      });
-      const result = await response.json() as ParagraphAnalysis & { error?: string };
+      const response = await requestAi("/api/intensive-reading", { paragraph: paragraphs[paragraph], year: passage.year, text: passage.number, paragraphNumber: paragraph + 1 });
+      const result = response.data as ParagraphAnalysis & { error?: string };
+      if (!mounted.current) return;
       if (!response.ok) throw new Error(isEnglish ? "Unable to generate the analysis. Please try again." : (result.error ?? "生成失败，请稍后重试。"));
-      const next = { ...analyses, [activeParagraph]: result };
-      setAnalyses(next);
-      window.localStorage.setItem(`intensive-analyses:${passage.id}`, JSON.stringify(next));
+      setAnalyses((current) => ({ ...current, [paragraph]: result }));
     } catch (error) {
+      if (!mounted.current) return;
       const timedOut = error instanceof DOMException && error.name === "AbortError";
-      setAnalysisError(timedOut
+      setAnalysisError({ paragraph, message: timedOut
         ? (isEnglish ? "The analysis is taking too long. Please try again." : "AI 服务响应超时，请稍后重试。")
-        : error instanceof Error ? error.message : (isEnglish ? "Unable to generate the analysis. Please try again." : "生成失败，请稍后重试。"));
+        : error instanceof Error ? error.message : (isEnglish ? "Unable to generate the analysis. Please try again." : "生成失败，请稍后重试。") });
     } finally {
-      window.clearTimeout(timeout);
-      setLoadingParagraph(null);
+      pendingParagraphs.current.delete(paragraph);
+      if (mounted.current) setLoadingParagraphs((current) => ({ ...current, [paragraph]: false }));
     }
   };
 
