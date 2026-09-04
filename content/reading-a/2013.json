@@ -3,8 +3,8 @@
   "title": "2013年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2013年考研英语二.pdf",
   "sourceSha256": "660472bb0a6821ee00d8ca21cadbdce94c41b6dd0f9580d24f866c62c0687236",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

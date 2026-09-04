@@ -1,0 +1,267 @@
+{
+  "year": 2019,
+  "section": "reading_a",
+  "source": "AI-generated explanations; answer letters from user-provided source images",
+  "texts": [
+    {
+      "number": 1,
+      "questions": [
+        {
+          "number": 21,
+          "answer": "A",
+          "promptZh": "研究人员认为内疚可能是好事，因为它可能有助于____",
+          "optionsZh": [
+            "调节儿童的基本情绪。",
+            "培养儿童的道德发展。",
+            "提高儿童的智力能力。",
+            "增强儿童的积极情感。"
+          ],
+          "explanation": "正确选项为A。原文第一段指出，内疚在儿童对社交和道德规范的理解中产生，并促使他们道歉和弥补错误，这有助于道德发展。选项A“培养儿童的道德发展”符合原文。选项B“调节儿童的基本情绪”不准确，因为内疚本身不是调节基本情绪，而是与道德相关。选项C“提高智力能力”和D“增强积极情感”在原文中未提及。"
+        },
+        {
+          "number": 22,
+          "answer": "D",
+          "promptZh": "根据第二段，许多人仍然认为内疚是____",
+          "optionsZh": [
+            "沉重的。",
+            "欺骗性的。",
+            "上瘾的。",
+            "不可原谅的。"
+          ],
+          "explanation": "正确选项为A。第二段提到“It is deeply uncomfortable — it's the emotional equivalent of wearing a jacket weighted with stones.”，表明内疚像穿着沉重的夹克，令人不适，因此是“沉重的”。选项B“欺骗性的”、C“上瘾的”和D“不可原谅的”均未在原文中体现。"
+        },
+        {
+          "number": 23,
+          "answer": "B",
+          "promptZh": "Vaish认为，对内疚的重新思考源于一种认识，即____",
+          "optionsZh": [
+            "情绪是独立于情境的。",
+            "情绪是社会建构的。",
+            "一种情绪可以扮演相反的角色。",
+            "情绪稳定有益于健康。"
+          ],
+          "explanation": "正确选项为C。第三段Vaish说“emotions aren't binary — feelings that may be advantageous in one context may be harmful in another”，表明情绪不是二元的，一种情绪在不同情境下可能有利或有害，即可以扮演相反的角色。选项A“独立于情境”与原文相反；B“社会建构”不是Vaish强调的重点；D“情绪稳定有益健康”未提及。"
+        },
+        {
+          "number": 24,
+          "answer": "B",
+          "promptZh": "Malti和其他人已经表明，合作和分享____",
+          "optionsZh": [
+            "可能源于同情或内疚。",
+            "可能有助于纠正情感缺陷。",
+            "可能带来情感满足。",
+            "可能是冲动行为的结果。"
+          ],
+          "explanation": "正确选项为A。第四段提到“guilt and sympathy may represent different pathways to cooperation and sharing”，即内疚和同情是通向合作和分享的不同途径，因此合作和分享可能源于同情或内疚。选项B“有助于纠正情感缺陷”是内疚的作用，但不是合作和分享的来源；C“带来情感满足”未提及；D“冲动行为的结果”与原文不符，原文说内疚可以抑制冲动。"
+        },
+        {
+          "number": 25,
+          "answer": "D",
+          "promptZh": "单词“transgressions”（第五段）在意思上最接近____",
+          "optionsZh": [
+            "教导。",
+            "讨论。",
+            "错误行为。",
+            "限制。"
+          ],
+          "explanation": "正确选项为C。第五段提到“her tendency to feel negative emotions after moral transgressions”，结合上下文，道德上的“transgressions”应指违反道德的错误行为，即“wrongdoings”。选项A“教导”、B“讨论”和D“限制”均不符合语境。"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "questions": [
+        {
+          "number": 26,
+          "answer": "D",
+          "promptZh": "作者说“one of the harder challenges”暗示了____",
+          "optionsZh": [
+            "全球气候变化可能会失控。",
+            "人们可能误解全球变暖。",
+            "森林可能成为一个潜在威胁。",
+            "极端天气条件可能出现。"
+          ],
+          "explanation": "正确项为C。原文第一段提到“one of the harder challenges in the fight against climate change”，随后解释森林可能从吸收碳变为排放碳，即森林可能加剧气候变化，成为威胁。A项“气候变化失控”过于绝对，文中未提及；B项“误解”与文意不符；D项“极端天气”未在上下文中出现。"
+        },
+        {
+          "number": 27,
+          "answer": "D",
+          "promptZh": "为了保持森林作为有价值的“碳汇”，我们可能需要____",
+          "optionsZh": [
+            "保护森林中物种的多样性。",
+            "加速幼树的生长。",
+            "降低它们目前的碳吸收能力。",
+            "在不同植物之间取得平衡。"
+          ],
+          "explanation": "正确项为C。原文第二段明确说“may require reducing their capacity to absorb carbon now”，即降低当前碳吸收能力。A项“物种多样性”未提及；B项“加速幼树生长”与原文“thin out young trees”相反；D项“不同植物间平衡”是干扰，原文强调“striking a subtle balance”但具体指降低碳吸收能力，而非植物间平衡。"
+        },
+        {
+          "number": 28,
+          "answer": "B",
+          "promptZh": "加利福尼亚州的森林碳计划致力于____",
+          "optionsZh": [
+            "减少其部分森林的密度。",
+            "培育更多抗旱的树木。",
+            "找到更有效的杀虫方法。",
+            "在野火后迅速恢复森林。"
+          ],
+          "explanation": "正确项为A。原文第三段提到“thin out young trees and clear brush”，即间伐幼树和清除灌木，这降低了森林密度。B项“抗旱树木”未提及；C项“杀虫”是结果而非目的；D项“恢复森林”是火灾后的结果，但计划旨在预防火灾。"
+        },
+        {
+          "number": 29,
+          "answer": "A",
+          "promptZh": "根据第五段，对加利福尼亚州的计划至关重要的是什么？",
+          "optionsZh": [
+            "获得足够的财政支持。",
+            "在2020年之前实施。",
+            "完善排放许可拍卖。",
+            "优先处理严重危险的地区。"
+          ],
+          "explanation": "正确项为D。原文第五段提到“it will be vital to prioritize areas at greatest risk of fire or drought”，即优先处理风险最高的地区。A项“财政支持”是资金来源，但并非“vital”；B项“2020年前实施”是时间目标，非关键；C项“拍卖”是融资方式，非关键。"
+        },
+        {
+          "number": 30,
+          "answer": "C",
+          "promptZh": "作者对加利福尼亚州计划的态度可以最好地描述为____",
+          "optionsZh": [
+            "模棱两可的。",
+            "支持的。",
+            "宽容的。",
+            "谨慎的。"
+          ],
+          "explanation": "正确项为B。原文最后一段说“should serve as a model”，表明作者认为该计划应作为典范，体现支持态度。A项“模棱两可”不符；C项“宽容”不准确；D项“谨慎”未体现，作者明确肯定。"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "questions": [
+        {
+          "number": 31,
+          "answer": "C",
+          "promptZh": "根据前两段，应该解决什么问题？",
+          "optionsZh": [
+            "美国农业工人移民规定的缺陷。",
+            "美国对外国工人的歧视。",
+            "有利于某些美国企业的偏见法律。",
+            "美国农业就业机会的减少。"
+          ],
+          "explanation": "正确项C对应原文第一段提到的“immigration rules for farm workers”需要“overhaul”，即移民规则需要改革，存在缺陷。A项是具体缺陷，但C项更全面。B项“歧视”和D项“就业机会减少”在原文中未提及。"
+        },
+        {
+          "number": 32,
+          "answer": "D",
+          "promptZh": "美国农业劳动力的问题之一是____",
+          "optionsZh": [
+            "非法移民数量的增加。",
+            "移民农业工人的老龄化。",
+            "农作物工人的高流动性。",
+            "缺乏有经验的劳动力。"
+          ],
+          "explanation": "正确项D对应原文“They're also aging”和“picking crops is hard on older bodies”，说明劳动力老龄化导致经验丰富但体力不足，但更直接的是“aging”问题。B项是直接原因，但D项“缺乏有经验的劳动力”是结果。A项与原文“As fewer such workers enter”相反。C项与“more likely to be settled”相反。"
+        },
+        {
+          "number": 33,
+          "answer": "B",
+          "promptZh": "美国农业劳动力短缺的备受争议的解决方案是什么？",
+          "optionsZh": [
+            "加强对农民的经济支持。",
+            "吸引更年轻的劳动力从事农业工作。",
+            "使用更多机器人种植高价值作物。",
+            "让美国本土工人重返农业。"
+          ],
+          "explanation": "正确项D对应原文“Native U.S. workers won't be returning to the farm”是“oft-debated cure”，即备受争议的解决方案。A项未提及。B项“吸引年轻人”是隐含的，但原文未直接说。C项“机械化”被否定。"
+        },
+        {
+          "number": 34,
+          "answer": "A",
+          "promptZh": "农业雇主抱怨H-2A签证的____",
+          "optionsZh": [
+            "年度准入控制。",
+            "停留时间限制。",
+            "审批程序缓慢。",
+            "要求收紧。"
+          ],
+          "explanation": "正确项C对应原文“The process is cumbersome, expensive and unreliable”和“bureaucratic delays”，说明程序繁琐缓慢。A项错误，因为原文说“has no numerical cap”。B项未提及。D项未提及。"
+        },
+        {
+          "number": 35,
+          "answer": "B",
+          "promptZh": "以下哪项可能是本文的最佳标题？",
+          "optionsZh": [
+            "人力与自动化？",
+            "美国农业在衰退？",
+            "美国被墨西哥拯救？",
+            "进口食品还是劳动力？"
+          ],
+          "explanation": "正确项D对应原文最后一句“In effect, the U.S. can import food or it can import the workers who pick it.”，总结了核心问题。A项只涉及机械化，不全面。B项“衰退”过于宽泛。C项“墨西哥”只是部分内容。"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "questions": [
+        {
+          "number": 36,
+          "answer": "B",
+          "promptZh": "一些名人出演一个新视频是为了____",
+          "optionsZh": [
+            "揭露塑料危机的起因。",
+            "要求制定关于塑料使用的新法律。",
+            "就塑料危机征求公众意见。",
+            "敦促消费者减少塑料的使用。"
+          ],
+          "explanation": "原文提到，这些名人出演视频是“encouraging you, the consumer, to swap out your single-use plastic staples”，即鼓励消费者替换一次性塑料用品，对应D项“敦促消费者减少塑料的使用”。A项“揭露起因”未提及；B项“要求新法律”是视频中传达的信息之一，但并非名人出演视频的直接目的；C项“征求公众意见”也不符合。"
+        },
+        {
+          "number": 37,
+          "answer": "B",
+          "promptZh": "作者担心“道德许可”可能会____",
+          "optionsZh": [
+            "抑制我们对成功的渴望。",
+            "误导我们去做无价值的事情。",
+            "削弱我们的成就感。",
+            "阻止我们做出进一步的努力。"
+          ],
+          "explanation": "原文指出，“moral licensing”会“eases our concerns and stops us doing more and asking more of those in charge”，即缓解我们的担忧，阻止我们做更多事，对应D项“阻止我们做出进一步的努力”。A项“抑制成功欲望”和C项“削弱成就感”均未提及；B项“误导我们做无价值的事”虽然提到“harmful”和“satisfying a need”，但核心是阻止进一步行动，而非误导做无价值的事。"
+        },
+        {
+          "number": 38,
+          "answer": "D",
+          "promptZh": "通过指出我们作为“公民”的身份，作者表明____",
+          "optionsZh": [
+            "我们一直在积极行使公民权利。",
+            "我们应该敦促政府领导这场斗争。",
+            "我们与当地产业的关系正在改善。",
+            "我们的焦点应该转移到社区福利上。"
+          ],
+          "explanation": "原文说“as 'citizens' hold our governments and industries to account to push for real systemic change”，即作为公民，我们应该要求政府和行业负责，推动真正的系统性变革，对应B项“我们应该敦促政府领导这场斗争”。A项“积极行使权利”与原文“ignoring the balance of power”不符；C项“与产业关系改善”未提及；D项“焦点转移到社区福利”偏离原文。"
+        },
+        {
+          "number": 39,
+          "answer": "D",
+          "promptZh": "DeSombre认为集体改变的最佳方式应该是____",
+          "optionsZh": [
+            "一个双赢的安排。",
+            "一个自上而下的过程。",
+            "一个自我驱动的机制。",
+            "一个成本效益高的方法。"
+          ],
+          "explanation": "原文提到DeSombre认为“the best way to collectively change the behavior of large numbers of people is for the change to be structural”，即结构性改变，并举例“implementing policy such as a plastic tax”或“banning single-use plastics”，这些是自上而下的政策，对应B项“自上而下的过程”。A项“双赢”未提及；C项“自我驱动”与结构性改变相反；D项“成本效益高”未提及。"
+        },
+        {
+          "number": 40,
+          "answer": "C",
+          "promptZh": "作者得出结论，个人努力____",
+          "optionsZh": [
+            "远远不够。",
+            "远非理性。",
+            "可能太不一致。",
+            "可能太激进。"
+          ],
+          "explanation": "原文最后说“individual actions are too slow”且“We don't have time to wait”，强调个人行动太慢，不足以应对问题，对应A项“远远不够”。B项“不理性”未提及；C项“不一致”和D项“激进”均未提及。"
+        }
+      ]
+    }
+  ]
+}

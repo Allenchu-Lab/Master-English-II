@@ -1,0 +1,267 @@
+{
+  "year": 2011,
+  "section": "reading_a",
+  "source": "AI-generated explanations; answer letters from user-provided source images",
+  "texts": [
+    {
+      "number": 1,
+      "questions": [
+        {
+          "number": 21,
+          "answer": "B",
+          "promptZh": "根据第一段，西蒙斯女士因____而受到批评。",
+          "optionsZh": [
+            "获得过多利润。",
+            "未能履行她的职责。",
+            "拒绝做出妥协。",
+            "在困难时期离开董事会。"
+          ],
+          "explanation": "正确选项是B。第一段提到，西蒙斯女士因在高盛薪酬委员会任职而受到批评，因为她让那些巨额奖金支出未受关注地通过，这暗示她未能履行作为外部董事的监督职责。A项“获得过多利润”是批评的背景，但不是她受批评的直接原因；C项“拒绝妥协”和D项“在困难时期离开董事会”在文中未提及或不是批评的原因。"
+        },
+        {
+          "number": 22,
+          "answer": "D",
+          "promptZh": "从第二段我们了解到，外部董事应该是____。",
+          "optionsZh": [
+            "慷慨的投资者。",
+            "公正的高管。",
+            "股价预测者。",
+            "独立的顾问。"
+          ],
+          "explanation": "正确选项是D。第二段明确指出：“外部董事应该作为公司董事会中有帮助但偏见较少的顾问”，并且他们“有足够的独立性来反对首席执行官的提议”。因此，他们被期望是独立的顾问。A项“慷慨的投资者”未提及；B项“公正的高管”不准确，因为他们不是高管；C项“股价预测者”未提及。"
+        },
+        {
+          "number": 23,
+          "answer": "C",
+          "promptZh": "根据俄亥俄大学的研究人员，在外部董事意外离开后，公司可能____。",
+          "optionsZh": [
+            "变得更加稳定。",
+            "报告增加的收益。",
+            "在股市上表现更差。",
+            "在诉讼中表现更差。"
+          ],
+          "explanation": "正确选项是C。第三段提到，在意外离开后，公司随后重述收益的可能性增加近20%，被联邦集体诉讼点名的可能性增加，并且“股票可能表现更差”。因此，公司在股市上表现更差是直接提到的。A项“变得更加稳定”与研究发现相反；B项“报告增加的收益”与重述收益增加不符；D项“在诉讼中表现更差”不准确，文中说的是被诉讼的可能性增加，而不是在诉讼中表现差。"
+        },
+        {
+          "number": 24,
+          "answer": "A",
+          "promptZh": "从最后一段可以推断出，外部董事____。",
+          "optionsZh": [
+            "可能会因为公司的诱人条件而留下。",
+            "经常在公司中有不当行为的记录。",
+            "习惯于公司中无压力的工作。",
+            "会拒绝公司的激励。"
+          ],
+          "explanation": "正确选项是A。最后一段提到：“想要在困难时期留住外部董事的公司可能必须创造激励措施。”这暗示如果公司提供激励，外部董事可能会留下。因此，可以推断他们可能会因为诱人的条件而留下。B项“经常有不当行为记录”与原文不符，原文说即使历史回顾显示他们在不当行为发生时在董事会，但并不意味着他们自己有不当行为；C项“习惯于无压力工作”未提及；D项“会拒绝激励”与原文相反，因为原文说公司需要创造激励来留住他们。"
+        },
+        {
+          "number": 25,
+          "answer": "B",
+          "promptZh": "作者对外部董事角色的态度是____。",
+          "optionsZh": [
+            "宽容的。",
+            "积极的。",
+            "轻蔑的。",
+            "批评的。"
+          ],
+          "explanation": "正确选项是B。整篇文章对外部董事的作用持肯定态度。第二段描述了他们的理想角色，第三段和第四段虽然指出了问题，但最后一段建议公司创造激励来留住他们，并提到西蒙斯女士在校园再次受欢迎，这暗示作者认为外部董事是有价值的。因此，作者的态度是积极的。A项“宽容的”不准确；C项“轻蔑的”和D项“批评的”与文章基调不符。"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "questions": [
+        {
+          "number": 26,
+          "answer": "D",
+          "promptZh": "通过说“像《旧金山纪事报》这样的报纸……在记录自己的厄运”（第一段），作者暗示报纸____",
+          "optionsZh": [
+            "忽视了危机的迹象。",
+            "未能获得政府补贴。",
+            "不是慈善公司。",
+            "处于绝望的境地。"
+          ],
+          "explanation": "正确选项D。原文提到“The recession threatened to remove the advertising and readers...Newspapers like the San Francisco Chronicle were chronicling their own doom.”说明报纸面临广告和读者流失，自身也在报道自己的厄运，表明它们处境艰难。A项“忽视危机迹象”与原文不符，原文是意识到危机；B项“未能获得政府补贴”和C项“不是慈善公司”是文中提到的讨论内容，但不是作者这句话的意图。"
+        },
+        {
+          "number": 27,
+          "answer": "B",
+          "promptZh": "一些报纸拒绝向遥远的郊区投递，可能是因为____",
+          "optionsZh": [
+            "读者威胁要少付钱。",
+            "报纸想要降低成本。",
+            "记者很少报道这些地区。",
+            "订阅者抱怨报纸变薄。"
+          ],
+          "explanation": "正确选项B。原文提到“Many papers stayed afloat by pushing journalists overboard...Some papers even had the nerve to refuse delivery to distant suburbs.”这些是报纸为了生存而采取的削减成本的措施，拒绝向偏远地区投递是为了减少运输成本。A项“读者威胁要少付钱”未提及；C项“记者很少报道这些地区”与成本无关；D项“订阅者抱怨报纸变薄”是读者反应，不是原因。"
+        },
+        {
+          "number": 28,
+          "answer": "C",
+          "promptZh": "与美国同行相比，日本报纸更加稳定，因为它们____",
+          "optionsZh": [
+            "有更多的收入来源。",
+            "有更平衡的新闻编辑室。",
+            "对广告的依赖较少。",
+            "受读者群的影响较小。"
+          ],
+          "explanation": "正确选项C。原文提到“American papers have long been highly unusual in their reliance on ads. Fully 87% of their revenues came from advertising...In Japan the proportion is 35%. Not surprisingly, Japanese newspapers are much more stable.”说明日本报纸广告收入占比低，因此更稳定。A项“有更多的收入来源”虽然可能正确，但原文强调的是广告依赖度低；B项“更平衡的新闻编辑室”未提及；D项“受读者群影响较小”未提及。"
+        },
+        {
+          "number": 29,
+          "answer": "A",
+          "promptZh": "从最后一段可以推断出关于当前报纸行业的什么？",
+          "optionsZh": [
+            "独特性是报纸的一个重要特征。",
+            "完整性是报纸失败的原因。",
+            "国外分社在报纸行业中起着关键作用。",
+            "读者对汽车和电影评论失去了兴趣。"
+          ],
+          "explanation": "正确选项A。最后一段提到“much of the damage has been concentrated in areas where newspapers are least distinctive...Newspapers are less complete as a result. But completeness is no longer a virtue in the newspaper business.”说明报纸削减了非独特性内容，而完整性不再重要，暗示独特性是报纸的重要特征。B项“完整性是失败原因”与原文“completeness is no longer a virtue”不符；C项“国外分社起关键作用”与原文“Foreign bureaus have been savagely cut off”相反；D项“读者失去兴趣”未提及，只是评论员被裁。"
+        },
+        {
+          "number": 30,
+          "answer": "A",
+          "promptZh": "这篇文章最合适的标题是____",
+          "optionsZh": [
+            "美国报纸：为生存而挣扎。",
+            "美国报纸：随风而逝。",
+            "美国报纸：繁荣的业务。",
+            "美国报纸：绝望的故事。"
+          ],
+          "explanation": "正确选项A。文章描述了美国报纸面临危机但通过削减成本等措施幸存并恢复盈利，整体是挣扎求生的过程。B项“随风而逝”暗示消亡，与事实不符；C项“繁荣”过于乐观，文章提到利润下降；D项“绝望”过于悲观，文章提到已恢复盈利。"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "questions": [
+        {
+          "number": 31,
+          "answer": "C",
+          "promptZh": "战后美国住房风格主要反映了美国人的____",
+          "optionsZh": [
+            "繁荣与增长。",
+            "效率与实用。",
+            "节制与自信。",
+            "自豪与忠诚。"
+          ],
+          "explanation": "根据原文第一段，战后时期美国人学会了节制（restraint），并且对未来充满信心（confidence），这种节制与自信的结合使得小而高效的住房成为时尚。因此，住房风格主要反映了节制与自信。选项A是战后整体时代的特征，但并非住房风格的主要反映；选项B虽然提到效率，但未包含自信；选项D在文中未提及。"
+        },
+        {
+          "number": 32,
+          "answer": "D",
+          "promptZh": "从第三段可以推断出关于包豪斯的以下哪项？",
+          "optionsZh": [
+            "它是由路德维希·密斯·凡·德·罗创立的。",
+            "它的设计理念受到了第二次世界大战的影响。",
+            "大多数美国建筑师曾与它有关联。",
+            "它对美国建筑产生了巨大影响。"
+          ],
+          "explanation": "原文第三段提到，与包豪斯相关的人（包括密斯）移民到美国并对美国建筑产生巨大影响，其中密斯影响最大。因此可以推断包豪斯对美国建筑有巨大影响。选项A错误，文中未说密斯创立包豪斯；选项B未提及二战对包豪斯理念的影响；选项C“大多数”过于绝对，文中只说“其他与包豪斯相关的人”，并非大多数美国建筑师。"
+        },
+        {
+          "number": 33,
+          "answer": "C",
+          "promptZh": "密斯认为建筑设计的优雅____",
+          "optionsZh": [
+            "与大面积空间有关。",
+            "等同于空旷。",
+            "不依赖于丰富的装饰。",
+            "与效率无关。"
+          ],
+          "explanation": "原文第四段明确说密斯的标志性短语“少即是多”意味着更少的装饰，如果组织得当，比大量装饰更有影响力。他认为优雅并非来自丰富。因此，优雅不依赖于丰富的装饰。选项A和B与原文相反，密斯的设计是小的、高效的，而非大而空；选项D错误，密斯的设计是高效的，优雅与效率相关。"
+        },
+        {
+          "number": 34,
+          "answer": "D",
+          "promptZh": "关于密斯在芝加哥湖滨大道上建造的公寓，以下哪项是正确的？",
+          "optionsZh": [
+            "它们忽略了细节和比例。",
+            "它们使用了当时流行的材料建造。",
+            "它们比邻近的建筑更宽敞。",
+            "它们具有抽象艺术的一些特征。"
+          ],
+          "explanation": "原文第五段提到，这些公寓虽然较小，但因其玻璃墙、景观以及建筑细节和比例的优雅而受欢迎，这种优雅是当时流行的抽象艺术的建筑等价物。因此，它们具有抽象艺术的特征。选项A错误，文中强调细节和比例的优雅；选项B错误，材料是象征未来的，而非当时流行；选项C错误，它们比邻近的公寓更小。"
+        },
+        {
+          "number": 35,
+          "answer": "B",
+          "promptZh": "关于“案例研究住宅”的设计，我们能了解到什么？",
+          "optionsZh": [
+            "机械设备被广泛使用。",
+            "自然景观被考虑在内。",
+            "为了整体效果牺牲了细节。",
+            "使用了环保材料。"
+          ],
+          "explanation": "原文最后一段提到，“案例研究住宅”的美学效果来自景观、新材料和直率的细节处理。因此，自然景观被考虑在内。选项A错误，文中提到拉尔夫·拉普森错误预测了机械革命的影响，但并未说机械设备被广泛使用；选项C错误，细节处理是直率的，并未牺牲；选项D错误，文中未提及环保材料。"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "questions": [
+        {
+          "number": 36,
+          "answer": "B",
+          "promptZh": "欧盟面临如此多的问题，以至于____",
+          "optionsZh": [
+            "它或多或少已经对市场失去了信心。",
+            "甚至它的支持者们也开始感到担忧。",
+            "它的一些成员国计划放弃欧元。",
+            "它打算否认贬值的可能性。"
+          ],
+          "explanation": "原文第一段提到“Now even the project’s greatest cheerleaders talk of a continent facing a ‘Bermuda triangle’ of debt, population decline and lower growth.”，其中“greatest cheerleaders”即最热心的支持者，他们现在也谈论欧盟面临的困境，说明支持者也开始担忧。因此B正确。A项“对市场失去信心”是市场对欧元区失去信心，而非欧盟对市场失去信心，故排除。C项“成员国计划放弃欧元”文中未提及，排除。D项“否认贬值可能性”是欧元区单一货币制度本身的特点，并非欧盟意图，排除。"
+        },
+        {
+          "number": 37,
+          "answer": "C",
+          "promptZh": "关于欧盟单一货币的辩论陷入僵局，因为主导力量____",
+          "optionsZh": [
+            "正在争夺领导地位。",
+            "忙于处理自己的危机。",
+            "未能就协调达成一致。",
+            "在走向解体的步骤上意见不一。"
+          ],
+          "explanation": "原文第二段指出“It is stuck because the euro zone’s dominant powers, France and Germany, agree on the need for greater harmonisation within the euro zone, but disagree about what to harmonise.”，即法德同意需要加强协调，但在协调什么上意见不一，因此C正确。A项“争夺领导地位”文中未提及，排除。B项“忙于处理自己的危机”与原文不符，排除。D项“在走向解体的步骤上意见不一”与原文相反，原文是讨论如何拯救欧元，而非解体，排除。"
+        },
+        {
+          "number": 38,
+          "answer": "B",
+          "promptZh": "为了解决欧元问题，德国提议____",
+          "optionsZh": [
+            "增加对贫困地区的欧盟资金。",
+            "实施更严格的法规。",
+            "只有核心成员国参与经济协调。",
+            "保障欧盟成员国的投票权。"
+          ],
+          "explanation": "原文第二段提到“Germany thinks the euro must be saved by stricter rules on borrowing, spending and competitiveness, backed by quasi-automatic sanctions...”，即德国认为必须通过更严格的规则来拯救欧元，因此B正确。A项“增加对贫困地区的资金”与原文相反，德国威胁要冻结资金，排除。C项“只有核心成员国参与”是法国的观点，德国主张所有27个成员国参与，排除。D项“保障投票权”与原文相反，德国提议可能暂停投票权，排除。"
+        },
+        {
+          "number": 39,
+          "answer": "A",
+          "promptZh": "法国处理危机的提议暗示____",
+          "optionsZh": [
+            "贫穷国家更有可能获得资金。",
+            "严格的货币政策将适用于贫穷国家。",
+            "富裕国家将容易获得贷款。",
+            "富裕国家将基本控制欧元债券。"
+          ],
+          "explanation": "原文第三段提到法国提议“a system of redistribution from richer to poorer members, via cheaper borrowing for governments through common Eurobonds or complete fiscal transfers”，即通过共同欧元债券或财政转移实现从富国到穷国的再分配，这意味着穷国更有可能获得资金，因此A正确。B项“严格的货币政策”与法国主张政治家干预货币政策不符，排除。C项“富裕国家容易获得贷款”与再分配方向相反，排除。D项“富裕国家控制欧元债券”文中未提及，排除。"
+        },
+        {
+          "number": 40,
+          "answer": "D",
+          "promptZh": "关于欧盟的未来，作者似乎感到____",
+          "optionsZh": [
+            "悲观。",
+            "绝望。",
+            "自负。",
+            "充满希望。"
+          ],
+          "explanation": "原文最后一段提到“It is too soon to write off the EU. It remains the world’s largest trading block... It is an ambitious attempt to blunt the sharpest edges of globalisation, and make capitalism benign.”，作者认为现在放弃欧盟为时过早，并强调其成就和积极意义，表明作者对欧盟未来持乐观态度，因此D正确。A、B、C均与作者态度不符，排除。"
+        }
+      ]
+    }
+  ]
+}

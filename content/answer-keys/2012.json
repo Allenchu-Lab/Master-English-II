@@ -1,0 +1,267 @@
+{
+  "year": 2012,
+  "section": "reading_a",
+  "source": "AI-generated explanations; answer letters from user-provided source images",
+  "texts": [
+    {
+      "number": 1,
+      "questions": [
+        {
+          "number": 21,
+          "answer": "A",
+          "promptZh": "第一段暗示，如今家庭作业____",
+          "optionsZh": [
+            "受到更多批评。",
+            "获得更多偏好。",
+            "不再是教育惯例。",
+            "高级课程不需要。"
+          ],
+          "explanation": "第一段提到“in recent years it has been particularly scorned”，其中“scorned”意为“鄙视、批评”，说明家庭作业近年来受到更多批评。选项A正确。选项B与原文相反；选项C错误，因为原文说“revising their thinking on this educational ritual”，表明它仍是教育惯例，只是重新思考；选项D错误，原文说“with the exception of some advanced courses”，意味着高级课程除外，但并未说高级课程不需要作业。"
+        },
+        {
+          "number": 22,
+          "answer": "C",
+          "promptZh": "洛杉矶联合学区制定关于家庭作业的规定，主要是因为贫困学生____",
+          "optionsZh": [
+            "往往对他们的教育期望不高。",
+            "要求不同的教育标准。",
+            "可能在完成家庭作业方面有问题。",
+            "表达了他们对家庭作业的抱怨。"
+          ],
+          "explanation": "第二段明确说“This rule is meant to address the difficulty that students from impoverished or chaotic homes might have in completing their homework.”，即该规定旨在解决贫困或混乱家庭学生完成作业的困难。因此选项C正确。选项A、B、D在原文中没有提及。"
+        },
+        {
+          "number": 23,
+          "answer": "D",
+          "promptZh": "根据第三段，该政策的一个问题是它可能____",
+          "optionsZh": [
+            "导致学生对成绩单漠不关心。",
+            "削弱州考的权力。",
+            "限制教师的教育权力。",
+            "阻止学生做家庭作业。"
+          ],
+          "explanation": "第三段提到“students can easily skip half their homework and see very little difference on their report cards”，说明学生可以轻易跳过一半作业而成绩单上几乎没变化，这会鼓励学生不做作业。选项D正确。选项A错误，因为学生可能对成绩单不关心，但原文强调的是作业与成绩的关系，而非对成绩单的态度；选项B错误，原文未提及州考权威；选项C错误，原文说政策“imposes a flat, across-the-board rule”，但并未说限制教师权力，而是说没有赋予教师权力。"
+        },
+        {
+          "number": 24,
+          "answer": "B",
+          "promptZh": "如第四段所述，关于家庭作业的一个未回答的关键问题是它是否____",
+          "optionsZh": [
+            "应该被取消。",
+            "在学校教育中占很大比重。",
+            "给教师带来额外负担。",
+            "对成绩很重要。"
+          ],
+          "explanation": "第四段提出“If the district finds homework to be unimportant to its students’ academic achievement, it should move to reduce or eliminate the assignments... Conversely, if homework matters, it should account for a significant portion of the grade.”，说明关键问题是家庭作业是否重要，是否应在学业中占重要比重。选项B正确。选项A是政策可能的结果而非问题；选项C未提及；选项D虽然相关，但更具体的是“是否重要”而非“对成绩重要”，且原文强调“academic achievement”和“grade”的关联，但核心是重要性。"
+        },
+        {
+          "number": 25,
+          "answer": "A",
+          "promptZh": "这篇文章合适的标题可能是____",
+          "optionsZh": [
+            "一种错误的家庭作业处理方法。",
+            "一项受贫困学生欢迎的政策。",
+            "关于家庭作业的棘手问题。",
+            "对一项教育政策的错误解读。"
+          ],
+          "explanation": "全文批评了洛杉矶联合学区的家庭作业政策，认为其“unclear and contradictory”，并指出它没有解决真正的问题，因此是“a faulty approach”。选项A正确。选项B错误，因为政策并非受贫困学生欢迎，而是试图帮助他们但效果不佳；选项C过于宽泛，文章重点不是讨论问题本身而是批评政策；选项D错误，文章不是关于错误解读，而是政策本身有缺陷。"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "questions": [
+        {
+          "number": 26,
+          "answer": "C",
+          "promptZh": "作者说“它只是彩虹中的一小部分”（第一段），意思是粉色____",
+          "optionsZh": [
+            "不能解释女孩缺乏想象力。",
+            "不应该与女孩的天真联系在一起。",
+            "不应该成为女孩气质的唯一代表。",
+            "不能影响女孩的生活和兴趣。"
+          ],
+          "explanation": "正确项C。原文说“粉色本身并不坏，但它只是彩虹中的一小部分”，紧接着指出“尽管它可能以某种方式庆祝少女时代，但它也反复而坚定地将女孩的身份与外表融合在一起”，暗示粉色被过度强调为女孩气质的代表，而实际上女孩气质应更多元。A项无中生有，原文未提及粉色与想象力的关系；B项是过度推断，原文未说粉色不应与天真联系，而是说粉色将天真与外表联系；D项与原文矛盾，原文承认粉色在女孩生活中普遍存在，且影响她们的身份认同。"
+        },
+        {
+          "number": 27,
+          "answer": "B",
+          "promptZh": "根据第二段，关于颜色以下哪项是正确的？",
+          "optionsZh": [
+            "颜色编码在女孩的DNA中。",
+            "蓝色曾经被认为是女孩的颜色。",
+            "白色是婴儿的首选。",
+            "粉色在象征性别方面曾经是中性色。"
+          ],
+          "explanation": "正确项B。原文明确说“蓝色，带有圣母玛利亚的暗示，象征忠诚和忠贞，代表女性气质”，因此蓝色曾被视为女孩的颜色。A项与原文矛盾，原文说“女孩对粉色的吸引可能看起来不可避免，但并非如此”，且未说颜色编码在DNA中；C项错误，原文说“所有婴儿都穿白色是出于实际考虑”，并非偏好；D项错误，原文说粉色曾被认为是更男性化的颜色，而非中性色。"
+        },
+        {
+          "number": 28,
+          "answer": "B",
+          "promptZh": "作者认为我们对儿童心理发展的认知很大程度上受到____的影响。",
+          "optionsZh": [
+            "对儿童天性的观察。",
+            "儿童产品的营销。",
+            "对儿童行为的研究。",
+            "对儿童消费的研究。"
+          ],
+          "explanation": "正确项B。原文说“我没有意识到营销趋势如何深刻地支配了我们对孩子天性的认知，包括我们对他们心理发展的核心信念”，直接指出营销的影响。A项与原文相反，原文暗示我们的认知并非基于观察；C项是作者曾有的错误假设，但被否定；D项范围过窄，且原文提到的是“儿童消费主义历史学家”的观点，但影响认知的是营销趋势，而非研究本身。"
+        },
+        {
+          "number": 29,
+          "answer": "A",
+          "promptZh": "从第四段我们可以得知，百货商店被建议____",
+          "optionsZh": [
+            "将消费者划分为更小的群体。",
+            "对不同性别给予同等重视。",
+            "专注于婴儿服装和大童服装。",
+            "创造一些常见的购物者术语。"
+          ],
+          "explanation": "正确项A。原文说“贸易出版物建议百货商店，为了增加销售，他们应该在婴儿服装和大童服装之间创造‘第三块踏脚石’”，即细分市场，且后文说“将孩子或成人分成更小的类别已被证明是提高利润的可靠方法”。B项无中生有，原文未提及同等重视；C项是建议之前的状态，而非建议本身；D项是结果而非建议，且“toddler”成为常用术语是细分后的结果。"
+        },
+        {
+          "number": 30,
+          "answer": "C",
+          "promptZh": "可以得出结论，女孩对粉色的吸引似乎是____",
+          "optionsZh": [
+            "被服装制造商完全理解。",
+            "由她们的天生倾向清楚解释。",
+            "主要由逐利的商人强加。",
+            "被心理学专家很好地解释。"
+          ],
+          "explanation": "正确项C。原文指出粉色在女孩中的流行是营销策略的结果，如“直到20世纪80年代中期，当放大年龄和性别差异成为主导的儿童营销策略时，粉色才真正流行起来”，且最后说“细分市场最容易的方法之一是放大性别差异——或者在没有差异的地方发明差异”，表明是商人为了利润而推动的。A项过度推断，制造商可能理解营销，但原文未说“完全理解”；B项与原文矛盾，原文否认天生倾向；D项错误，原文否定了专家研究的解释，如“toddler”阶段是营销技巧而非专家研究结果。"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "questions": [
+        {
+          "number": 31,
+          "answer": "A",
+          "promptZh": "从第一段可以得知，生物技术公司希望____",
+          "optionsZh": [
+            "基因可以获得专利。",
+            "BIO发出警告。",
+            "他们的高管积极活跃。",
+            "法官排除基因专利。"
+          ],
+          "explanation": "第一段提到，联邦法官裁定基因不可获得专利时，高管们非常激动，BIO称这只是初步步骤，后来上诉法院推翻了之前的决定，允许Myriad Genetics持有基因专利，公司CEO表示该裁决对公司和患者都是福音。这表明公司希望基因可以获得专利。因此A正确。B项错误，BIO是行业组织，并未发出警告，而是安抚成员。C项错误，高管们是“violently agitated”，并非“active”。D项错误，公司希望法官支持基因专利，而非排除。"
+        },
+        {
+          "number": 32,
+          "answer": "B",
+          "promptZh": "反对基因专利的人认为____",
+          "optionsZh": [
+            "基因检测不可靠。",
+            "只有人造产品才可以获得专利。",
+            "基因专利很大程度上依赖于创新。",
+            "法院应限制基因检测的使用。"
+          ],
+          "explanation": "反对者认为基因是自然的产物，因此不应被授予专利，这意味着只有人造产品才可专利。因此B正确。A项错误，文中未提及基因检测不可靠。C项错误，反对者认为基因专利抑制创新而非奖励创新。D项错误，反对者认为专利垄断限制了基因检测的可及性，而非要求法院限制。"
+        },
+        {
+          "number": 33,
+          "answer": "A",
+          "promptZh": "根据Hans Sauer的说法，公司渴望获得____的专利。",
+          "optionsZh": [
+            "发现基因相互作用。",
+            "建立疾病相关性。",
+            "绘制基因图谱。",
+            "识别人类DNA。"
+          ],
+          "explanation": "文中提到，公司正在研究基因如何相互作用，寻找可能用于确定疾病原因或预测药物疗效的相关性。Hans Sauer解释说，公司渴望获得“连接点”的专利，即发现基因相互作用。因此A正确。B项“建立疾病相关性”是研究的一部分，但更具体的是基因相互作用。C项和D项均不准确，文中未提及绘制基因图谱或识别人类DNA。"
+        },
+        {
+          "number": 34,
+          "answer": "C",
+          "promptZh": "作者说“Each meeting was packed”（第六段）的意思是____",
+          "optionsZh": [
+            "最高法院具有权威性。",
+            "BIO是一个强大的组织。",
+            "基因专利问题备受关注。",
+            "律师们热衷于参加会议。"
+          ],
+          "explanation": "第六段提到，BIO最近召开了一次会议，包括指导律师应对专利格局变化的会议，每个会议都挤满了人。这表明基因专利问题引起了广泛关注，因此C正确。A项错误，会议与最高法院无关。B项错误，会议爆满不能直接说明BIO强大。D项错误，虽然律师参加，但重点在于问题本身受关注，而非律师的爱好。"
+        },
+        {
+          "number": 35,
+          "answer": "D",
+          "promptZh": "总的来说，作者对基因专利的态度是____",
+          "optionsZh": [
+            "批评的。",
+            "支持的。",
+            "轻蔑的。",
+            "客观的。"
+          ],
+          "explanation": "作者在文章中客观陈述了基因专利的争议，包括支持方和反对方的观点，以及法院的裁决和未来可能的发展，没有表现出明显的倾向性。因此D正确。A、B、C均不符合作者中立的态度。"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "questions": [
+        {
+          "number": 36,
+          "answer": "D",
+          "promptZh": "通过说“寻找一线希望”（第二段），作者暗示失业者试图____",
+          "optionsZh": [
+            "从政府寻求补贴。",
+            "从陷入困境的经济中获利。",
+            "探索失业的原因。",
+            "看到经济衰退的积极面。"
+          ],
+          "explanation": "正确项D。原文中“find silver linings”意为寻找困境中的积极方面，且后文提到失业者说失业“improved them in some ways”，如变得不那么物质、更节俭等，说明他们试图看到衰退的积极面。A、B、C均未在原文提及，且与上下文不符。"
+        },
+        {
+          "number": 37,
+          "answer": "D",
+          "promptZh": "根据第二段，经济衰退使人们____",
+          "optionsZh": [
+            "互相争斗。",
+            "实现国家梦想。",
+            "挑战他们的节俭。",
+            "重新考虑他们的生活方式。"
+          ],
+          "explanation": "正确项D。第二段提到衰退“awoken us from our national fever dream of easy riches and bigger houses, and put a necessary end to an era of reckless personal spending”，即唤醒了人们并结束了挥霍时代，促使人们反思生活方式。A、B、C均与原文不符。"
+        },
+        {
+          "number": 38,
+          "answer": "B",
+          "promptZh": "本杰明·弗里德曼认为经济衰退可能____",
+          "optionsZh": [
+            "给移民带来更重的负担。",
+            "暴露更多人性之恶。",
+            "促进权利和自由的进步。",
+            "缓解种族和阶级之间的冲突。"
+          ],
+          "explanation": "正确项B。原文提到弗里德曼认为长期经济停滞或衰退“almost always left society more mean-spirited and less inclusive, and have usually stopped or reversed the advance of rights and freedoms”，即社会更吝啬、更不包容，权利进步受阻，这体现了人性中恶的一面。A未提及；C与原文相反；D与原文相反，原文说反移民情绪和种族阶级冲突增加。"
+        },
+        {
+          "number": 39,
+          "answer": "D",
+          "promptZh": "蒂尔·冯·瓦赫特的研究表明，在经济衰退中，精英大学的毕业生倾向于____",
+          "optionsZh": [
+            "由于机会减少而落后于其他人。",
+            "迅速赶上经验丰富的员工。",
+            "看到他们的生活机会和其他人一样暗淡。",
+            "比其他人恢复得更快。"
+          ],
+          "explanation": "正确项D。原文说“those with degrees from elite universities catch up fairly quickly to where they otherwise would have been”，即他们很快赶上原本应有的状态，而“the masses beneath them are left behind”，说明他们比其他人恢复更快。A与原文相反；B未提及“经验丰富的员工”；C与原文相反，原文说他们的机会并未暗淡。"
+        },
+        {
+          "number": 40,
+          "answer": "C",
+          "promptZh": "作者认为困难时期对社会的影响是____",
+          "optionsZh": [
+            "微不足道的。",
+            "积极的。",
+            "确定的。",
+            "破坏性的。"
+          ],
+          "explanation": "正确项C。最后一段作者说“We will have to wait and see exactly how these hard times will reshape our social fabric. But they certainly will reshape it”，即影响是确定的，只是具体方式未知。A与“certainly”矛盾；B过于片面，作者认为影响可能有好有坏；D未明确，作者未说一定是破坏性的。"
+        }
+      ]
+    }
+  ]
+}

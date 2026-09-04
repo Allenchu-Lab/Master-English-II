@@ -42,8 +42,10 @@ export function LibraryComparison({ papers, initialLanguage = "zh", allowPreview
     for (const paper of Object.values(papers)) {
       for (const section of paper.sections) {
         if (section.type !== type) continue;
-        total += section.itemCount;
-        if (section.available) available = true;
+        if (section.available) {
+          total += section.itemCount;
+          available = true;
+        }
       }
     }
     let done = 0;
@@ -215,7 +217,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", allowPreview
               </div>
             </header>
             <section className="question-types">
-              <div className="type-tabs">{typeItems.map(({ type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={type} onClick={() => setActiveType(index)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`}</small><span className="type-progress-copy"><span>{available ? (isEnglish ? "Completed" : "已累计完成") : (isEnglish ? "Not open yet" : "尚未开放")}</span><strong>{available ? `${done} / ${total}` : "—"}</strong></span><i className="type-progress"><b style={{ width: available && total ? `${(done / total) * 100}%` : "0%" }} /></i></button>)}</div>
+              <div className="type-tabs">{typeItems.map(({ type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={type} onClick={() => setActiveType(index)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{available ? (isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`) : (isEnglish ? "Not open yet" : "尚未开放")}</small><span className="type-progress-copy"><span>{available ? (isEnglish ? "Completed" : "已累计完成") : (isEnglish ? "Not open yet" : "尚未开放")}</span><strong>{available ? `${done} / ${total}` : "—"}</strong></span><i className="type-progress"><b style={{ width: available && total ? `${(done / total) * 100}%` : "0%" }} /></i></button>)}</div>
             </section>
 
             <section className="year-library">

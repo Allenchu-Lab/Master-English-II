@@ -1,0 +1,267 @@
+{
+  "year": 2018,
+  "section": "reading_a",
+  "source": "AI-generated explanations; answer letters from user-provided source images",
+  "texts": [
+    {
+      "number": 1,
+      "questions": [
+        {
+          "number": 21,
+          "answer": "B",
+          "promptZh": "提到坏掉的自行车链条是为了表明学生缺乏____",
+          "optionsZh": [
+            "学术训练。",
+            "实践能力。",
+            "开拓精神。",
+            "机械记忆。"
+          ],
+          "explanation": "正确选项为B。原文第一段提到，在新罕布什尔州的这所高中，学习不是书本、考试和机械记忆，而是实用的。接着问“什么时候成为公认的智慧，学生应该能说出美国第13任总统的名字，却完全被坏掉的自行车链条难倒？”这里用坏链条的例子说明学生缺乏实践能力，而非学术训练、开拓精神或机械记忆。因此选B。"
+        },
+        {
+          "number": 22,
+          "answer": "D",
+          "promptZh": "存在一种偏见，认为职业教育是为那些____的孩子准备的。",
+          "optionsZh": [
+            "思维刻板。",
+            "没有职业动力。",
+            "经济困难。",
+            "学业不成功。"
+          ],
+          "explanation": "正确选项为D。原文第二段提到，职业教育学校有那种刻板印象，“认为它是为那些在学业上无法成功（can't make it academically）的孩子准备的”。因此，偏见是认为职业教育针对学业不成功的学生。A选项“思维刻板”是偏见本身，不是针对对象；B和C未提及。故选D。"
+        },
+        {
+          "number": 23,
+          "answer": "A",
+          "promptZh": "从第五段可以推断，高中毕业生____",
+          "optionsZh": [
+            "过去有更多的工作机会。",
+            "过去有大的财务担忧。",
+            "有权获得更多的教育特权。",
+            "不愿意在制造业工作。"
+          ],
+          "explanation": "正确选项为A。第五段提到“美国经济曾经提供给高中毕业生的就业保障基本上已经消失”（The job security that the US economy once offered to high school graduates has largely evaporated），暗示过去高中毕业生有更多的工作机会和保障。B、C、D在文中没有依据。故选A。"
+        },
+        {
+          "number": 24,
+          "answer": "C",
+          "promptZh": "盲目推动所有人都获得学士学位____",
+          "optionsZh": [
+            "有助于创造许多中等技能工作。",
+            "可能缩小工人阶级工作的差距。",
+            "表明对高等教育的过度重视。",
+            "有望产生更训练有素的劳动力。"
+          ],
+          "explanation": "正确选项为C。原文第六段提到“盲目推动所有人都获得学士学位——以及对任何低于此的微妙贬低——错过了一个重要观点”，这暗示了对学士学位的过度追求，即对高等教育的过度重视。A和D与原文不符，原文指出中等技能工作存在缺口，但工人未受足够培训；B与原文相反，原文说存在差距，但盲目追求学位不能缩小差距。故选C。"
+        },
+        {
+          "number": 25,
+          "answer": "C",
+          "promptZh": "作者对Koziatek学校的态度可以描述为____",
+          "optionsZh": [
+            "容忍的。",
+            "谨慎的。",
+            "支持的。",
+            "失望的。"
+          ],
+          "explanation": "正确选项为C。文章最后一段说“Koziatek的学校是一个警钟”，并指出当教育变得一刀切时，它可能忽视国家才能的多样性。这暗示作者对Koziatek学校持肯定和支持态度，认为它填补了工人阶级工作的差距。因此选C。"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "questions": [
+        {
+          "number": 26,
+          "answer": "C",
+          "promptZh": "单词“plummeting”（第2段）在意思上最接近____",
+          "optionsZh": [
+            "稳定。",
+            "变化。",
+            "下降。",
+            "上升。"
+          ],
+          "explanation": "原文提到“the plummeting prices of renewables”，并举例说太阳能电池板成本下降80%，风力涡轮机成本下降近三分之一，因此“plummeting”意为“急剧下降”。选项C“falling”符合。A“stabilizing”意为稳定，与下降相反；B“changing”过于宽泛；D“rising”与下降相反。"
+        },
+        {
+          "number": 27,
+          "answer": "A",
+          "promptZh": "根据第3段，美国可再生能源的使用____",
+          "optionsZh": [
+            "正在显著进步。",
+            "与欧洲一样广泛。",
+            "面临许多挑战。",
+            "已被证明不切实际。"
+          ],
+          "explanation": "第3段提到“the United States is also seeing a remarkable shift”，并举例说3月份风能和太阳能发电量首次超过美国发电量的10%，说明美国可再生能源使用显著进步。A正确。B错误，原文说“the rest of the world takes the lead, notably China and Europe”，暗示美国不如欧洲广泛；C和D与原文积极态度不符。"
+        },
+        {
+          "number": 28,
+          "answer": "A",
+          "promptZh": "可以了解到，在爱荷华州，____",
+          "optionsZh": [
+            "风能是一种广泛使用的能源。",
+            "风能已经取代了化石燃料。",
+            "科技巨头正在投资清洁能源。",
+            "清洁能源供应短缺。"
+          ],
+          "explanation": "原文提到爱荷华州“wind turbines dot the fields and provide 36 percent of the state’s electricity generation”，说明风能广泛使用。A正确。B错误，36%不等于完全取代；C错误，原文说科技巨头被清洁能源吸引，并非投资；D错误，原文说清洁能源可用。"
+        },
+        {
+          "number": 29,
+          "answer": "C",
+          "promptZh": "根据第5段和第6段，关于清洁能源以下哪项是正确的？",
+          "optionsZh": [
+            "它的应用促进了电池存储。",
+            "它常用于汽车制造。",
+            "它的持续供应正在成为现实。",
+            "它的可持续开发仍将困难。"
+          ],
+          "explanation": "第5-6段提到“a boost in the storage capacity of batteries is making their ability to keep power flowing around the clock more likely”，说明电池存储能力的提升使清洁能源的持续供应更可能成为现实。C正确。A因果颠倒，是电池存储提升促进清洁能源应用；B错误，原文说电动汽车仍罕见；D与原文“more likely”矛盾。"
+        },
+        {
+          "number": 30,
+          "answer": "C",
+          "promptZh": "从最后一段可以推断出可再生能源____",
+          "optionsZh": [
+            "将使美国更接近其他国家。",
+            "将加速全球环境变化。",
+            "并未真正受到美国政府的鼓励。",
+            "在成本方面不够有竞争力。"
+          ],
+          "explanation": "最后一段提到“What Washington does — or doesn’t do — to promote alternative energy may mean less and less”，暗示美国政府（华盛顿）对可再生能源的支持不足，且其行动影响减弱。C正确。A错误，原文未提及美国接近他国；B错误，原文说可再生能源有助于减缓气候变化；D错误，原文强调成本下降。"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "questions": [
+        {
+          "number": 31,
+          "answer": "B",
+          "promptZh": "根据第一段，Facebook收购WhatsApp是为了其____",
+          "optionsZh": [
+            "数字产品。",
+            "用户信息。",
+            "实物资产。",
+            "优质服务。"
+          ],
+          "explanation": "正确选项为B。第一段提到WhatsApp提供给Facebook的是其用户友谊和社交生活的精细网络，即用户信息。A错误，WhatsApp没有实物产品，且其价值不在数字产品本身；C错误，WhatsApp没有实物资产；D错误，文中未提及服务质量。"
+        },
+        {
+          "number": 32,
+          "answer": "C",
+          "promptZh": "将电话号码与Facebook身份关联可能____",
+          "optionsZh": [
+            "加剧政治争端。",
+            "搞乱客户记录。",
+            "对Facebook用户构成风险。",
+            "误导欧盟委员会。"
+          ],
+          "explanation": "正确选项为C。第一段指出Facebook承诺不关联电话号码与身份，但违背承诺，且知道谁发送给谁极具揭示性，可能暴露用户隐私，对用户构成风险。A错误，文中提及政治记者可能想知道群组构成，但未说关联会加剧政治争端；B错误，客户记录与用户数据无关；D错误，误导欧盟委员会是违背承诺的结果，但风险是对用户的。"
+        },
+        {
+          "number": 33,
+          "answer": "D",
+          "promptZh": "根据作者观点，竞争法____",
+          "optionsZh": [
+            "应该服务于新的市场力量。",
+            "可能加剧经济不平衡。",
+            "不应只提供一种法律解决方案。",
+            "无法跟上市场的变化。"
+          ],
+          "explanation": "正确选项为D。第二段指出竞争法相对于数字经济变化速度缓慢，问题解决时可能已消失。A错误，作者未说竞争法应服务于新市场力量；B错误，文中说竞争法解决不平衡，但未说加剧；C错误，文中未提及法律解决方案的数量。"
+        },
+        {
+          "number": 34,
+          "answer": "A",
+          "promptZh": "目前解释的竞争法难以保护Facebook用户，因为____",
+          "optionsZh": [
+            "他们未被定义为客户。",
+            "他们在经济上不可靠。",
+            "服务通常是数字化的。",
+            "服务由广告商付费。"
+          ],
+          "explanation": "正确选项为A。第二段指出竞争法处理消费者的经济损失，但用户不付费，因此不是客户，而是广告商是客户。B错误，文中未提及经济可靠性；C错误，数字化不是原因；D错误，广告商付费是事实，但根本原因是用户不被视为客户。"
+        },
+        {
+          "number": 35,
+          "answer": "D",
+          "promptZh": "蚂蚁类比用于说明____",
+          "optionsZh": [
+            "数字巨头之间的双赢商业模式。",
+            "数字巨头之间的典型竞争模式。",
+            "为数字巨头的客户提供的好处。",
+            "数字巨头与其用户之间的关系。"
+          ],
+          "explanation": "正确选项为D。第三段将谷歌比作蚂蚁，用户比作蚜虫，说明谷歌从用户数据中获益，同时提供保护，类似蚂蚁与蚜虫的关系，即数字巨头与用户的关系。A错误，类比未涉及数字巨头之间的模式；B错误，未涉及竞争；C错误，用户不是客户，且类比强调巨头受益。"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "questions": [
+        {
+          "number": 36,
+          "answer": "A",
+          "promptZh": "掌握深度工作艺术的关键是____",
+          "optionsZh": [
+            "坚持你的专注时间。",
+            "列出你立即要完成的任务。",
+            "制定具体的每日计划。",
+            "抓住每一分钟去工作。"
+          ],
+          "explanation": "原文提到“Whichever approach, the key is to determine your length of focus time and stick to it.”，即无论哪种方法，关键是确定你的专注时间长度并坚持。因此A项正确。B项“列出立即任务”是另一种提高效率的方法，但不是关键；C项“制定具体每日计划”在文中被批评为可能降低动力；D项“抓住每一分钟工作”与文中提倡的“懒惰”和休息相悖。"
+        },
+        {
+          "number": 37,
+          "answer": "D",
+          "promptZh": "哈福德引用的20世纪80年代初的研究表明____",
+          "optionsZh": [
+            "分心实际上可能提高效率。",
+            "每日时间表对学习必不可少。",
+            "学生很少被月度目标激励。",
+            "详细的计划可能不如预期那样有成效。"
+          ],
+          "explanation": "原文指出，研究人员假设结构良好的每日计划最有效，但结果相反：“the detailed daily plans demotivated students”，即详细的每日计划使学生失去动力。因此D项正确。A项是哈福德的观点，但研究本身并未直接证明分心提高效率；B项与研究发现相悖；C项文中未提及月度目标对学生的激励作用。"
+        },
+        {
+          "number": 38,
+          "answer": "D",
+          "promptZh": "根据纽波特的观点，闲散是____",
+          "optionsZh": [
+            "忙碌的人理想的精神状态。",
+            "身体健康的主要贡献者。",
+            "节省时间和精力的有效方法。",
+            "完成任何工作的必要因素。"
+          ],
+          "explanation": "原文中纽波特说：“Idleness is ... indispensable to the brain as vitamin D is to the body... necessary to getting any work done”，即闲散对大脑不可或缺，对完成工作必要。因此D项正确。A项“理想精神状态”未提及；B项“身体健康”是比喻，并非直接贡献；C项“节省时间精力”与原文强调的必要性不符。"
+        },
+        {
+          "number": 39,
+          "answer": "B",
+          "promptZh": "皮莱认为，我们大脑在专注和不专注之间的切换____",
+          "optionsZh": [
+            "可以带来心理健康。",
+            "可以带来更高的效率。",
+            "旨在更好地平衡工作。",
+            "是由任务紧迫性驱动的。"
+          ],
+          "explanation": "原文提到“When our brains switch between being focused and unfocused on a task, they tend to be more efficient.”，即大脑在专注和不专注之间切换时，往往更高效。因此B项正确。A项“心理健康”未提及；C项“平衡工作”不是目的；D项“任务紧迫性”文中未提及。"
+        },
+        {
+          "number": 40,
+          "answer": "B",
+          "promptZh": "本文主要关于____",
+          "optionsZh": [
+            "缓解忙碌生活压力的方法。",
+            "在更短时间内完成更多事情的方法。",
+            "消除分心的关键。",
+            "缺乏专注时间的原因。"
+          ],
+          "explanation": "文章开头提出对抗忙碌陷阱，推荐深度工作，接着介绍多种方法，如深度工作、深度日程安排、重新思考优先级、利用休息时间等，核心是“getting more done in less time”。因此B项正确。A项“缓解压力”不是重点；C项“消除分心”只是部分内容；D项“缺乏专注时间的原因”未提及。"
+        }
+      ]
+    }
+  ]
+}

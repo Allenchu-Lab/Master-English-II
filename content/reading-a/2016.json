@@ -3,8 +3,8 @@
   "title": "2016年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2016年考研英语二.pdf",
   "sourceSha256": "87400f611172c0bab2c8da08c387505d37ecb5f9cd280fd1cbeea7d73acaf7db",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

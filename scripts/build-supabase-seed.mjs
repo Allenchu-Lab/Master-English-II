@@ -9,7 +9,10 @@ const papers = JSON.parse(source);
 for (const file of readdirSync("content/reading-a").filter((file) => file.endsWith(".json")).sort()) {
   const paper = JSON.parse(readFileSync(`content/reading-a/${file}`, "utf8"));
   if (papers[paper.year]) throw new Error(`Duplicate paper year: ${paper.year}`);
-  if (paper.status !== "draft" || paper.answerStatus !== "pending") throw new Error(`Review publication and answer keys before publishing ${file}`);
+  const validDraft = paper.status === "draft" && paper.answerStatus === "pending";
+  const validPublished = paper.status === "published" && paper.answerStatus === "complete";
+  if (!validDraft && !validPublished) throw new Error(`Invalid publication state in ${file}`);
+  if (validPublished) JSON.parse(readFileSync(`content/answer-keys/${paper.year}.json`, "utf8"));
   papers[paper.year] = paper;
 }
 const quote = (value) => `'${String(value).replaceAll("'", "''")}'`;

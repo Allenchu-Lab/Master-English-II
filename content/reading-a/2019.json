@@ -3,8 +3,8 @@
   "title": "2019年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2019年考研英语二.pdf",
   "sourceSha256": "6a00c28d25e32cc4fb49e89aa0bc090e2f04231b5061478bb77e5793d940b0b2",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

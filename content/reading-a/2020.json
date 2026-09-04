@@ -3,8 +3,8 @@
   "title": "2020年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2020年考研英语二.pdf",
   "sourceSha256": "85e180d03cfb6c203ee06fafa6ebc9ff02e3979df117f36b37351db34cea8310",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

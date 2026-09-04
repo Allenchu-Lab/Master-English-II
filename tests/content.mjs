@@ -8,8 +8,8 @@ let totalQuestions = 0;
 for (const file of files) {
   const paper = JSON.parse(readFileSync(`content/reading-a/${file}`, "utf8"));
   assert.equal(paper.year, Number(file.slice(0, 4)));
-  assert.equal(paper.status, "draft");
-  assert.equal(paper.answerStatus, "pending");
+  assert.equal(paper.status, "published");
+  assert.equal(paper.answerStatus, "complete");
   const pdf = readFileSync(`content/source-pdfs/${paper.sourceFile}`);
   assert.equal(pdf.subarray(0, 5).toString(), "%PDF-");
   assert.equal(createHash("sha256").update(pdf).digest("hex"), paper.sourceSha256, `${file}: original PDF changed`);
@@ -71,6 +71,20 @@ for (const file of pendingAnswerFiles) {
   assert.deepEqual(Object.keys(key.answers), Array.from({ length: 20 }, (_, index) => String(21 + index)));
   assert.ok(Object.values(key.answers).every((answer) => /^[A-D]$/.test(answer)));
   assert.ok(sourceSha256);
+
+  const published = JSON.parse(readFileSync(`content/answer-keys/${file}`, "utf8"));
+  assert.equal(published.year, key.year);
+  assert.equal(published.section, "reading_a");
+  assert.match(published.source, /AI-generated explanations/);
+  const publishedQuestions = published.texts.flatMap((text) => text.questions);
+  assert.equal(publishedQuestions.length, 20);
+  for (const question of publishedQuestions) {
+    assert.equal(question.answer, key.answers[String(question.number)]);
+    assert.ok(question.promptZh.trim());
+    assert.equal(question.optionsZh.length, 4);
+    assert.ok(question.optionsZh.every((option) => option.trim()));
+    assert.ok(question.explanation.trim());
+  }
 }
 const paper2010 = JSON.parse(readFileSync("content/reading-a/2010.json", "utf8"));
 assert.deepEqual(paper2010.readingA[2].questions[2].options, ["Tide.", "Crest.", "Colgate.", "Unilever."]);
@@ -89,4 +103,4 @@ const existingAnswers = Object.fromEntries(
   }),
 );
 assert.deepEqual(existingAnswers, { 2025: "BCADABCCBCABABDCDADD", 2026: "DCAACBACDDBACDBDCCBB" });
-console.log("Content tests passed: 2010–2026 covered, 17 PDFs, 68 passages, 340 questions. 2010–2024: 300 answer letters recorded as pending; 2025–2026 photo answers match existing keys.");
+console.log("Content tests passed: 2010–2026 covered, 17 PDFs, 68 passages, 340 questions and complete answer keys. 2010–2024 answer letters match source images; explanations are AI-generated.");

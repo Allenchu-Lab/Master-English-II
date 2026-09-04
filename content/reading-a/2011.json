@@ -3,8 +3,8 @@
   "title": "2011年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2011年考研英语二.pdf",
   "sourceSha256": "cd3cdbc72f40d7b2bc89154411970fa63553d096e2a9074f4357955206c6941f",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

@@ -3,8 +3,8 @@
   "title": "2022年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2022年考研英语二.pdf",
   "sourceSha256": "b57fdd456374d973dfdb023963140d8576f788bd1e37e472e2ae2c521ab8490b",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

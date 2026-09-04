@@ -1,0 +1,267 @@
+{
+  "year": 2022,
+  "section": "reading_a",
+  "source": "AI-generated explanations; answer letters from user-provided source images",
+  "texts": [
+    {
+      "number": 1,
+      "questions": [
+        {
+          "number": 21,
+          "answer": "D",
+          "promptZh": "气候友好型鸡蛋是在____生产的。",
+          "optionsZh": [
+            "以相当低的成本。",
+            "根据普通购物者的需求。",
+            "作为有机鸡蛋的替代品。",
+            "在特别设计的农场。"
+          ],
+          "explanation": "根据原文，这些鸡蛋来自使用再生农业的农场，这些农场采用特殊技术来培养富含温室气体的土壤，因此这些农场是特别设计的。选项D正确。A项错误，因为鸡蛋售价高达8美元一打，成本不低。B项错误，文中未提及普通购物者的需求。C项错误，文中说这些鸡蛋仍被标记为有机，并非替代有机鸡蛋。"
+        },
+        {
+          "number": 22,
+          "answer": "C",
+          "promptZh": "Larry Brown对他____的进展感到兴奋。",
+          "optionsZh": [
+            "减少蠕虫的损害。",
+            "加速废物的处理。",
+            "创建一个可持续的系统。",
+            "吸引顾客购买他的产品。"
+          ],
+          "explanation": "原文中Larry Brown提到，他们添加覆盖作物吸引蠕虫和蟋蟀供鸡食用，鸡的粪便肥沃土地，这些改进让母鸡能觅食更高质量的天然饲料，对土地、母鸡和鸡蛋都有好处。这体现了一个可持续的系统。选项C正确。A项错误，文中未提及减少蠕虫损害，而是利用蠕虫。B项错误，文中未提及加速废物处理。D项错误，文中未提及吸引顾客。"
+        },
+        {
+          "number": 23,
+          "answer": "C",
+          "promptZh": "第4段中关于有机鸡蛋的例子是为了表明____。",
+          "optionsZh": [
+            "对天然饲料的怀疑。",
+            "鸡蛋行业的挫折。",
+            "再生产品的潜力。",
+            "超市的促销成功。"
+          ],
+          "explanation": "第4段提到有机鸡蛋从被忽视到在沃尔玛销售，说明类似产品可能成功，从而暗示再生农业产品也有潜力。选项C正确。A项错误，文中未提及对天然饲料的怀疑。B项错误，文中未提及挫折。D项错误，重点不是超市的促销，而是产品被接受的过程。"
+        },
+        {
+          "number": 24,
+          "answer": "B",
+          "promptZh": "从第6段可以了解到，年轻人____。",
+          "optionsZh": [
+            "不愿意改变他们的饮食。",
+            "可能购买气候友好型鸡蛋。",
+            "对新食物感到好奇。",
+            "对农业进步感到惊讶。"
+          ],
+          "explanation": "第6段提到调查显示年轻一代更关心气候变化，植物基肉类的成功部分归因于购物者希望表明他们保护环境的愿望。因此，年轻人可能购买气候友好型鸡蛋。选项B正确。A项错误，文中未提及不愿改变饮食。C项错误，文中未提及好奇。D项错误，文中未提及惊讶。"
+        },
+        {
+          "number": 25,
+          "answer": "A",
+          "promptZh": "John Brunnquell在再生产品的____上会不同意Julie Stanton的观点。",
+          "optionsZh": [
+            "营养价值。",
+            "标准定义。",
+            "市场前景。",
+            "道德含义。"
+          ],
+          "explanation": "Julie Stanton认为再生农业对食品几乎没有改善，而John Brunnquell提到年轻人关心地球，正在改变食物链，暗示他认为再生产品有积极影响。但问题问的是他们分歧的方面。Julie Stanton提到概念难以定义，但John Brunnquell没有直接反驳定义。然而，Julie Stanton说“Such farming also brings minimal, if any, improvement to the food products”，而John Brunnquell强调年轻人关心地球，可能认为产品有环境价值，但营养价值方面，Julie Stanton暗示没有改善，而John Brunnquell可能认为有改善？实际上，John Brunnquell没有直接说营养价值，但选项A是唯一可能的。根据原文，Julie Stanton说“minimal improvement to the food products”，而John Brunnquell说“altering the food chain”，可能暗示产品更好。因此，他们可能在营养价值上有分歧。选项A正确。B项错误，Julie Stanton提到定义困难，但John Brunnquell没有反对。C项错误，两人都未明确讨论市场前景。D项错误，道德含义未提及。"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "questions": [
+        {
+          "number": 26,
+          "answer": "D",
+          "promptZh": "哈里斯民意调查进行的调查表明____",
+          "optionsZh": [
+            "超过一半的退休人员身体健康，适合工作。",
+            "老年劳动力与年轻劳动力一样活跃。",
+            "三分之一的美国人喜欢提前退休。",
+            "更多的美国人愿意在退休后继续工作。"
+          ],
+          "explanation": "根据原文第一段，哈里斯民意调查显示，40岁及以上的美国人中有三分之一已经或计划在退休后工作，且超过一半的“退而不休”者表示即使有足够钱也会继续工作。因此选项D“更多的美国人愿意在退休后工作”正确。选项A、B、C在原文中均未提及或与原文不符。"
+        },
+        {
+          "number": 27,
+          "answer": "A",
+          "promptZh": "从第三段可以推断出，美国人倾向于认为____",
+          "optionsZh": [
+            "退休可能会给他们带来问题。",
+            "退休后无聊感可以得到缓解。",
+            "退休人员的心理健康被忽视。",
+            "“退而不休”对经济有贡献。"
+          ],
+          "explanation": "第三段提到，除了财务需求，其他原因包括个人成就感，如保持心理健康、防止无聊或避免抑郁。这表明美国人认为退休可能导致无聊或抑郁等问题，因此选项A正确。选项B与原文相反，因为防止无聊是继续工作的原因；选项C和D在原文中未提及。"
+        },
+        {
+          "number": 28,
+          "answer": "C",
+          "promptZh": "退休模式改变的部分原因是____",
+          "optionsZh": [
+            "劳动力短缺。",
+            "人口增长。",
+            "预期寿命延长。",
+            "生活成本上升。"
+          ],
+          "explanation": "原文第四段明确指出：“One reason for the change in retirement patterns: Americans are living longer.” 即退休模式改变的一个原因是美国人活得更长，即预期寿命延长。因此选项C正确。其他选项在原文中未提及。"
+        },
+        {
+          "number": 29,
+          "answer": "D",
+          "promptZh": "许多“退而不休”者通过____来增加储蓄。",
+          "optionsZh": [
+            "投资更多股票。",
+            "从事零工。",
+            "获得高薪工作。",
+            "减少开支。"
+          ],
+          "explanation": "原文第五段提到：“Among the most popular ways they are doing this, the company said, is by reducing their overall expenses...” 即最流行的方法之一是减少总体开支。因此选项D“减少开支”正确。其他选项在原文中未提及。"
+        },
+        {
+          "number": 30,
+          "answer": "A",
+          "promptZh": "关于退休，布伦特·韦斯认为许多人____",
+          "optionsZh": [
+            "没有准备好。",
+            "不害怕。",
+            "失望。",
+            "热情。"
+          ],
+          "explanation": "原文最后一段中，布伦特·韦斯说：“Unfortunately, many people who are opting to work in retirement are preparing to do so because they are worried about making ends meet in their later years.” 并建议退休前的人与财务顾问交谈以设定长期目标。这表明他认为许多人没有为退休做好充分准备，因此选项A正确。其他选项与原文不符。"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "questions": [
+        {
+          "number": 31,
+          "answer": "C",
+          "promptZh": "从前两段可以得知，暗黑模式____",
+          "optionsZh": [
+            "改善用户体验。",
+            "为获利而泄露用户信息。",
+            "削弱用户的决策能力。",
+            "提醒用户注意隐藏成本。"
+          ],
+          "explanation": "正确选项为C。第一段提到暗黑模式“impair consumer choice”，第二段进一步指出这些做法“manipulate user interfaces to influence the decision-making ability of users”，即影响用户的决策能力，与C项“削弱用户的决策能力”相符。A项与原文相反，暗黑模式并非改善体验；B项文中未提及泄露信息获利；D项是暗黑模式的一种类型，但并非前两段主要说明的内容。"
+        },
+        {
+          "number": 32,
+          "answer": "D",
+          "promptZh": "提到2019年关于暗黑模式的研究是为了说明____",
+          "optionsZh": [
+            "它们的主要缺陷。",
+            "它们复杂的设计。",
+            "它们严重的危害。",
+            "它们的大量存在。"
+          ],
+          "explanation": "正确选项为D。原文提到“In a 2019 study ... researchers found that about one in 10 employs these design practices.”，即研究发现约十分之一的网站使用暗黑模式，这说明了暗黑模式的普遍性，与D项“它们的大量存在”相符。A、B、C项均不是该研究的主要目的，研究并未强调缺陷、设计复杂性或危害。"
+        },
+        {
+          "number": 33,
+          "answer": "B",
+          "promptZh": "为了应对数字欺骗，企业应该____",
+          "optionsZh": [
+            "听取客户反馈。",
+            "与相关团队沟通。",
+            "求助于独立机构。",
+            "依靠专业培训。"
+          ],
+          "explanation": "正确选项为B。原文第三段指出“Businesses should engage in conversations with IT, compliance, risk, and legal teams ...”，即企业应与IT、合规、风险、法律等团队进行沟通，与B项“与相关团队沟通”相符。A项“客户反馈”未提及；C项“独立机构”未提及；D项“专业培训”未提及。"
+        },
+        {
+          "number": 34,
+          "answer": "B",
+          "promptZh": "CCPA下的附加法规旨在____",
+          "optionsZh": [
+            "指导用户完成退出流程。",
+            "保护消费者不被欺骗。",
+            "授予公司数据隐私权。",
+            "限制访问有问题的内容。"
+          ],
+          "explanation": "正确选项为B。原文第四段提到这些法规“ensure that consumers will not be confused or misled when seeking to exercise their data privacy rights”，即确保消费者在行使数据隐私权时不会感到困惑或被误导，并禁止暗黑模式，因此目的是保护消费者不被欺骗，与B项相符。A项只是手段之一，不是目的；C项与原文相反，法规是保护消费者权利而非授予公司权利；D项“限制访问内容”未提及。"
+        },
+        {
+          "number": 35,
+          "answer": "B",
+          "promptZh": "根据最后一段，应对暗黑模式的一个关键是____",
+          "optionsZh": [
+            "新的法律要求。",
+            "企业的自律。",
+            "严格的监管标准。",
+            "消费者的安全意识。"
+          ],
+          "explanation": "正确选项为B。最后一段提到“Dark patterns also can be addressed on a self-regulatory basis, but only if organizations hold themselves accountable ...”，即暗黑模式可以通过自律解决，但前提是组织自我约束，因此关键是企业自律，与B项相符。A项“新的法律要求”是外部因素，不是关键；C项“严格的监管标准”也是外部因素；D项“消费者安全意识”未提及。"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "questions": [
+        {
+          "number": 36,
+          "answer": "A",
+          "promptZh": "科学家普遍认为伦理课的效果是____",
+          "optionsZh": [
+            "难以确定。",
+            "被狭隘地解释。",
+            "难以忽视。",
+            "被糟糕地总结。"
+          ],
+          "explanation": "根据原文第一句“scientists are unsure if their lessons can actually change behavior; evidence either way is weak”，科学家不确定伦理课能否改变行为，证据薄弱，因此效果难以确定。选项A正确。B、C、D在原文中没有依据。"
+        },
+        {
+          "number": 37,
+          "answer": "B",
+          "promptZh": "以下哪项是研究人员研究吃肉行为的原因？",
+          "optionsZh": [
+            "它在学生中很普遍。",
+            "它是一种容易测量的行为。",
+            "它对学生的健康很重要。",
+            "它是伦理课上的热门话题。"
+          ],
+          "explanation": "原文提到研究吃肉行为的原因包括：学生态度多变且不稳定、行为容易测量、伦理文献认为少吃肉有益。其中“behavior is easily measurable”对应选项B。A、C、D在原文中未提及。"
+        },
+        {
+          "number": 38,
+          "answer": "D",
+          "promptZh": "Eric Schwitzgebel之前的发现表明，伦理学教授____",
+          "optionsZh": [
+            "很少批评他们的学生。",
+            "比其他教授更不善社交。",
+            "对政治问题不敏感。",
+            "不一定在道德上更好。"
+          ],
+          "explanation": "原文提到Schwitzgebel之前发现伦理学教授在投票率、献血、归还图书馆书籍等一系列行为上与其他教授没有差异，说明伦理学教授不一定在道德行为上更优。选项D正确。A、B、C在原文中无依据。"
+        },
+        {
+          "number": 39,
+          "answer": "C",
+          "promptZh": "Nina Strohminger认为干预的效果是____",
+          "optionsZh": [
+            "永久的。",
+            "可预测的。",
+            "不确定的。",
+            "不可重复的。"
+          ],
+          "explanation": "原文中Nina Strohminger说“she wants the effect to be real but cannot rule out some unknown confounding variable”，并指出效果可能被其他推动逆转，表明她对效果的真实性和持久性不确定。选项C正确。A、B、D与原文不符。"
+        },
+        {
+          "number": 40,
+          "answer": "C",
+          "promptZh": "Eric Schwitzgebel怀疑学生的行为改变____",
+          "optionsZh": [
+            "能带来心理上的好处。",
+            "可以被统计分析。",
+            "是多种因素的结果。",
+            "是自我发展的标志。"
+          ],
+          "explanation": "原文中Schwitzgebel认为影响最大的是社会影响，其次是视频的情感影响，最后是理性论证，说明他认为行为改变是多种因素共同作用的结果。选项C正确。A、B、D在原文中未提及。"
+        }
+      ]
+    }
+  ]
+}

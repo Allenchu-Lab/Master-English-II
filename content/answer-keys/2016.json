@@ -1,0 +1,267 @@
+{
+  "year": 2016,
+  "section": "reading_a",
+  "source": "AI-generated explanations; answer letters from user-provided source images",
+  "texts": [
+    {
+      "number": 1,
+      "questions": [
+        {
+          "number": 21,
+          "answer": "B",
+          "promptZh": "Cortina认为，早期接触计算机科学使得____更容易。",
+          "optionsZh": [
+            "完成未来的工作培训。",
+            "重塑思维方式。",
+            "制定逻辑假设。",
+            "完善艺术作品制作。"
+          ],
+          "explanation": "根据原文，Cortina说早期接触是有益的，年轻孩子学习计算机科学时，他们学会这不仅仅是令人困惑的字符串，而是工具，并且“It’s not as hard for them to transform their thought processes as it is for older students.” 即对他们来说转变思维过程不像年长学生那么难。因此，早期接触使重塑思维方式更容易，对应B。A未提及，C和D是具体应用，不是核心观点。"
+        },
+        {
+          "number": 22,
+          "answer": "D",
+          "promptZh": "在为高中生授课时，Flatiron考虑了他们的____。",
+          "optionsZh": [
+            "经验。",
+            "学术背景。",
+            "职业前景。",
+            "兴趣。"
+          ],
+          "explanation": "原文中Flatiron的教师Victoria Friedman说：“we try to gear lessons toward things they’re interested in”，即课程针对他们感兴趣的内容，因此考虑了兴趣，对应D。其他选项未提及。"
+        },
+        {
+          "number": 23,
+          "answer": "A",
+          "promptZh": "Deborah Seehorn认为在Flatiron学到的技能将____。",
+          "optionsZh": [
+            "帮助学生学会其他计算机语言。",
+            "当新技术出现时必须升级。",
+            "在学生找工作时需要改进。",
+            "使学生能够迅速赚大钱。"
+          ],
+          "explanation": "原文中Deborah Seehorn说：“the skills they learn — how to think logically through a problem and organize the results — apply to any coding language”，即这些技能适用于任何编程语言，因此有助于学习其他计算机语言，对应A。B和C与原文矛盾，D未提及。"
+        },
+        {
+          "number": 24,
+          "answer": "C",
+          "promptZh": "根据最后一段，Flatiron的学生预计会____。",
+          "optionsZh": [
+            "与未来的程序员大军竞争。",
+            "在信息技术行业待更长时间。",
+            "为数字化的世界做好更充分的准备。",
+            "带来创新的计算机技术。"
+          ],
+          "explanation": "最后一段说：“These kids are going to be surrounded by computers... The younger they learn how computers think... the better.” 强调他们未来生活中将充满电脑，越早学习越好，因此他们能更好地为数字化世界做准备，对应C。A和D不是目的，B未提及。"
+        },
+        {
+          "number": 25,
+          "answer": "B",
+          "promptZh": "单词“coax”（第6段）最接近的意思是____。",
+          "optionsZh": [
+            "挑战。",
+            "说服。",
+            "恐吓。",
+            "误导。"
+          ],
+          "explanation": "原文中“how to coax the machine into producing what they want”意为如何引导机器产生他们想要的东西，coax意为“劝诱、哄”，与persuade（说服）最接近，对应B。其他选项不符合语境。"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "questions": [
+        {
+          "number": 26,
+          "answer": "D",
+          "promptZh": "将小草原松鸡列为受威胁物种的主要原因是____",
+          "optionsZh": [
+            "私人土地所有者的坚持。",
+            "对草原面积的低估。",
+            "一些生物学家的绝望呼吁。",
+            "其数量急剧减少。"
+          ],
+          "explanation": "根据原文第一段，小草原松鸡的数量从200万只急剧下降到约22000只，仅占其历史分布范围的16%。这种急剧下降是美国鱼类和野生动物管理局（USFWS）决定正式将其列为受威胁物种的主要原因。因此，选项D“其数量急剧减少”正确。选项A、B、C在原文中均未提及，且不是主要原因。"
+        },
+        {
+          "number": 27,
+          "answer": "C",
+          "promptZh": "“受威胁”标签让一些环保主义者失望，因为它____",
+          "optionsZh": [
+            "是对政府压力的屈服。",
+            "会涉及更少的机构参与行动。",
+            "授予的联邦监管权力较少。",
+            "违背了保护政策。"
+          ],
+          "explanation": "根据原文第二段，一些环保主义者曾推动将该鸟列为“濒危”物种，因为“濒危”状态赋予联邦官员更大的监管权力来打击威胁。而“受威胁”标签提供的权力较小，因此他们感到失望。选项C“授予的联邦监管权力较少”正确。选项A、B、D在原文中均未提及。"
+        },
+        {
+          "number": 28,
+          "answer": "A",
+          "promptZh": "从第三段可以得知，如果无意伤害者____，他们将不会被起诉。",
+          "optionsZh": [
+            "同意支付一笔赔偿金。",
+            "自愿建立同样大小的栖息地。",
+            "主动支持WAFWA的监测工作。",
+            "承诺为USFWS的运作筹集资金。"
+          ],
+          "explanation": "根据原文第三段，该机构表示，只要土地所有者或企业签署了恢复草原松鸡栖息地的范围管理计划，就不会起诉那些无意杀死、伤害或干扰鸟类的人。该计划要求因运营而破坏栖息地的个人和企业支付资金，每破坏一英亩，需用2英亩新栖息地来补偿。因此，选项A“同意支付一笔赔偿金”正确。选项B、C、D在原文中未提及。"
+        },
+        {
+          "number": 29,
+          "answer": "D",
+          "promptZh": "根据Ashe的观点，管理该物种的主导角色是____",
+          "optionsZh": [
+            "联邦政府。",
+            "野生动物机构。",
+            "土地所有者。",
+            "各州。"
+          ],
+          "explanation": "根据原文第四段，Ashe说：“总体想法是让各州在管理该物种方面保持主导地位。”因此，选项D“各州”正确。选项A、B、C均不是主导角色。"
+        },
+        {
+          "number": 30,
+          "answer": "C",
+          "promptZh": "Jay Lininger最可能支持____",
+          "optionsZh": [
+            "受到质疑的计划。",
+            "双赢的说法。",
+            "环保组织。",
+            "行业团体。"
+          ],
+          "explanation": "根据原文最后一段，Jay Lininger说：“联邦政府正在将管理鸟类的责任交给那些推动其灭绝的行业。”这表明他批评该计划，并反对行业团体，因此他更可能支持环保组织。选项C“环保组织”正确。选项A、B、D均与他的立场相反。"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "questions": [
+        {
+          "number": 31,
+          "answer": "D",
+          "promptZh": "通常的时间管理技巧不起作用，因为____",
+          "optionsZh": [
+            "它们能提供的并不能缓解现代人的心态。",
+            "人们经常忘记随身携带一本书。",
+            "有挑战性的书需要的是重复阅读。",
+            "深度阅读所需的条件无法得到保证。"
+          ],
+          "explanation": "原文指出，通常的时间管理技巧（如放弃电视、随身带书）不足以解决问题，因为深度阅读不仅需要时间，还需要一种特殊的时间，而这种时间不能仅仅通过提高效率来获得。选项D正确，因为深度阅读所需的条件（即特殊时间）无法通过常规技巧保证。选项A错误，因为原文并未说这些技巧不能缓解现代心态，而是说它们不足以解决阅读时间问题。选项B是原文提到的建议之一，但并非原因。选项C原文未提及。"
+        },
+        {
+          "number": 32,
+          "answer": "B",
+          "promptZh": "“空瓶子”的比喻说明人们感到有压力去____",
+          "optionsZh": [
+            "更新他们的待办事项清单。",
+            "让流逝的时间变得充实。",
+            "执行他们的计划。",
+            "追求无忧无虑的阅读。"
+          ],
+          "explanation": "原文中Gary Eberle用空瓶子比喻时间，说我们感到压力要填满这些不同大小的瓶子（天、小时、分钟），因为如果它们过去而没有被填满，我们就浪费了它们。这比喻说明人们感到压力要让时间充实，不要浪费。选项B正确。选项A和C是具体行为，但比喻的核心是充实时间。选项D与原文的焦虑心态相反。"
+        },
+        {
+          "number": 33,
+          "answer": "D",
+          "promptZh": "Eberle会同意，安排固定的阅读时间有助于____",
+          "optionsZh": [
+            "促进仪式性的阅读。",
+            "鼓励效率心态。",
+            "培养在线阅读习惯。",
+            "实现沉浸式阅读。"
+          ],
+          "explanation": "原文提到，Eberle指出，安排固定的阅读时间这种仪式性行为有助于我们“走出时间流”进入“灵魂时间”，从而有助于沉浸式阅读。选项D正确。选项A是手段而非目的，且原文说“such ritualistic behaviour”有助于，但问题问的是“有助于”什么，所以D更准确。选项B与原文相反，原文说这不会助长效率心态。选项C原文未提及。"
+        },
+        {
+          "number": 34,
+          "answer": "A",
+          "promptZh": "“随身携带一本书”如果____就能起作用。",
+          "optionsZh": [
+            "阅读成为你一天中的主要事务。",
+            "所有日常事务都已及时处理。",
+            "阅读后你能回到事务中。",
+            "时间可以平均分配给阅读和事务。"
+          ],
+          "explanation": "原文说“随身携带一本书”确实有效，前提是你足够频繁地沉浸其中，使阅读成为默认状态，你暂时浮出水面处理事务，然后再回到阅读。这意味着阅读成为主要状态，事务是次要的。选项A正确。选项B和D与原文不符，原文并未要求事务处理完或平均分配。选项C是结果，但前提是阅读成为默认状态，所以A更准确。"
+        },
+        {
+          "number": 35,
+          "answer": "C",
+          "promptZh": "这篇文章的最佳标题可能是____",
+          "optionsZh": [
+            "如何享受轻松阅读。",
+            "如何设定阅读目标。",
+            "如何找到时间阅读。",
+            "如何广泛阅读。"
+          ],
+          "explanation": "文章主要讨论如何找到时间进行深度阅读，分析了常见方法的不足，并提出了有效的方法（如安排固定时间、随身带书等）。选项C准确概括了主题。选项A“轻松阅读”不准确，文章强调深度阅读。选项B“设定阅读目标”与文章观点相悖，文章反对目标导向。选项D“广泛阅读”未提及。"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "questions": [
+        {
+          "number": 36,
+          "answer": "A",
+          "promptZh": "跨越代际的一个成功生活的标志是____",
+          "optionsZh": [
+            "组建有孩子的家庭。",
+            "尝试不同的生活方式。",
+            "超过退休年龄仍工作。",
+            "建立盈利的企业。"
+          ],
+          "explanation": "根据原文第一段，“Americans continue to prize many of the same traditional milestones of a successful life, including getting married, having children, owning a home, and retiring in their sixties.” 其中“having children”是成功生活的传统标志之一，对应选项A“组建有孩子的家庭”。选项B、C、D在原文中未提及为跨代际的成功标志，因此不正确。"
+        },
+        {
+          "number": 37,
+          "answer": "C",
+          "promptZh": "从第三段可以得知，年轻人倾向于____",
+          "optionsZh": [
+            "喜欢较慢的生活节奏。",
+            "更长时间从事一份工作。",
+            "重视婚前财务。",
+            "优先考虑家庭外的儿童保育。"
+          ],
+          "explanation": "第三段提到年轻人“to agree that couples should be financially secure before getting married or having children”，即同意夫妻在结婚或生育前应有经济保障，对应选项C“重视婚前财务”。选项A与原文“favor communities with more public services and a faster pace of life”矛盾，年轻人喜欢更快的生活节奏；选项B与“believe they will advance their careers most by regularly changing jobs”矛盾，年轻人认为定期换工作能促进职业发展；选项D原文未提及，且原文说“children are best served by two parents working outside the home”，并非优先考虑家庭外保育。"
+        },
+        {
+          "number": 38,
+          "answer": "B",
+          "promptZh": "年轻人定义的优先事项和期望将____",
+          "optionsZh": [
+            "很大程度上取决于政治偏好。",
+            "几乎影响美国人生活的所有方面。",
+            "关注物质问题。",
+            "变得越来越清晰。"
+          ],
+          "explanation": "原文第四段指出“these contrasts suggest that ... those just starting out in life are defining priorities and expectations that will increasingly spread through virtually all aspects of American life, from consumer preferences to housing patterns to politics.” 说明这些优先事项和期望将传播到美国生活的几乎所有方面，对应选项B。选项A“取决于政治偏好”与原文不符，原文说影响政治；选项C“关注物质问题”未提及；选项D“变得越来越清晰”原文未提及。"
+        },
+        {
+          "number": 39,
+          "answer": "D",
+          "promptZh": "年轻人和老年人都同意____",
+          "optionsZh": [
+            "高薪工作更难获得。",
+            "老年人取得了更多人生成就。",
+            "如今住房贷款容易获得。",
+            "年轻人立足更加困难。"
+          ],
+          "explanation": "原文第五段提到“Overwhelming majorities of both groups said they believe it is harder for young people today to get started in life than it was for earlier generations.” 即两代人都认为年轻人起步更难，对应选项D。选项A“高薪工作更难获得”是具体困难之一，但并非两代人一致同意的核心观点；选项B“老年人取得更多成就”未提及；选项C“住房贷款容易获得”与原文“finding affordable housing”和“managing debt”的困难相矛盾。"
+        },
+        {
+          "number": 40,
+          "answer": "B",
+          "promptZh": "关于施奈德，以下哪项是正确的？",
+          "optionsZh": [
+            "他认为他的技师工作相当有挑战性。",
+            "他父母的美好生活与大学学位关系不大。",
+            "他的父母认为稳定工作是成功的关键。",
+            "他大学毕业后找到了一份理想的工作。"
+          ],
+          "explanation": "原文最后一段提到施奈德说“I still grew up in an upper middle-class home with parents who didn’t have college degrees”，说明他父母没有大学学位却提供了中上阶层的生活，因此选项B“他父母的美好生活与大学学位关系不大”正确。选项A“认为技师工作有挑战性”未提及；选项C“父母认为稳定工作是成功关键”未提及；选项D“找到理想工作”与原文“struggled to find a job after graduating from college”矛盾。"
+        }
+      ]
+    }
+  ]
+}

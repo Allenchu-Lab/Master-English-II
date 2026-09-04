@@ -3,8 +3,8 @@
   "title": "2015年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2015年考研英语二.pdf",
   "sourceSha256": "1c21bf080fe33b2b6131b8757291393803796331233e8a0084494bf2400f875f",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

@@ -3,8 +3,8 @@
   "title": "2023年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2023年考研英语二.pdf",
   "sourceSha256": "9a45e06830c57e14be7e982e85af6b35e5930d60d8a924e84068dba31492c29c",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

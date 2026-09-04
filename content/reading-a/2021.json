@@ -3,8 +3,8 @@
   "title": "2021年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2021年考研英语二.pdf",
   "sourceSha256": "d7e1a72471938361bdce4a651939f61783d1b7e80e901cc9083ec5f30978c54f",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

@@ -3,8 +3,8 @@
   "title": "2014年全国硕士研究生招生考试英语（二）",
   "sourceFile": "2014年考研英语二.pdf",
   "sourceSha256": "fbff9b162f3496efcb1c059d66e116eedf9db97486e3e61308355b7e62369340",
-  "status": "draft",
-  "answerStatus": "pending",
+  "status": "published",
+  "answerStatus": "complete",
   "sections": {
     "cloze": 0,
     "readingA": 4,

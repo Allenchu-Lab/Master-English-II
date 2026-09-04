@@ -1,0 +1,267 @@
+{
+  "year": 2014,
+  "section": "reading_a",
+  "source": "AI-generated explanations; answer letters from user-provided source images",
+  "texts": [
+    {
+      "number": 1,
+      "questions": [
+        {
+          "number": 21,
+          "answer": "B",
+          "promptZh": "根据邓恩和诺顿的观点，以下哪项是最值得的购买？",
+          "optionsZh": [
+            "A. 大房子。",
+            "B. 特别的旅行。",
+            "C. 时尚的汽车。",
+            "D. 丰盛的餐食。"
+          ],
+          "explanation": "正确选项为B。原文第二段提到，邓恩和诺顿认为，花钱在体验上（如有趣的旅行、独特的餐食或看电影）远比物质购买更好，因为这些体验会随着时间变得更有价值。因此，特别的旅行属于体验类消费，是最值得的购买。A、C是物质消费，满意度会很快消退；D虽然属于体验，但不如旅行典型，且原文强调“有趣的旅行”等，故B更符合。"
+        },
+        {
+          "number": 22,
+          "answer": "A",
+          "promptZh": "作者对美国看电视的态度是____",
+          "optionsZh": [
+            "A. 批评的。",
+            "B. 支持的。",
+            "C. 同情的。",
+            "D. 模棱两可的。"
+          ],
+          "explanation": "正确选项为A。原文第二段提到，美国人平均每年花两个月看电视，但“hardly jollier for it”（几乎没有因此更快乐），且作者建议减少看电视时间，多与朋友家人相处。这体现了作者对看电视的负面态度，即批评。B、C、D均不符合。"
+        },
+        {
+          "number": 23,
+          "answer": "D",
+          "promptZh": "第三段提到McRib是为了表明____",
+          "optionsZh": [
+            "A. 消费者有时是不理性的。",
+            "B. 流行通常出现在质量之后。",
+            "C. 营销技巧常常是有效的。",
+            "D. 稀缺性通常增加愉悦感。"
+          ],
+          "explanation": "正确选项为D。原文第三段提到，麦当劳限制McRib的供应，使其成为令人痴迷的对象，这正好说明了前文观点：“奢侈品在节制消费时最令人愉悦”，即稀缺性增加愉悦感。A、B、C均未在原文中体现，且与段落主旨不符。"
+        },
+        {
+          "number": 24,
+          "answer": "B",
+          "promptZh": "根据最后一段，Happy Money ____",
+          "optionsZh": [
+            "A. 给读者留下了很多批评的空间。",
+            "B. 可能证明是值得的购买。",
+            "C. 预测了美国更广泛的收入差距。",
+            "D. 可能给读者一种成就感。"
+          ],
+          "explanation": "正确选项为B。原文最后一句说“大多数人在读完这本书后会相信钱花得值”，即这本书是值得购买的。A与原文不符，因为作者认为大多数人会认同；C未提及；D“成就感”在原文中未直接关联，且最后一段强调的是“worthwhile purchase”。"
+        },
+        {
+          "number": 25,
+          "answer": "C",
+          "promptZh": "本文主要讨论如何____",
+          "optionsZh": [
+            "A. 平衡感觉良好和花钱。",
+            "B. 花费彩票赢来的大笔钱。",
+            "C. 从花出去的钱中获得持久的满足感。",
+            "D. 在奢侈品消费上变得更理性。"
+          ],
+          "explanation": "正确选项为C。文章开头提出问题“如果你有5.9亿美元会怎么做”，然后介绍《快乐金钱》一书，指出如何花钱才能获得持久的满足感，如花钱在体验上、减少通勤、多陪伴家人等。A是文中提到的内容，但不是主旨；B只是引子；D只是部分内容，不全面。因此C最符合全文主旨。"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "questions": [
+        {
+          "number": 26,
+          "answer": "A",
+          "promptZh": "根据第一段，社会心理学家发现____",
+          "optionsZh": [
+            "我们的自我评价高得不切实际。",
+            "虚幻的优越感是一种毫无根据的效应。",
+            "我们对领导力的需求是不自然的。",
+            "自我提升策略是无效的。"
+          ],
+          "explanation": "正确项A依据第一段：社会心理学家发现70%的人认为自己在领导力上高于平均水平，93%在驾驶上，85%在与人相处上，这些在统计上显然不可能，说明我们的自我评价过高。B项错误，因为“虚幻的优越感”是心理学家研究的现象，并非“毫无根据的效应”，原文未说其无根据。C项错误，原文未提及对领导力的需求不自然。D项错误，原文说我们自然采用自我提升策略，未说无效。"
+        },
+        {
+          "number": 27,
+          "answer": "C",
+          "promptZh": "视觉识别被认为是人们的____",
+          "optionsZh": [
+            "快速匹配。",
+            "有意识的选择。",
+            "直觉反应。",
+            "自动的自我防御。"
+          ],
+          "explanation": "正确项C依据第三段：视觉识别是“自动的心理过程，快速且直觉地发生，几乎没有明显的有意识思考”，因此是直觉反应。A项“快速匹配”不准确，原文未提匹配。B项“有意识的选择”与原文“几乎没有有意识思考”矛盾。D项“自动的自我防御”原文未提防御。"
+        },
+        {
+          "number": 28,
+          "answer": "B",
+          "promptZh": "Epley发现自尊心更强的人倾向于____",
+          "optionsZh": [
+            "低估他们的不安全感。",
+            "相信自己的吸引力。",
+            "掩盖他们的抑郁。",
+            "过度简化他们的错觉。"
+          ],
+          "explanation": "正确项B依据第四段：那些认为更吸引人的照片是真实的人，与那些表现出更高自尊标志的人直接对应，说明自尊心强的人倾向于相信自己的吸引力。A项错误，原文未提低估不安全感。C项错误，原文说抑郁的人不会自我提升，但未说自尊心强的人掩盖抑郁。D项错误，原文未提过度简化错觉。"
+        },
+        {
+          "number": 29,
+          "answer": "A",
+          "promptZh": "单词“viscerally”（第五段，第2行）在意思上最接近____",
+          "optionsZh": [
+            "本能地。",
+            "偶尔地。",
+            "特别地。",
+            "攻击性地。"
+          ],
+          "explanation": "正确项A依据上下文：很多人发自内心地讨厌自己的照片，因为他们不认出照片中的人，这种反应是内在的、本能的。B项“偶尔地”不符合，C项“特别地”不贴切，D项“攻击性地”无依据。"
+        },
+        {
+          "number": 30,
+          "answer": "D",
+          "promptZh": "可以推断出Facebook是自我提升者的天堂，因为人们可以____",
+          "optionsZh": [
+            "展示他们不诚实的个人资料。",
+            "定义他们的传统生活方式。",
+            "分享他们的知识追求。",
+            "隐藏他们不讨人喜欢的一面。"
+          ],
+          "explanation": "正确项D依据最后一段：Facebook上人们只分享最讨人喜欢的照片，即隐藏不讨人喜欢的一面。A项错误，原文说“不是人们资料不诚实”，而是理想化版本。B项错误，原文未提传统生活方式。C项错误，分享智力追求只是其中一部分，不是主要原因。"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "questions": [
+        {
+          "number": 31,
+          "answer": "B",
+          "promptZh": "根据第一段，经济衰退会____",
+          "optionsZh": [
+            "缓解人与机器的竞争。",
+            "突出机器对人类工作的威胁。",
+            "引发痛苦的技术革命。",
+            "使我们的经济结构过时。"
+          ],
+          "explanation": "第一段提到“this phenomenon tends to be most acutely felt during economic downturns”，其中“this phenomenon”指代前文的“man versus machine”，即人与机器的对抗。经济衰退时，这种对抗感受最强烈，因此会突出机器对人类工作的威胁。A项“缓解”与原文相反；C项“引发痛苦的技术革命”并非原文内容，原文说的是经济衰退期间感受强烈，而非引发革命；D项“使经济结构过时”是技术发展的结果，而非经济衰退的直接作用。"
+        },
+        {
+          "number": 32,
+          "answer": "A",
+          "promptZh": "《与机器赛跑》的作者认为____",
+          "optionsZh": [
+            "技术正在减少人类的工作机会。",
+            "自动化正在加速技术发展。",
+            "某些工作在自动化后仍将保持不变。",
+            "人类最终将赢得与机器的赛跑。"
+          ],
+          "explanation": "文中提到“Since technology has such an insatiable appetite for eating up human jobs”，且该书名为《与机器赛跑》，其观点是技术会吞噬工作，即减少人类工作机会。A项正确。B项“自动化加速技术发展”文中未提及；C项与原文“jobs that were once thought to be immune from automation suddenly become threatened”矛盾；D项“人类最终获胜”与书名和内容不符，书中强调威胁。"
+        },
+        {
+          "number": 33,
+          "answer": "D",
+          "promptZh": "Hagel认为美国的工作通常____",
+          "optionsZh": [
+            "由创新思维的人执行。",
+            "以个人风格编写脚本。",
+            "标准化且没有明确目标。",
+            "设计时违背人类创造力。"
+          ],
+          "explanation": "Hagel说美国的工作设计为“tightly scripted”和“highly standardized”，这些工作“leave no room for individual initiative or creativity”，即没有给个人主动性和创造性留空间，因此是违背人类创造力的。D项正确。A项与原文相反；B项“个人风格”与“tightly scripted”矛盾；C项“没有明确目标”文中未提，且“标准化”是事实，但“没有明确目标”无依据。"
+        },
+        {
+          "number": 34,
+          "answer": "D",
+          "promptZh": "根据最后一段，Brynjolfsson和McAfee讨论了____",
+          "optionsZh": [
+            "机器行为在实践中的可预测性。",
+            "高效进行工作的公式。",
+            "现代机器取代人类劳动的方式。",
+            "人类参与工作场所的必要性。"
+          ],
+          "explanation": "最后一段提到“As Hagel notes, Brynjolfsson and McAfee indeed touched on this point in their book.”，其中“this point”指前文“we more than ever need people in the workplace who can take initiative and exercise their imagination”，即人类在工作场所需要主动性和想象力，这强调了人类参与的必要性。D项正确。A项“机器行为的可预测性”是机器设计的特点，但并非他们讨论的重点；B项“高效工作的公式”是Hagel提出的，不是他们讨论的；C项“机器取代人类劳动的方式”是他们的观点，但最后一段强调的是“augment”而非“replace”，且他们讨论的是人类参与的必要性。"
+        },
+        {
+          "number": 35,
+          "answer": "C",
+          "promptZh": "以下哪项最适合作为本文标题？",
+          "optionsZh": [
+            "如何创新我们的工作实践？",
+            "机器将取代人类劳动。",
+            "我们能赢得与机器的赛跑吗？",
+            "经济衰退刺激创新。"
+          ],
+          "explanation": "文章围绕“人与机器”的竞争展开，先提出技术威胁，然后引用Hagel的观点，指出问题在于工作设计，最后提出“race with the machine”而非“race against the machine”，并探讨如何创新。标题“我们能赢得与机器的赛跑吗？”概括了文章核心议题。A项只是文章最后提出的问题，不是全文主题；B项过于绝对，文章认为机器可以增强而非完全取代；D项仅涉及第一段，不是全文主旨。"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "questions": [
+        {
+          "number": 36,
+          "answer": "B",
+          "promptZh": "作者认为住房部门____",
+          "optionsZh": [
+            "引起了广泛关注。",
+            "涉及某些政治因素。",
+            "承担了太多责任。",
+            "在经济中失去了其真正价值。"
+          ],
+          "explanation": "正确项为B。原文提到“But perhaps the most significant reason is that the issue has always been so politically charged.”，说明住房问题具有政治敏感性，因此住房部门涉及政治因素。A项与原文“it is inevitable that the attention is focused elsewhere”矛盾，住房未受关注。C项原文说“To some extent the housing sector must shoulder the blame”，但并非“太多责任”。D项原文说“We have not been good at communicating the real value”，并非失去价值。"
+        },
+        {
+          "number": 37,
+          "answer": "C",
+          "promptZh": "可以得知经济适用房____",
+          "optionsZh": [
+            "增加了住房供应。",
+            "提供了支出机会。",
+            "遭受了政府偏见。",
+            "使政府失望。"
+          ],
+          "explanation": "正确项为C。原文提到“It needs to put historical prejudices to one side”，表明政府过去对住房有偏见，因此经济适用房遭受了政府偏见。A项与“we are simply not building enough new homes”矛盾。B项原文提到“comprehensive spending review offers an opportunity”，但并非经济适用房提供机会。D项未提及。"
+        },
+        {
+          "number": 38,
+          "answer": "A",
+          "promptZh": "根据第五段，乔治·奥斯本可能____",
+          "optionsZh": [
+            "允许政府增加住房债务。",
+            "阻止地方政府建造房屋。",
+            "准备减少住房存量债务。",
+            "发布上调的GDP增长预测。"
+          ],
+          "explanation": "正确项为A。原文提到“George Osborne...may introduce more flexibility to the current cap on the amount that local authorities can borrow against their housing stock debt.”，即可能放宽地方政府借款上限，允许更多债务。B项与原文相反，是允许借款建房。C项是放宽上限而非减少债务。D项原文提到GDP增长0.6%是如果上限被取消的结果，并非发布预测。"
+        },
+        {
+          "number": 39,
+          "answer": "C",
+          "promptZh": "可以推断稳定的租赁环境将____",
+          "optionsZh": [
+            "降低注册供应商的成本。",
+            "减少政府干预的影响。",
+            "有助于资助新开发项目。",
+            "减轻部长的责任。"
+          ],
+          "explanation": "正确项为C。原文提到“creating greater certainty in the rental environment, which would have a significant impact on the ability of registered providers to fund new developments from revenues.”，即稳定的租赁环境能提高注册供应商用收入资助新开发的能力。A项未提及成本降低。B项未提及政府干预。D项未提及减轻部长责任。"
+        },
+        {
+          "number": 40,
+          "answer": "D",
+          "promptZh": "作者认为2015年后，政府可能____",
+          "optionsZh": [
+            "实施更多政策支持住房。",
+            "审查大规模公共拨款的需求。",
+            "更新经济适用房拨款计划。",
+            "停止对住房部门的慷慨资助。"
+          ],
+          "explanation": "正确项为D。原文提到“the existing £4.5bn programme of grants...set to expire in 2015, is unlikely to be extended beyond then.”，即现有拨款计划2015年到期后不太可能延长，因此政府可能停止慷慨资助。A项与原文相反。B项原文说“We need to adjust to this changing climate”，并非审查需求。C项与“unlikely to be extended”矛盾。"
+        }
+      ]
+    }
+  ]
+}
