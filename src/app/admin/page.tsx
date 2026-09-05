@@ -36,22 +36,24 @@ function AccessGate({ email, configured }: { email?: string | null; configured: 
   </main>;
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
-  const [{ preview }, access] = await Promise.all([searchParams, getAdminAccess()]);
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ preview?: string; days?: string }> }) {
+  const [{ preview, days: requestedDays }, access] = await Promise.all([searchParams, getAdminAccess()]);
   const localPreview = process.env.NODE_ENV !== "production" && preview === "1";
   if (!access.allowed && !localPreview) return <AccessGate email={access.user?.email} configured={access.configured} />;
 
-  const data = await getAdminDashboard();
-  const completionRate = data.overview.attempts
-    ? Math.round((data.overview.completed / data.overview.attempts) * 100)
+  const days = requestedDays === "30" ? 30 : 7;
+  const rangeHref = (range: 7 | 30) => `/admin?days=${range}${localPreview ? "&preview=1" : ""}`;
+  const data = await getAdminDashboard(days);
+  const completionRate = data.overview.effectiveAttempts
+    ? Math.round((data.overview.completed / data.overview.effectiveAttempts) * 100)
     : 0;
   const maxDailyAttempts = Math.max(...data.daily.map((day) => day.attempts), 1);
 
   const metrics = [
-    { label: "邮箱注册账号", value: data.overview.registeredAccounts, detail: `近 7 个自然日新增 ${data.overview.newUsers7d}`, icon: UsersRound },
-    { label: "今日练习身份", value: data.overview.activeToday, detail: `近 7 个自然日 ${data.overview.active7d} 个`, icon: Activity },
-    { label: "开始练习", value: data.overview.attempts, detail: "累计练习次数", icon: BookOpen },
-    { label: "完成练习", value: data.overview.completed, detail: `提交率 ${completionRate}%`, icon: CheckCircle2 },
+    { label: "有效学习人数", value: data.overview.learningUsers, detail: "至少回答 1 道题", icon: Activity, primary: true },
+    { label: "完成文章", value: data.overview.completed, detail: `有效练习提交率 ${completionRate}%`, icon: CheckCircle2, primary: true },
+    { label: "有效开始", value: data.overview.effectiveAttempts, detail: "排除仅打开未作答", icon: BookOpen },
+    { label: "新注册账号", value: data.overview.registeredAccounts, detail: "正式发布后邮箱注册", icon: UsersRound },
   ];
 
   return <main className="admin-page">
@@ -62,34 +64,33 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
     <div className="admin-content">
       <section className="admin-title">
-        <div><p>数据概览</p><h1>产品现在有人用吗？</h1></div>
-        <span>实时读取数据库 · 刷新页面更新</span>
+        <div><p>正式运营</p><h1>发布后，用户真的开始学习了吗？</h1></div>
+        <span>统计起点：2026-09-05 17:00（北京时间）</span>
       </section>
 
       <section className="admin-metrics" aria-label="核心指标">
-        {metrics.map(({ label, value, detail, icon: Icon }) => <article key={label}>
+        {metrics.map(({ label, value, detail, icon: Icon, primary }) => <article className={primary ? "is-primary" : undefined} key={label}>
           <div><span>{label}</span><Icon /></div><strong>{number.format(value)}</strong><small>{detail}</small>
         </article>)}
       </section>
 
       <section className="admin-grid">
         <article className="admin-panel admin-trend">
-          <header><div><p>使用趋势</p><h2>最近 7 天练习量</h2></div><span><i />开始练习</span></header>
-          <div className="admin-chart">
+          <header><div><p>学习趋势</p><h2>最近 {days} 天有效练习</h2></div><nav className="admin-range" aria-label="选择统计周期"><Link className={days === 7 ? "active" : ""} href={rangeHref(7)}>7 天</Link><Link className={days === 30 ? "active" : ""} href={rangeHref(30)}>30 天</Link></nav></header>
+          <div className="admin-chart-legend"><span><i />有效开始</span><span><i className="completed" />完成文章</span></div>
+          <div className="admin-chart" style={{ gridTemplateColumns: `repeat(${data.daily.length}, minmax(26px, 1fr))` }}>
             {data.daily.map((day) => <div className="admin-chart-day" key={day.date}>
-              <div className="admin-bar-track" title={`${day.attempts} 次练习，${day.activeUsers} 个练习身份`}><i style={{ height: `${Math.max(6, Math.round((day.attempts / maxDailyAttempts) * 100))}%` }} /></div>
+              <div className="admin-bar-track" title={`${day.activeUsers} 人有效学习，${day.attempts} 次有效开始，${day.completed} 篇完成`}><i style={{ height: `${day.attempts ? Math.max(6, Math.round((day.attempts / maxDailyAttempts) * 100)) : 0}%` }} /><i className="completed" style={{ height: `${day.completed ? Math.max(6, Math.round((day.completed / maxDailyAttempts) * 100)) : 0}%` }} /></div>
               <strong>{day.attempts}</strong><span>{day.date.slice(5).replace("-", "/")}</span>
             </div>)}
           </div>
-          <footer>近 7 个自然日共有 <strong>{number.format(data.overview.active7d)}</strong> 个练习身份（北京时间）</footer>
+          <footer>数字为有效开始次数；悬停可查看学习人数与完成文章数。</footer>
         </article>
 
-        <article className="admin-panel admin-audience">
-          <header><div><p>身份构成</p><h2>注册账号与匿名身份</h2></div></header>
-          <div className="admin-audience-total">{number.format(data.overview.registeredAccounts + data.overview.anonymousIdentities)}<small>累计创建的学习身份</small></div>
-          <div className="admin-audience-row"><span><i className="registered" />邮箱注册账号</span><strong>{number.format(data.overview.registeredAccounts)}</strong></div>
-          <div className="admin-audience-row"><span><i />匿名身份</span><strong>{number.format(data.overview.anonymousIdentities)}</strong></div>
-          <p>匿名身份由浏览器生成；清缓存、换浏览器或换设备都可能产生新身份，不能等同于真人数量。</p>
+        <article className="admin-panel admin-definition">
+          <header><div><p>统计口径</p><h2>什么算作一次学习？</h2></div></header>
+          <dl><div><dt>有效学习人数</dt><dd>至少回答 1 道题的去重学习身份</dd></div><div><dt>有效开始</dt><dd>至少保存 1 道答案的一篇练习</dd></div><div><dt>完成文章</dt><dd>成功提交整篇文章答案</dd></div></dl>
+          <p>仅打开文章、发布前内测以及测试邮箱产生的数据，均不计入这里。</p>
         </article>
       </section>
 
@@ -99,8 +100,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <div className="admin-list">
             {data.popular.length ? data.popular.map((item, index) => <div key={`${item.year}-${item.passageNumber}`}>
               <span className="admin-rank">{String(index + 1).padStart(2, "0")}</span>
-              <div><strong>{item.year} 年 · Text {item.passageNumber}</strong><small>{item.users} 个练习身份</small></div>
-              <span>{item.completed} / {item.attempts} 完成</span>
+              <div><strong>{item.year} 年 · Text {item.passageNumber}</strong><small>{item.users} 人有效学习 · {item.attempts} 次有效开始</small></div>
+              <span>{item.attempts ? Math.round(item.completed / item.attempts * 100) : 0}% 提交</span>
             </div>) : <p className="admin-empty">还没有练习数据</p>}
           </div>
         </article>
@@ -111,7 +112,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             {data.recentUsers.length ? data.recentUsers.map((user) => <div key={user.email}>
               <span className="admin-avatar">{user.email.slice(0, 1).toUpperCase()}</span>
               <div><strong>{user.email}</strong><small>{dateTime.format(user.createdAt)}</small></div>
-              <span>{user.completed} 篇完成</span>
+              <span>{user.attempts} 次有效开始 · {user.completed} 篇完成</span>
             </div>) : <p className="admin-empty">还没有邮箱注册用户</p>}
           </div>
         </article>
