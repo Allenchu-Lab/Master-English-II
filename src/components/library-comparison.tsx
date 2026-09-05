@@ -238,6 +238,10 @@ export function LibraryComparison({ papers, initialLanguage = "zh", allowPreview
                 </div>
               </div>
             </section>
+            <footer className="site-footer">
+              <span>© 2026 {isEnglish ? "ChiTouEN II" : "吃透英语二"}</span>
+              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">沪ICP备2026043148号-1</a>
+            </footer>
           </section>
         </div>
       </div>

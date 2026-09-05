@@ -146,6 +146,9 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .sketch-tracer { fill: var(--blue); opacity: 0; visibility: hidden; }
 .question-types { margin-top: 0; }
 .year-library { margin-top: 32px; }
+.site-footer { width: min(100%, 1120px); margin: 40px auto 0; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; color: #8a8f8c; font-size: 12px; line-height: 20px; }
+.site-footer a { color: inherit; text-decoration: none; }
+.site-footer a:hover { color: #177d58; }
 .section-heading { min-height: 32px; display: flex; justify-content: space-between; align-items: start; }
 .section-heading > div { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 26px; font-weight: 700; }
 .section-heading svg { width: 20px; color: var(--blue); }
