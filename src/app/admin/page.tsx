@@ -48,8 +48,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const maxDailyAttempts = Math.max(...data.daily.map((day) => day.attempts), 1);
 
   const metrics = [
-    { label: "注册用户", value: data.overview.registeredUsers, detail: `近 7 天新增 ${data.overview.newUsers7d}`, icon: UsersRound },
-    { label: "今日做题用户", value: data.overview.activeToday, detail: `近 7 天 ${data.overview.active7d} 人`, icon: Activity },
+    { label: "邮箱注册账号", value: data.overview.registeredAccounts, detail: `近 7 个自然日新增 ${data.overview.newUsers7d}`, icon: UsersRound },
+    { label: "今日练习身份", value: data.overview.activeToday, detail: `近 7 个自然日 ${data.overview.active7d} 个`, icon: Activity },
     { label: "开始练习", value: data.overview.attempts, detail: "累计练习次数", icon: BookOpen },
     { label: "完成练习", value: data.overview.completed, detail: `提交率 ${completionRate}%`, icon: CheckCircle2 },
   ];
@@ -77,19 +77,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <header><div><p>使用趋势</p><h2>最近 7 天练习量</h2></div><span><i />开始练习</span></header>
           <div className="admin-chart">
             {data.daily.map((day) => <div className="admin-chart-day" key={day.date}>
-              <div className="admin-bar-track" title={`${day.attempts} 次练习，${day.activeUsers} 位用户`}><i style={{ height: `${Math.max(6, Math.round((day.attempts / maxDailyAttempts) * 100))}%` }} /></div>
+              <div className="admin-bar-track" title={`${day.attempts} 次练习，${day.activeUsers} 个练习身份`}><i style={{ height: `${Math.max(6, Math.round((day.attempts / maxDailyAttempts) * 100))}%` }} /></div>
               <strong>{day.attempts}</strong><span>{day.date.slice(5).replace("-", "/")}</span>
             </div>)}
           </div>
-          <footer>近 7 天共有 <strong>{number.format(data.overview.active7d)}</strong> 位做题用户</footer>
+          <footer>近 7 个自然日共有 <strong>{number.format(data.overview.active7d)}</strong> 个练习身份（北京时间）</footer>
         </article>
 
         <article className="admin-panel admin-audience">
-          <header><div><p>用户构成</p><h2>登录与匿名用户</h2></div></header>
-          <div className="admin-audience-total">{number.format(data.overview.registeredUsers + data.overview.anonymousUsers)}<small>累计创建用户</small></div>
-          <div className="admin-audience-row"><span><i className="registered" />邮箱用户</span><strong>{number.format(data.overview.registeredUsers)}</strong></div>
-          <div className="admin-audience-row"><span><i />匿名用户</span><strong>{number.format(data.overview.anonymousUsers)}</strong></div>
-          <p>匿名用户是浏览器生成的学习身份，不代表已知的真实用户。</p>
+          <header><div><p>身份构成</p><h2>注册账号与匿名身份</h2></div></header>
+          <div className="admin-audience-total">{number.format(data.overview.registeredAccounts + data.overview.anonymousIdentities)}<small>累计创建的学习身份</small></div>
+          <div className="admin-audience-row"><span><i className="registered" />邮箱注册账号</span><strong>{number.format(data.overview.registeredAccounts)}</strong></div>
+          <div className="admin-audience-row"><span><i />匿名身份</span><strong>{number.format(data.overview.anonymousIdentities)}</strong></div>
+          <p>匿名身份由浏览器生成；清缓存、换浏览器或换设备都可能产生新身份，不能等同于真人数量。</p>
         </article>
       </section>
 
@@ -99,7 +99,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <div className="admin-list">
             {data.popular.length ? data.popular.map((item, index) => <div key={`${item.year}-${item.passageNumber}`}>
               <span className="admin-rank">{String(index + 1).padStart(2, "0")}</span>
-              <div><strong>{item.year} 年 · Text {item.passageNumber}</strong><small>{item.users} 位用户</small></div>
+              <div><strong>{item.year} 年 · Text {item.passageNumber}</strong><small>{item.users} 个练习身份</small></div>
               <span>{item.completed} / {item.attempts} 完成</span>
             </div>) : <p className="admin-empty">还没有练习数据</p>}
           </div>

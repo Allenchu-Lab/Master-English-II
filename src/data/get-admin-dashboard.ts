@@ -4,8 +4,8 @@ import { query } from "@/lib/db";
 
 export type AdminDashboard = {
   overview: {
-    registeredUsers: number;
-    anonymousUsers: number;
+    registeredAccounts: number;
+    anonymousIdentities: number;
     newUsers7d: number;
     activeToday: number;
     active7d: number;
@@ -20,8 +20,8 @@ export type AdminDashboard = {
 export async function getAdminDashboard(): Promise<AdminDashboard> {
   const [overviewResult, dailyResult, popularResult, recentUsersResult] = await Promise.all([
     query<{
-      registered_users: number;
-      anonymous_users: number;
+      registered_accounts: number;
+      anonymous_identities: number;
       new_users_7d: number;
       active_today: number;
       active_7d: number;
@@ -38,17 +38,21 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
         join eligible_users u on u.id = a.user_id
       )
       select
-        (select count(*)::int from eligible_users where not is_anonymous) as registered_users,
-        (select count(*)::int from eligible_users where is_anonymous) as anonymous_users,
-        (select count(*)::int from eligible_users where not is_anonymous and created_at >= now() - interval '7 days') as new_users_7d,
-        (select count(distinct user_id)::int from eligible_attempts where created_at >= current_date) as active_today,
-        (select count(distinct user_id)::int from eligible_attempts where created_at >= now() - interval '7 days') as active_7d,
+        (select count(*)::int from eligible_users where not is_anonymous) as registered_accounts,
+        (select count(*)::int from eligible_users where is_anonymous) as anonymous_identities,
+        (select count(*)::int from eligible_users where not is_anonymous and created_at >= (((now() at time zone 'Asia/Shanghai')::date - 6)::timestamp at time zone 'Asia/Shanghai')) as new_users_7d,
+        (select count(distinct user_id)::int from eligible_attempts where created_at >= ((now() at time zone 'Asia/Shanghai')::date::timestamp at time zone 'Asia/Shanghai')) as active_today,
+        (select count(distinct user_id)::int from eligible_attempts where created_at >= (((now() at time zone 'Asia/Shanghai')::date - 6)::timestamp at time zone 'Asia/Shanghai')) as active_7d,
         (select count(*)::int from eligible_attempts) as attempts,
         (select count(*)::int from eligible_attempts where submitted_at is not null) as completed
     `),
     query<{ date: string; active_users: number; attempts: number; completed: number }>(`
       with days as (
-        select generate_series(current_date - interval '6 days', current_date, interval '1 day')::date as day
+        select generate_series(
+          (now() at time zone 'Asia/Shanghai')::date - 6,
+          (now() at time zone 'Asia/Shanghai')::date,
+          interval '1 day'
+        )::date as day
       ), eligible_attempts as (
         select a.*
         from practice_attempts a
@@ -61,7 +65,9 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
         count(a.id)::int as attempts,
         count(a.id) filter (where a.submitted_at is not null)::int as completed
       from days
-      left join eligible_attempts a on a.created_at >= days.day and a.created_at < days.day + interval '1 day'
+      left join eligible_attempts a
+        on a.created_at >= (days.day::timestamp at time zone 'Asia/Shanghai')
+        and a.created_at < ((days.day + 1)::timestamp at time zone 'Asia/Shanghai')
       group by days.day
       order by days.day
     `),
@@ -102,8 +108,8 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
   const overview = overviewResult.rows[0];
   return {
     overview: {
-      registeredUsers: overview.registered_users,
-      anonymousUsers: overview.anonymous_users,
+      registeredAccounts: overview.registered_accounts,
+      anonymousIdentities: overview.anonymous_identities,
       newUsers7d: overview.new_users_7d,
       activeToday: overview.active_today,
       active7d: overview.active_7d,
