@@ -271,10 +271,10 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .header-submitted { height: 36px; padding: 0 11px; display: flex; align-items: center; gap: 5px; color: var(--blue-dark); font-size: 12px; font-weight: 500; }
 .header-submitted svg { width: 14px; }
 .practice-layout { height: calc(100dvh - 56px); display: grid; grid-template-columns: minmax(0, 58%) minmax(420px, 42%); overflow: hidden; }
-.passage-pane { height: 100%; overflow-y: auto; padding: 44px clamp(40px, 6vw, 92px) 80px; border-right: 1px solid var(--border); overscroll-behavior: contain; }
+.passage-pane { min-width: 0; height: 100%; overflow-y: auto; padding: 44px clamp(40px, 6vw, 92px) 80px; border-right: 1px solid var(--border); overscroll-behavior: contain; }
 .passage-meta { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; }
 .passage-pane article { max-width: 740px; margin-top: 24px; color: rgba(0,0,0,.86); font-family: Georgia, "Times New Roman", serif; font-size: 18px; line-height: 2; }
-.passage-pane article p { margin: 0; text-indent: 2em; }
+.passage-pane article p { margin: 0; overflow-wrap: break-word; text-indent: 2em; }
 .passage-pane article p + p { margin-top: 8px; }
 .selectable-highlight { -webkit-user-select: text; user-select: text; cursor: text; }
 .selectable-highlight mark { padding: 0 .04em; border-radius: 2px; background: rgba(255, 218, 82, .5); color: inherit; box-decoration-break: clone; -webkit-box-decoration-break: clone; cursor: pointer; transition: background-color 140ms ease; }
@@ -324,8 +324,9 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .question-scroll { overflow-y: auto; padding: 8px 28px 40px; overscroll-behavior: contain; }
 .question-item { margin: 0; padding: 24px 0 0; }
 .question-item + .question-item { margin-top: 24px; }
-.question-item h2 { width: 100%; margin: 0; padding: 0; display: flex; gap: 10px; color: rgba(0,0,0,.88); font-size: 16px; line-height: 26px; font-weight: 500; }
+.question-item h2 { width: 100%; margin: 0; padding: 0; display: flex; gap: 10px; overflow-wrap: anywhere; color: rgba(0,0,0,.88); font-size: 16px; line-height: 26px; font-weight: 500; }
 .question-item h2 > span { flex: 0 0 auto; color: var(--blue-dark); }
+.question-item h2 > .selectable-highlight { min-width: 0; flex: 1 1 auto; white-space: normal; overflow-wrap: anywhere; color: inherit; }
 .question-item.is-disabled .option-list label { cursor: default; }
 .option-list { margin-top: 16px; display: grid; gap: 8px; }
 .option-list label { position: relative; min-height: 44px; padding: 9px 12px; display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: start; gap: 9px; border: 1px solid rgba(0,0,0,.1); border-radius: 7px; background: #fff; font-size: 14px; line-height: 22px; cursor: pointer; transition: border-color 160ms var(--ease), background-color 160ms var(--ease); }
