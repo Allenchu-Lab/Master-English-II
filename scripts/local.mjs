@@ -56,6 +56,8 @@ try {
     await client.query(`BEGIN;\n${sql}\nCOMMIT;`);
   }
   await client.query(readFileSync(`${root}deploy/postgres/011-email-send-budget.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/012-writing.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/013-writing-content.sql`, "utf8"));
 } finally {
   await client.end();
 }

@@ -449,6 +449,82 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .route-loading strong { font-size: 14px; line-height: 22px; font-weight: 500; }
 .route-loading span { color: var(--muted); font-size: 12px; line-height: 18px; }
 
+.writing-page { height: 100dvh; overflow: hidden; background: #fff; }
+.writing-layout { height: calc(100dvh - 56px); display: grid; grid-template-columns: minmax(360px, 43%) minmax(0, 57%); }
+.writing-prompt-pane { min-width: 0; overflow-y: auto; border-right: 1px solid var(--border); background: #fbfbfa; }
+.writing-part-tabs { min-height: 72px; padding: 12px 28px; display: flex; gap: 8px; border-bottom: 1px solid var(--border); background: #fff; }
+.writing-part-tabs button { min-width: 148px; padding: 8px 12px; display: grid; gap: 1px; border: 1px solid rgba(0,0,0,.1); border-radius: 7px; background: #fff; color: var(--muted); text-align: left; }
+.writing-part-tabs button strong { color: var(--ink); font-size: 13px; line-height: 20px; }
+.writing-part-tabs button span { font-size: 11px; line-height: 17px; }
+.writing-part-tabs button.active { border-color: var(--blue); background: var(--blue-soft); }
+.writing-part-tabs button.active strong, .writing-part-tabs button.active span { color: var(--blue-dark); }
+.writing-prompt { width: min(100% - 56px, 620px); margin: 0 auto; padding: 46px 0 64px; }
+.writing-question-number { display: block; margin-bottom: 18px; color: var(--blue-dark); font-size: 11px; line-height: 18px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.writing-prompt > p { margin: 0; white-space: pre-line; color: rgba(0,0,0,.78); font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.72; }
+.writing-prompt > small { display: block; margin-top: 28px; color: var(--muted); font-size: 11px; line-height: 18px; }
+.writing-chart { margin: 30px 0 0; padding: 24px; border: 1px solid rgba(0,0,0,.09); border-radius: 8px; background: #fff; }
+.writing-chart-original { padding: 8px; }
+.writing-chart-original img { display: block; width: 100%; height: auto; }
+.writing-chart figcaption { margin-bottom: 20px; font-size: 13px; line-height: 20px; font-weight: 600; text-align: center; }
+.writing-chart-bars { display: grid; gap: 12px; }
+.writing-chart-bars > div { display: grid; grid-template-columns: 76px minmax(0, 1fr) 48px; align-items: center; gap: 10px; }
+.writing-chart-bars span, .writing-chart-bars strong { font-size: 11px; line-height: 18px; }
+.writing-chart-bars span { color: rgba(0,0,0,.68); text-align: right; }
+.writing-chart-bars strong { font-variant-numeric: tabular-nums; font-weight: 600; }
+.writing-chart-bars i { height: 14px; overflow: hidden; border-radius: 3px; background: #edf0ed; }
+.writing-chart-bars i b { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+.writing-chart-table > div { overflow-x: auto; }
+.writing-chart-table table { width: 100%; border-collapse: collapse; font-size: 11px; line-height: 18px; text-align: center; }
+.writing-chart-table th, .writing-chart-table td { padding: 9px 8px; border: 1px solid rgba(0,0,0,.12); white-space: nowrap; }
+.writing-chart-table th { background: #f4f6f4; font-weight: 600; }
+.writing-pie { display: grid; grid-template-columns: 128px minmax(0, 1fr); align-items: center; gap: 28px; }
+.writing-pie > i { width: 128px; aspect-ratio: 1; border-radius: 50%; }
+.writing-pie ul { margin: 0; padding: 0; display: grid; gap: 8px; list-style: none; }
+.writing-pie li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 11px; line-height: 18px; }
+.writing-pie li b { width: 8px; height: 8px; border-radius: 2px; }
+.writing-pie li span { color: rgba(0,0,0,.68); }
+.writing-pie li strong { font-variant-numeric: tabular-nums; }
+.writing-chart-legend { margin-bottom: 16px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; color: var(--muted); font-size: 10px; }
+.writing-chart-legend span { display: flex; align-items: center; gap: 5px; }
+.writing-chart-legend i { width: 8px; height: 8px; border-radius: 2px; background: var(--blue); }
+.writing-chart-legend i.series-1, .writing-grouped-bars i.series-1 { background: #9bc6b3; }
+.writing-chart-legend i.series-2, .writing-grouped-bars i.series-2 { background: #d0ded7; }
+.writing-grouped-bars { height: 178px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(34px, 1fr); gap: 8px; border-bottom: 1px solid rgba(0,0,0,.12); }
+.writing-grouped-bars > div { min-width: 0; display: grid; grid-template-rows: minmax(0, 1fr) 25px; align-items: end; }
+.writing-grouped-bars > div > div { height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
+.writing-grouped-bars i { position: relative; width: min(18px, 42%); min-height: 2px; border-radius: 3px 3px 0 0; background: var(--blue); }
+.writing-grouped-bars i span { position: absolute; left: 50%; top: -17px; color: rgba(0,0,0,.64); font-size: 8px; font-style: normal; transform: translateX(-50%); }
+.writing-grouped-bars > div > strong { overflow: hidden; color: var(--muted); font-size: 9px; line-height: 24px; font-weight: 500; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.writing-chart-grouped > small { display: block; margin-top: 8px; color: var(--muted); font-size: 9px; text-align: right; }
+.writing-chart-line svg { width: 100%; height: 220px; overflow: visible; }
+.writing-chart-line svg path { fill: none; stroke: rgba(0,0,0,.16); stroke-width: .5; }
+.writing-chart-line svg polyline { fill: none; stroke: var(--blue); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.writing-chart-line svg circle { fill: var(--blue); }
+.writing-chart-line svg g.series-1 polyline { stroke: #9bc6b3; }
+.writing-chart-line svg g.series-1 circle { fill: #9bc6b3; }
+.writing-chart-line svg text { fill: var(--muted); font-size: 3px; text-anchor: middle; }
+.writing-chart-line svg text.value { fill: var(--blue-dark); font-size: 2.5px; font-weight: 600; }
+.writing-chart-line > p { margin: 12px 0 0; color: var(--muted); font-size: 10px; line-height: 17px; }
+.writing-chart-stacked .writing-grouped-bars > div > div { flex-direction: column; justify-content: flex-end; gap: 0; }
+.writing-chart-stacked .writing-grouped-bars i { width: min(32px, 70%); border-radius: 0; }
+.writing-editor-pane { min-width: 0; display: grid; grid-template-rows: 72px minmax(0, 1fr) 54px; background: #fff; }
+.writing-editor-pane > header { padding: 0 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--border); }
+.writing-editor-pane > header > div:first-child { display: grid; }
+.writing-editor-pane > header > div:first-child span { color: var(--blue-dark); font-size: 9px; line-height: 15px; font-weight: 700; letter-spacing: .12em; }
+.writing-editor-pane > header > div:first-child strong { font-size: 14px; line-height: 22px; }
+.writing-editor-pane > header > div:last-child { display: flex; align-items: baseline; gap: 3px; color: var(--muted); }
+.writing-editor-pane > header > div:last-child strong { color: var(--ink); font-size: 18px; line-height: 28px; font-variant-numeric: tabular-nums; }
+.writing-editor-pane > header > div:last-child span { font-size: 11px; }
+.writing-editor-pane > header > div.is-ready strong, .writing-editor-pane > header > div.is-ready span { color: var(--blue-dark); }
+.writing-editor { min-height: 0; padding: 28px 32px; }
+.writing-editor textarea { width: 100%; height: 100%; min-height: 280px; padding: 0; resize: none; border: 0; outline: 0; background: transparent; color: rgba(0,0,0,.84); font-family: Georgia, "Times New Roman", serif; font-size: 18px; line-height: 1.8; }
+.writing-editor textarea::placeholder { color: rgba(0,0,0,.3); }
+.writing-editor textarea:disabled { color: rgba(0,0,0,.72); -webkit-text-fill-color: rgba(0,0,0,.72); opacity: 1; }
+.writing-editor-loading { height: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.writing-editor-loading svg { width: 16px; }
+.writing-editor-pane > footer { padding: 0 32px; display: flex; align-items: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
+.writing-editor-pane > footer span.has-error { color: #b42318; }
+
 .admin-page { min-height: 100dvh; overflow-y: auto; background: #f6f5f4; color: var(--ink); }
 .admin-header { position: sticky; top: 0; z-index: 10; height: 56px; padding: 0 max(24px, calc((100vw - 1180px) / 2)); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: #fcfcfc; }
 .admin-header > div { display: flex; align-items: center; gap: 12px; }
@@ -575,6 +651,16 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
   .question-pane { height: auto; display: block; overflow: visible; }
   .question-scroll { overflow: visible; padding-inline: 20px; }
   .practice-submit { position: sticky; bottom: 0; padding-inline: 20px; }
+  .writing-page { overflow-y: auto; }
+  .writing-layout { height: auto; display: block; }
+  .writing-prompt-pane { overflow: visible; border-right: 0; border-bottom: 1px solid var(--border); }
+  .writing-part-tabs { padding-inline: 16px; overflow-x: auto; }
+  .writing-prompt { width: auto; padding: 32px 20px 40px; }
+  .writing-pie { grid-template-columns: 104px minmax(0, 1fr); gap: 18px; }
+  .writing-pie > i { width: 104px; }
+  .writing-editor-pane { min-height: 70dvh; grid-template-rows: 64px minmax(440px, 1fr) 54px; }
+  .writing-editor-pane > header, .writing-editor-pane > footer { padding-inline: 20px; }
+  .writing-editor { padding: 24px 20px; }
   .intensive-header { padding-inline: 12px; }
   .intensive-header nav > span, .intensive-review-link { display: none; }
   .intensive-layout { height: calc(100dvh - 56px); display: block; overflow-y: auto; }

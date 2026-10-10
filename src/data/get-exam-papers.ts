@@ -1,4 +1,4 @@
-import type { ExamPaperMap, ExamPassage, ExamSectionType } from "@/data/exam-types";
+import type { ExamPaperMap, ExamPassage, ExamSectionType, ExamWritingTask } from "@/data/exam-types";
 import { query } from "@/lib/db";
 import { localContentPreviewEnabled } from "@/lib/content-preview";
 
@@ -15,6 +15,7 @@ type PassageRow = {
 };
 
 type CoverageRow = { passage_id: string; question_count: string; key_count: string };
+type WritingRow = { year: number; id: string; part: "A" | "B"; target_words: number; points: number };
 
 export async function getExamPapers(): Promise<ExamPaperMap> {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not configured");
@@ -30,13 +31,13 @@ export async function getExamPapers(): Promise<ExamPaperMap> {
   const papers: ExamPaperMap = {};
   for (const row of sectionResult.rows) {
     const key = String(row.year);
-    papers[key] ??= { year: row.year, title: row.title, sourceFile: row.source_file, sections: [], readingA: [] };
+    papers[key] ??= { year: row.year, title: row.title, sourceFile: row.source_file, sections: [], readingA: [], writing: [] };
     papers[key].sections.push({ type: row.type, itemCount: row.item_count, available: row.status === "published" || (preview && row.type === "reading_a" && row.status === "draft") });
   }
   if (!Object.keys(papers).length) return papers;
 
   // 只取列表需要的计数，不取正文、题干和选项内容。
-  const [passageResult, coverageResult] = await Promise.all([
+  const [passageResult, coverageResult, writingResult] = await Promise.all([
     query<PassageRow>(`
       select p.year, g.id passage_id, g.passage_number, g.word_count,
         g.source_page_start, g.source_page_end,
@@ -59,6 +60,14 @@ export async function getExamPapers(): Promise<ExamPaperMap> {
       left join private.question_keys k on k.question_id = q.id
       group by g.id
     `),
+    query<WritingRow>(`
+      select p.year, w.id, w.part, w.target_words, w.points
+      from exam_papers p
+      join exam_sections s on s.paper_id = p.id and s.type = 'writing' and s.status = 'published'
+      join writing_tasks w on w.section_id = s.id and w.status = 'published'
+      where p.status = 'published'
+      order by p.year, w.part
+    `),
   ]);
   const gradable = new Map(coverageResult.rows.map((row) => [
     row.passage_id,
@@ -77,6 +86,14 @@ export async function getExamPapers(): Promise<ExamPaperMap> {
       sourcePages: [row.source_page_start ?? 0, row.source_page_end ?? 0],
       gradable: gradable.get(row.passage_id) ?? false,
     } satisfies ExamPassage);
+  }
+  for (const row of writingResult.rows) {
+    papers[String(row.year)]?.writing.push({
+      id: row.id,
+      part: row.part,
+      targetWords: row.target_words,
+      points: row.points,
+    } satisfies ExamWritingTask);
   }
 
   return papers;

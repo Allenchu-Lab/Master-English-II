@@ -29,12 +29,20 @@ export interface ExamSection {
   available: boolean;
 }
 
+export interface ExamWritingTask {
+  id: string;
+  part: "A" | "B";
+  targetWords: number;
+  points: number;
+}
+
 export interface ExamPaper {
   year: number;
   title: string;
   sourceFile: string;
   sections: ExamSection[];
   readingA: ExamPassage[];
+  writing: ExamWritingTask[];
 }
 
 export type ExamPaperMap = Record<string, ExamPaper>;

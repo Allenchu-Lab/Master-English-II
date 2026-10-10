@@ -103,4 +103,25 @@ const existingAnswers = Object.fromEntries(
   }),
 );
 assert.deepEqual(existingAnswers, { 2025: "BCADABCCBCABABDCDADD", 2026: "DCAACBACDDBACDBDCCBB" });
-console.log("Content tests passed: 2010–2026 covered, 17 PDFs, 68 passages, 340 questions and complete answer keys. 2010–2024 answer letters match source images; explanations are AI-generated.");
+const writingTasks = JSON.parse(readFileSync("content/writing-tasks.json", "utf8"));
+assert.equal(writingTasks.length, 34);
+for (let year = 2010; year <= 2026; year++) {
+  const tasks = writingTasks.filter((task) => task.year === year);
+  assert.deepEqual(tasks.map((task) => task.part), ["A", "B"]);
+  assert.equal(tasks[0].questionNumber, 47);
+  assert.equal(tasks[0].targetWords, 100);
+  assert.equal(tasks[0].chart, null);
+  assert.equal(tasks[1].questionNumber, 48);
+  assert.equal(tasks[1].targetWords, 150);
+  assert.ok(tasks[1].chart?.title);
+  assert.deepEqual([...readFileSync(`public/writing/charts/${year}-part-b.png`).subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  assert.ok(tasks.every((task) => task.prompt.length > 100));
+}
+const writingPartB = Object.fromEntries(writingTasks.filter((task) => task.part === "B").map((task) => [task.year, task]));
+assert.equal(writingPartB[2010].chart.type, "stacked");
+assert.equal(writingPartB[2010].chart.showValues, false);
+assert.equal(writingPartB[2011].chart.showValues, false);
+assert.equal(writingPartB[2017].chart.type, "line");
+assert.equal(writingPartB[2017].chart.series.length, 2);
+assert.match(writingPartB[2023].chart.note, /15-69岁城乡居民/);
+console.log("Content tests passed: 2010–2026 covered, 17 PDFs, 68 passages, 340 reading questions, 34 writing tasks and complete answer keys. 2010–2024 answer letters match source images; explanations are AI-generated.");
