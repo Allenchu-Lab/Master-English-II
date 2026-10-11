@@ -68,16 +68,18 @@ export async function replaceSession(userId: string, previousUserId?: string) {
       const guest = await client.query("select id from app_users where id = $1 and is_anonymous = true for update", [previousUserId]);
       if (guest.rowCount) {
         await client.query("update practice_attempts set user_id = $1 where user_id = $2", [userId, previousUserId]);
+        await client.query(`update writing_expressions set user_id = $1 where user_id = $2`, [userId, previousUserId]);
+        await client.query(`update writing_attempts set user_id = $1 where user_id = $2 and submitted_at is not null`, [userId, previousUserId]);
         await client.query(`
-          insert into writing_attempts (user_id, task_id, answer, elapsed_seconds, submitted_at, created_at, updated_at)
-          select $1, task_id, answer, elapsed_seconds, submitted_at, created_at, updated_at
-          from writing_attempts where user_id = $2
-          on conflict (user_id, task_id) do update set
+          insert into writing_attempts (user_id, task_id, answer, elapsed_seconds, created_at, updated_at)
+          select $1, task_id, answer, elapsed_seconds, created_at, updated_at
+          from writing_attempts where user_id = $2 and submitted_at is null
+          on conflict (user_id, task_id) where submitted_at is null do update set
             answer = case when length(excluded.answer) > length(writing_attempts.answer) then excluded.answer else writing_attempts.answer end,
             elapsed_seconds = greatest(writing_attempts.elapsed_seconds, excluded.elapsed_seconds),
-            submitted_at = coalesce(writing_attempts.submitted_at, excluded.submitted_at),
             updated_at = greatest(writing_attempts.updated_at, excluded.updated_at)
         `, [userId, previousUserId]);
+        await client.query(`delete from writing_attempts where user_id = $1 and submitted_at is null`, [previousUserId]);
         await client.query("delete from app_users where id = $1 and is_anonymous = true", [previousUserId]);
       }
     }

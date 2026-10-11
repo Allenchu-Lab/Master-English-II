@@ -58,6 +58,8 @@ try {
   await client.query(readFileSync(`${root}deploy/postgres/011-email-send-budget.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/012-writing.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/013-writing-content.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/014-writing-reviews.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/015-writing-rewrites.sql`, "utf8"));
 } finally {
   await client.end();
 }
@@ -73,7 +75,6 @@ const env = {
   OTP_SECRET: "local-only-not-a-production-secret",
   EMAIL_LOGIN_ENABLED: "true",
   LOCAL_AUTH_MAIL: "1",
-  DEEPSEEK_API_KEY: "",
   SES_SECRET_ID: "", SES_SECRET_KEY: "", SES_FROM_EMAIL: "",
   SMTP_HOST: "", SMTP_USER: "", SMTP_PASS: "", SMTP_FROM: "",
 };

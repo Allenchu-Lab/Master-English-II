@@ -2,7 +2,7 @@ type AiResponse = { ok: boolean; data: unknown };
 const pending = new Map<string, Promise<AiResponse>>();
 
 // Share only in-flight requests with identical content, including the word's context.
-export function requestAi(path: "/api/dictionary" | "/api/intensive-reading", body: Record<string, unknown>): Promise<AiResponse> {
+export function requestAi(path: "/api/dictionary" | "/api/intensive-reading" | `/api/writing-attempts/${string}/review`, body: Record<string, unknown>): Promise<AiResponse> {
   const json = JSON.stringify(body);
   const key = `${path}:${json}`;
   const existing = pending.get(key);

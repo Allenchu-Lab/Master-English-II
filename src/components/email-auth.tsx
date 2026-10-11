@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowLeft, Check, LoaderCircle, LogOut, X } from "lucide-react";
+import { ArrowLeft, Check, CircleUserRound, LoaderCircle, LogOut, X } from "lucide-react";
 import { getAuthUser, isEmailUser, requestEmailOtp, signOut, verifyEmailOtp, type AuthUser } from "@/lib/auth/email-otp";
 import { isValidEmail } from "@/lib/auth/email-validation";
 
@@ -120,7 +120,7 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
       title={entryDisabled ? (isEnglish ? "Coming soon. Your progress is already saved." : "即将上线，你的进度已自动保存") : undefined}
       aria-label={isEnglish ? "User account" : "个人账户"}
     >
-      <Image src="/default-student-avatar.png" alt="" width={28} height={28} />
+      <CircleUserRound aria-hidden="true" />
       <div>
         <strong>{signedIn ? user?.email : (isEnglish ? "Sign in" : "登录 / 注册")}</strong>
         <small>{signedIn

@@ -74,7 +74,16 @@ create table writing_attempts (
   id uuid primary key default gen_random_uuid(), user_id uuid not null references app_users(id) on delete cascade,
   task_id uuid not null references writing_tasks(id) on delete cascade, answer text not null default '',
   elapsed_seconds integer not null default 0 check (elapsed_seconds >= 0), submitted_at timestamptz,
-  created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique (user_id, task_id)
+  review jsonb, reviewed_at timestamptz,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create table writing_expressions (
+  id uuid primary key default gen_random_uuid(), user_id uuid not null references app_users(id) on delete cascade,
+  source_attempt_id uuid not null references writing_attempts(id) on delete cascade,
+  original text not null, rewrite text not null, pattern text not null,
+  use_cases jsonb not null default '[]'::jsonb,
+  status text not null default 'new' check (status in ('new', 'practicing', 'mastered')),
+  created_at timestamptz not null default now(), unique (user_id, source_attempt_id, pattern)
 );
 create index exam_sections_paper_id_idx on exam_sections(paper_id);
 create index passages_section_id_idx on passages(section_id);
@@ -83,6 +92,8 @@ create index question_options_question_id_idx on question_options(question_id);
 create index practice_attempts_user_passage_idx on practice_attempts(user_id, passage_id, created_at desc);
 create index writing_tasks_section_id_idx on writing_tasks(section_id);
 create index writing_attempts_user_id_idx on writing_attempts(user_id, updated_at desc);
+create unique index writing_attempts_open_draft_idx on writing_attempts(user_id, task_id) where submitted_at is null;
+create index writing_expressions_user_id_idx on writing_expressions(user_id, created_at desc);
 
 create schema private;
 create table private.question_keys (

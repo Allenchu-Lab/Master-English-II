@@ -3,22 +3,55 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Check, Clock3, LoaderCircle, Pause, PenLine, Play, RotateCcw } from "lucide-react";
+import { ArrowLeft, Bookmark, BookMarked, Check, ChevronDown, Clock3, LoaderCircle, Pause, PenLine, Play, RotateCcw, Sparkles } from "lucide-react";
 import type { WritingChart, WritingTask } from "@/data/get-writing-paper";
+import { requestAi } from "@/lib/ai-request";
+import type { WritingReview } from "@/lib/writing-review";
 
-type Attempt = { id: string; answer: string; elapsed_seconds: number; submitted_at: string | null };
+type Attempt = { id: string; answer: string; elapsed_seconds: number; submitted_at: string | null; review: WritingReview | null };
+
+const deductionLabels = {
+  task: "任务完成",
+  grammar: "语法",
+  wording: "表达",
+  cohesion: "衔接",
+  format: "格式语域",
+  length: "字数",
+};
 
 function countWords(value: string) {
   return value.trim().match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g)?.length ?? 0;
 }
 
 function keepEnglishInput(value: string) {
-  return value.replace(/[^A-Za-z0-9\s.,!?;:'"()[\]{}<>/@#$%&*+=_\-–—…]/g, "");
+  return value
+    .replace(/……/g, "...")
+    .replace(/[，、]/g, ",")
+    .replace(/。/g, ".")
+    .replace(/！/g, "!")
+    .replace(/？/g, "?")
+    .replace(/；/g, ";")
+    .replace(/：/g, ":")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/（/g, "(")
+    .replace(/）/g, ")")
+    .replace(/【/g, "[")
+    .replace(/】/g, "]")
+    .replace(/　/g, " ")
+    .replace(/\p{Script=Han}/gu, "");
+}
+
+function formatRevisedAnswer(value: string, part: "A" | "B") {
+  if (part !== "A") return value;
+  return value
+    .replace(/^(Dear\s+[^,\n]+,)\s*/i, "$1\n\n")
+    .replace(/[ \t]+((?:Yours|Sincerely|Best regards|Kind regards),?)[ \t]+([^\n]+)$/i, "\n\n$1\n$2");
 }
 
 function PromptChart({ chart, year }: { chart: WritingChart; year: number }) {
   if (year >= 2010 && year <= 2026) {
-    return <figure className="writing-chart writing-chart-original"><Image src={`/writing/charts/${year}-part-b.png`} alt={chart.title} width={1600} height={1000} /></figure>;
+    return <figure className="writing-chart writing-chart-original"><Image src={`/writing/charts/${year}-part-b.png`} alt={chart.title} width={1600} height={1000} loading="eager" /></figure>;
   }
 
   if (chart.type === "table" && chart.columns && chart.rows) {
@@ -75,12 +108,19 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [rewriting, setRewriting] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const [review, setReview] = useState<WritingReview | null>(null);
+  const [savedExpressions, setSavedExpressions] = useState<Set<number>>(new Set());
+  const [savingExpression, setSavingExpression] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
   const hydratedTaskId = useRef<string | null>(null);
   const activeTask = tasks.find((task) => task.part === activePart) ?? tasks[0];
   const isEnglish = uiLanguage === "en";
   const wordCount = useMemo(() => countWords(answer), [answer]);
+  const wordsRemaining = Math.max(activeTask.targetWords - wordCount, 0);
+  const showLengthWarning = !attempt?.submitted_at && wordCount > 0 && wordsRemaining > 0;
   const elapsed = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
   const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
@@ -124,6 +164,15 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
       if (!response.ok) throw new Error();
       const data = await response.json() as { attempt: Attempt };
       setAttempt(data.attempt);
+      setReview(data.attempt.review);
+      if (data.attempt.review) {
+        const savedResponse = await fetch(`/api/writing-expressions?attemptId=${data.attempt.id}`);
+        const savedData = await savedResponse.json().catch(() => ({})) as { expressions?: { pattern: string }[] };
+        const patterns = new Set(savedData.expressions?.map((item) => item.pattern) ?? []);
+        setSavedExpressions(new Set(data.attempt.review.expressions.flatMap((item, index) => patterns.has(item.pattern) ? [index] : [])));
+      } else {
+        setSavedExpressions(new Set());
+      }
       setAnswer(data.attempt.answer);
       setElapsedSeconds(data.attempt.elapsed_seconds);
       setTimerRunning(false);
@@ -160,6 +209,17 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     return () => window.clearTimeout(timer);
   }, [activeTask, answer, attempt?.submitted_at, elapsedSeconds, isEnglish]);
 
+  const runReview = async (taskId: string, attemptId: string) => {
+    setReviewing(true);
+    const result = await requestAi(`/api/writing-attempts/${taskId}/review`, { attemptId });
+    setReviewing(false);
+    if (!result.ok || !result.data || typeof result.data !== "object" || !("review" in result.data)) {
+      setError(isEnglish ? "Could not review this response. Try again." : "暂时无法完成批改，请重试。");
+      return;
+    }
+    setReview((result.data as { review: WritingReview }).review);
+  };
+
   const submit = async () => {
     if (!activeTask || !answer.trim() || submitting) {
       if (!answer.trim()) setError(isEnglish ? "Write your response before submitting." : "请先写下答案再提交。");
@@ -177,11 +237,57 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
       if (!response.ok || !data.attempt) throw new Error(data.error);
       setAttempt(data.attempt);
       setTimerRunning(false);
+      void runReview(activeTask.id, data.attempt.id);
     } catch {
       setError(isEnglish ? "Could not submit this draft. Please try again." : "提交失败，请稍后重试。");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const rewrite = async () => {
+    if (!activeTask || rewriting) return;
+    setRewriting(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/writing-attempts/${activeTask.id}`, { method: "PUT" });
+      const data = await response.json().catch(() => ({})) as { attempt?: Attempt };
+      if (!response.ok || !data.attempt) throw new Error();
+      setAttempt(data.attempt);
+      setReview(null);
+      setSavedExpressions(new Set());
+      setAnswer("");
+      setElapsedSeconds(0);
+      setTimerRunning(false);
+      hydratedTaskId.current = activeTask.id;
+    } catch {
+      setError(isEnglish ? "Could not start a new draft. Please try again." : "暂时无法开始重写，请稍后重试。");
+    } finally {
+      setRewriting(false);
+    }
+  };
+
+  const toggleExpression = async (index: number) => {
+    if (!attempt || savingExpression !== null) return;
+    const isSaved = savedExpressions.has(index);
+    setSavingExpression(index);
+    const response = await fetch("/api/writing-expressions", {
+      method: isSaved ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attemptId: attempt.id, expressionIndex: index }),
+    });
+    if (!response.ok) {
+      setError(isEnglish ? "Could not update this expression." : "暂时无法更新这条表达，请重试。");
+      setSavingExpression(null);
+      return;
+    }
+    setSavedExpressions((current) => {
+      const next = new Set(current);
+      if (isSaved) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+    setSavingExpression(null);
   };
 
   if (!activeTask) return null;
@@ -201,7 +307,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
         <div className="practice-header-actions">
           {attempt?.submitted_at
             ? <span className="header-submitted"><Check />{isEnglish ? "Completed" : "已完成"}</span>
-            : <button className="header-submit" onClick={submit} disabled={loading || submitting} aria-busy={submitting}>{submitting && <LoaderCircle className="spin" />}{submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "完成写作")}</button>}
+            : <button className="header-submit" onClick={submit} disabled={loading || submitting || !answer.trim()} aria-busy={submitting}>{submitting && <LoaderCircle className="spin" />}{submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "完成写作")}</button>}
         </div>
       </header>
 
@@ -218,20 +324,45 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
           </article>
         </section>
 
-        <section className="writing-editor-pane">
+        <section className={`writing-editor-pane ${attempt?.submitted_at ? "has-review" : ""}`}>
           <header>
             <div><span>{isEnglish ? "YOUR RESPONSE" : "你的答案"}</span><strong>{isEnglish ? `Part ${activeTask.part}` : `写作 Part ${activeTask.part}`}</strong></div>
             <div className={wordCount >= activeTask.targetWords ? "is-ready" : ""}><strong>{wordCount}</strong><span>/ {activeTask.targetWords} {isEnglish ? "words" : "词"}</span></div>
           </header>
           <div className="writing-editor">
-            {loading ? <div className="writing-editor-loading"><LoaderCircle className="spin" />{isEnglish ? "Opening your draft…" : "正在打开草稿…"}</div> : <textarea value={answer} disabled={Boolean(attempt?.submitted_at)} onChange={(event) => {
+            {loading ? <div className="writing-editor-loading"><LoaderCircle className="spin" />{isEnglish ? "Opening your draft…" : "正在打开草稿…"}</div> : attempt?.submitted_at ? (
+              reviewing ? <div className="writing-review-loading"><LoaderCircle className="spin" /><strong>{isEnglish ? "Reviewing your response" : "正在批改你的作文"}</strong><span>{isEnglish ? "Scoring, locating deductions and extracting reusable expressions…" : "正在评分、定位扣分依据并提炼可迁移表达…"}</span></div>
+                : review ? <div className="writing-review">
+                  <section className="writing-review-score">
+                    <div><span>{isEnglish ? "ESTIMATED SCORE" : "AI 预估分"}</span><strong>{review.score}<small>/ {review.maxScore}</small></strong><em>{isEnglish ? `Band ${review.band}` : `第 ${review.band} 档`}</em></div>
+                    <div><p>{review.summary}</p><dl><dt>{isEnglish ? "To reach the next band" : "升档最优先修改"}</dt><dd>{review.nextBandGap}</dd></dl></div>
+                  </section>
+                  <button className="writing-rewrite" onClick={() => void rewrite()} disabled={rewriting}>{rewriting && <LoaderCircle className="spin" />}{isEnglish ? "Write again" : "重新写一遍"}</button>
+                  <details className="writing-original-answer">
+                    <summary><span>{isEnglish ? "View original response" : "查看本次原文"}</span><ChevronDown aria-hidden="true" /></summary>
+                    <p>{answer}</p>
+                  </details>
+                  <section className="writing-review-section">
+                    <header><div><span>01</span><strong>{isEnglish ? "Where points were lost" : "扣分依据"}</strong></div><small>{isEnglish ? "Every deduction is linked to your original response" : "每一处扣分都对应你的原文"}</small></header>
+                    <div className="writing-deductions">{review.deductions.map((item, index) => <article key={`${item.original}-${index}`}><div><span>{isEnglish ? item.category : deductionLabels[item.category]}</span><strong>-{item.impact}</strong></div><blockquote>{item.original}</blockquote><p>{item.reason}</p><div className="writing-suggestion"><Check /><span>{item.suggestion}</span></div></article>)}</div>
+                  </section>
+                  <section className="writing-review-section">
+                    <header><div><span>02</span><strong>{isEnglish ? "Higher-scoring revision" : "基于原文的提分版本"}</strong></div><small>{isEnglish ? "Your ideas, with only necessary changes" : "保留你的观点，只做必要修改"}</small></header>
+                    <div className="writing-revised-answer">{formatRevisedAnswer(review.revisedAnswer, activeTask.part)}</div>
+                  </section>
+                  <section className="writing-review-section">
+                    <header><div><span>03</span><strong>{isEnglish ? "Expressions worth remembering" : "这次值得记住的表达"}</strong></div><div className="writing-review-section-actions"><small>{isEnglish ? "Save patterns you can reuse in other topics" : "保存可迁移到其他主题的写法"}</small><Link href={languageHref("/writing/expressions")}><BookMarked />{isEnglish ? "My expressions" : "我的表达"}</Link></div></header>
+                    <div className="writing-expressions">{review.expressions.map((item, index) => <article key={item.pattern}><div><p><del>{item.original}</del><strong>{item.rewrite}</strong></p><button className={savedExpressions.has(index) ? "is-saved" : ""} onClick={() => void toggleExpression(index)} disabled={savingExpression === index}>{savedExpressions.has(index) ? <Check /> : <Bookmark />}{savedExpressions.has(index) ? (isEnglish ? "Saved" : "已保存") : (isEnglish ? "Save" : "保存表达")}</button></div><blockquote>{item.pattern}</blockquote><ul>{item.useCases.map((useCase) => <li key={useCase}>{useCase}</li>)}</ul></article>)}</div>
+                  </section>
+                </div> : <div className="writing-review-loading"><Sparkles /><strong>{isEnglish ? "Review is not ready" : "批改尚未完成"}</strong><button onClick={() => void runReview(activeTask.id, attempt.id)}>{isEnglish ? "Review again" : "重新批改"}</button></div>
+            ) : <textarea value={answer} onChange={(event) => {
               const next = keepEnglishInput(event.target.value);
               setAnswer(next);
               setError(null);
             }} placeholder={isEnglish ? "Start writing here…" : "在这里开始写作…"} spellCheck="true" inputMode="text" lang="en" autoCapitalize="sentences" aria-label={isEnglish ? "Writing response" : "写作答案"} />}
           </div>
           <footer>
-            <span className={error ? "has-error" : ""}>{error ?? (attempt?.submitted_at ? (isEnglish ? "Submitted. Your response is saved." : "已完成，答案已保存。") : saving ? (isEnglish ? "Saving…" : "正在保存…") : (isEnglish ? "Draft saved automatically" : "草稿已自动保存"))}</span>
+            <span aria-live="polite" className={error ? "has-error" : showLengthWarning ? "has-warning" : ""}>{error ?? (attempt?.submitted_at ? (isEnglish ? "AI estimate for practice only" : "AI 评分仅供练习参考") : saving ? (isEnglish ? "Saving…" : "正在保存…") : showLengthWarning ? (isEnglish ? `${wordsRemaining} words below the suggested length. A shorter response may lower your score.` : `距离建议字数还差 ${wordsRemaining} 词，字数不足可能影响得分。`) : (isEnglish ? "Draft saved automatically" : "草稿已自动保存"))}</span>
           </footer>
         </section>
       </div>

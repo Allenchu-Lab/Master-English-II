@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { BarChart3, BookOpen, ChevronRight, FileText, Languages, PenLine, TextCursorInput } from "lucide-react";
+import { BarChart3, BookMarked, BookOpen, ChevronRight, FileText, Languages, PenLine, TextCursorInput } from "lucide-react";
 import type { ExamPaperMap, ExamSectionType } from "@/data/exam-types";
 import { EmailAuth } from "@/components/email-auth";
 
@@ -33,6 +33,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
   const [writingAttempts, setWritingAttempts] = useState<Record<string, "draft" | "submitted">>({});
+  const [progressLoaded, setProgressLoaded] = useState(false);
   const [authRevision, setAuthRevision] = useState(0);
   const isEnglish = uiLanguage === "en";
   const selectedPaper = papers[String(year)];
@@ -68,6 +69,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
   const writingTasks = selectedType?.type === "writing" && selectedPaper ? selectedPaper.writing : [];
 
   const yearStats = (yearValue: number) => {
+    if (!progressLoaded) return null;
     const paper = papers[String(yearValue)];
     if (!paper) return null;
     if (selectedType?.type === "writing") {
@@ -135,6 +137,9 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
           setWritingAttempts(Object.fromEntries(writingData.filter((item) => item.submitted || item.has_draft).map((item) => [item.task_id, item.submitted ? "submitted" : "draft"] as const)));
         }
       } catch { /* The library remains usable when account setup is unavailable. */ }
+      finally {
+        if (!cancelled) setProgressLoaded(true);
+      }
     }
     loadAttempts();
     return () => { cancelled = true; };
@@ -223,7 +228,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
         <div className="product-main">
           <header className="content-header">
             <nav className="breadcrumb" aria-label={isEnglish ? "Breadcrumb" : "面包屑导航"}><BookOpen /><span aria-current="page">{isEnglish ? "Practice" : "刷题"}</span></nav>
-            <EmailAuth isEnglish={isEnglish} onAuthChange={() => setAuthRevision((value) => value + 1)} />
+            <EmailAuth isEnglish={isEnglish} onAuthChange={() => { setProgressLoaded(false); setAuthRevision((value) => value + 1); }} />
           </header>
 
           <section className="library">
@@ -241,15 +246,17 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
               </div>
             </header>
             <section className="question-types">
-              <div className="type-tabs">{typeItems.map(({ type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={type} onClick={() => selectType(index, type)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{available ? (isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`) : (isEnglish ? "Not open yet" : "尚未开放")}</small><span className="type-progress-copy"><span>{available ? (isEnglish ? "Completed" : "已累计完成") : (isEnglish ? "Not open yet" : "尚未开放")}</span><strong>{available ? `${done} / ${total}` : "—"}</strong></span><i className="type-progress"><b style={{ width: available && total ? `${(done / total) * 100}%` : "0%" }} /></i></button>)}</div>
+              <div className="type-tabs">{typeItems.map(({ type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={type} onClick={() => selectType(index, type)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{available ? (isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`) : (isEnglish ? "Not open yet" : "尚未开放")}</small><span className="type-progress-copy"><span>{available ? (!progressLoaded ? (isEnglish ? "Loading progress" : "正在读取进度") : (isEnglish ? "Completed" : "已累计完成")) : (isEnglish ? "Not open yet" : "尚未开放")}</span><strong>{available && progressLoaded ? `${done} / ${total}` : "—"}</strong></span><i className="type-progress"><b style={{ width: available && progressLoaded && total ? `${(done / total) * 100}%` : "0%" }} /></i></button>)}</div>
             </section>
+
+            {selectedType?.type === "writing" && <Link className="writing-library-entry" href={languageHref("/writing/expressions")}><span><BookMarked /><span><strong>{isEnglish ? "My expressions" : "我的表达"}</strong><small>{isEnglish ? "Review language saved from your feedback" : "回看批改后保存的提分表达"}</small></span></span><ChevronRight /></Link>}
 
             <section className="year-library">
               <div className="paper-browser">
                 <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => { const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => setYear(value)} aria-pressed={year === value}><strong>{value}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
                 <div className="article-group">
-                  <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {articleDone} / {articleTotal}</span><i><b style={{ width: `${articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>
-                  <div className="article-list">{writingTasks.length ? writingTasks.map((task) => {
+                  <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {progressLoaded ? articleDone : "—"} / {articleTotal}</span><i><b style={{ width: `${progressLoaded && articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>
+                  <div className="article-list">{!progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
                     const state = writingAttempts[task.id];
                     const status = state === "submitted" ? (isEnglish ? "Completed" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     return <article key={task.id} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Part {task.part}</h4><p>{isEnglish ? `${task.targetWords} words · ${task.points} points` : `约 ${task.targetWords} 词 · ${task.points} 分`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span></div><Link className="article-action" href={languageHref(`/writing/${year}?part=${task.part}`)}>{state === "draft" ? (isEnglish ? "Continue" : "继续写作") : state === "submitted" ? (isEnglish ? "View response" : "查看答案") : (isEnglish ? "Start writing" : "开始写作")}<ChevronRight /></Link></div></article>;
