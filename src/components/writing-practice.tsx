@@ -9,6 +9,9 @@ import { requestAi } from "@/lib/ai-request";
 import type { WritingReview } from "@/lib/writing-review";
 
 type Attempt = { id: string; answer: string; elapsed_seconds: number; submitted_at: string | null; review: WritingReview | null };
+type LetterDraft = { salutation: string; body: string; closing: string; signature: string };
+
+const emptyLetterDraft: LetterDraft = { salutation: "", body: "", closing: "", signature: "" };
 
 const deductionLabels = {
   task: "任务完成",
@@ -40,6 +43,34 @@ function keepEnglishInput(value: string) {
     .replace(/】/g, "]")
     .replace(/　/g, " ")
     .replace(/\p{Script=Han}/gu, "");
+}
+
+function isLetterWritingTask(task: WritingTask) {
+  return task.part === "A" && /\b(letter|email|reply)\b/i.test(task.prompt);
+}
+
+function composeLetterAnswer(draft: LetterDraft) {
+  const signoff = [draft.closing.trim(), draft.signature.trim()].filter(Boolean).join("\n");
+  return [draft.salutation.trim(), draft.body.trim(), signoff].filter(Boolean).join("\n\n");
+}
+
+function parseLetterAnswer(answer: string): LetterDraft {
+  const lines = answer.replace(/\r\n/g, "\n").split("\n");
+  while (lines[0]?.trim() === "") lines.shift();
+  while (lines.at(-1)?.trim() === "") lines.pop();
+
+  const firstLine = lines[0]?.trim() ?? "";
+  const hasSalutation = /^(dear\b|hello\b|hi\b|to whom\b)/i.test(firstLine);
+  const closingIndex = lines.findLastIndex((line) => /^(yours\b|sincerely\b|best regards\b|kind regards\b|respectfully\b)/i.test(line.trim()));
+  const bodyStart = hasSalutation ? 1 : 0;
+  const bodyEnd = closingIndex >= bodyStart ? closingIndex : lines.length;
+
+  return {
+    salutation: hasSalutation ? firstLine : "",
+    body: lines.slice(bodyStart, bodyEnd).join("\n").trim(),
+    closing: closingIndex >= bodyStart ? lines[closingIndex].trim() : "",
+    signature: closingIndex >= bodyStart ? lines.slice(closingIndex + 1).join("\n").trim() : "",
+  };
 }
 
 function formatRevisedAnswer(value: string, part: "A" | "B") {
@@ -102,6 +133,7 @@ function PromptChart({ chart, year }: { chart: WritingChart; year: number }) {
 export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "A" }: { tasks: WritingTask[]; initialLanguage?: "zh" | "en"; initialPart?: "A" | "B" }) {
   const [activePart, setActivePart] = useState<"A" | "B">(initialPart);
   const [answer, setAnswer] = useState("");
+  const [letterDraft, setLetterDraft] = useState<LetterDraft>(emptyLetterDraft);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -118,6 +150,8 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   const hydratedTaskId = useRef<string | null>(null);
   const activeTask = tasks.find((task) => task.part === activePart) ?? tasks[0];
   const isEnglish = uiLanguage === "en";
+  const usesLetterFrame = isLetterWritingTask(activeTask);
+  const originalLetter = useMemo(() => parseLetterAnswer(answer), [answer]);
   const wordCount = useMemo(() => countWords(answer), [answer]);
   const wordsRemaining = Math.max(activeTask.targetWords - wordCount, 0);
   const showLengthWarning = !attempt?.submitted_at && wordCount > 0 && wordsRemaining > 0;
@@ -174,6 +208,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
         setSavedExpressions(new Set());
       }
       setAnswer(data.attempt.answer);
+      setLetterDraft(parseLetterAnswer(data.attempt.answer));
       setElapsedSeconds(data.attempt.elapsed_seconds);
       setTimerRunning(false);
       hydratedTaskId.current = activeTask.id;
@@ -257,6 +292,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
       setReview(null);
       setSavedExpressions(new Set());
       setAnswer("");
+      setLetterDraft(emptyLetterDraft);
       setElapsedSeconds(0);
       setTimerRunning(false);
       hydratedTaskId.current = activeTask.id;
@@ -331,7 +367,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
           </header>
           <div className="writing-editor">
             {loading ? <div className="writing-editor-loading"><LoaderCircle className="spin" />{isEnglish ? "Opening your draft…" : "正在打开草稿…"}</div> : attempt?.submitted_at ? (
-              reviewing ? <div className="writing-review-loading"><LoaderCircle className="spin" /><strong>{isEnglish ? "Reviewing your response" : "正在批改你的作文"}</strong><span>{isEnglish ? "Scoring, locating deductions and extracting reusable expressions…" : "正在评分、定位扣分依据并提炼可迁移表达…"}</span></div>
+              reviewing ? <div className="writing-review-loading"><LoaderCircle className="is-spinning" /><strong>{isEnglish ? "Reviewing your response" : "正在批改你的作文"}</strong><span>{isEnglish ? "Scoring, locating deductions and extracting reusable expressions…" : "正在评分、定位扣分依据并提炼可迁移表达…"}</span></div>
                 : review ? <div className="writing-review">
                   <section className="writing-review-score">
                     <div><span>{isEnglish ? "ESTIMATED SCORE" : "AI 预估分"}</span><strong>{review.score}<small>/ {review.maxScore}</small></strong><em>{isEnglish ? `Band ${review.band}` : `第 ${review.band} 档`}</em></div>
@@ -340,14 +376,18 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
                   <button className="writing-rewrite" onClick={() => void rewrite()} disabled={rewriting}>{rewriting && <LoaderCircle className="spin" />}{isEnglish ? "Write again" : "重新写一遍"}</button>
                   <details className="writing-original-answer">
                     <summary><span>{isEnglish ? "View original response" : "查看本次原文"}</span><ChevronDown aria-hidden="true" /></summary>
-                    <p>{answer}</p>
+                    {usesLetterFrame ? <div className="writing-original-letter">
+                      <p className={originalLetter.salutation ? "" : "is-missing"}>{originalLetter.salutation || (isEnglish ? "Salutation not provided" : "未填写称呼")}</p>
+                      {originalLetter.body && <p>{originalLetter.body}</p>}
+                      {(originalLetter.closing || originalLetter.signature) && <p className="writing-original-signoff">{[originalLetter.closing, originalLetter.signature].filter(Boolean).join("\n")}</p>}
+                    </div> : <p>{answer}</p>}
                   </details>
                   <section className="writing-review-section">
                     <header><div><span>01</span><strong>{isEnglish ? "Where points were lost" : "扣分依据"}</strong></div><small>{isEnglish ? "Every deduction is linked to your original response" : "每一处扣分都对应你的原文"}</small></header>
                     <div className="writing-deductions">{review.deductions.map((item, index) => <article key={`${item.original}-${index}`}><div><span>{isEnglish ? item.category : deductionLabels[item.category]}</span><strong>-{item.impact}</strong></div><blockquote>{item.original}</blockquote><p>{item.reason}</p><div className="writing-suggestion"><Check /><span>{item.suggestion}</span></div></article>)}</div>
                   </section>
                   <section className="writing-review-section">
-                    <header><div><span>02</span><strong>{isEnglish ? "Higher-scoring revision" : "基于原文的提分版本"}</strong></div><small>{isEnglish ? "Your ideas, with only necessary changes" : "保留你的观点，只做必要修改"}</small></header>
+                    <header><div><span>02</span><strong>{isEnglish ? "Higher-scoring revision" : "基于原文的提分版本"}</strong><em className="writing-target-band">{review.band < 5 ? (isEnglish ? `Target Band ${review.band + 1}` : `目标第 ${review.band + 1} 档`) : (isEnglish ? "Band 5 revision" : "第 5 档优化版")}</em></div><small>{isEnglish ? "Your ideas, with only necessary changes" : "保留你的观点，只做必要修改"}</small></header>
                     <div className="writing-revised-answer">{formatRevisedAnswer(review.revisedAnswer, activeTask.part)}</div>
                   </section>
                   <section className="writing-review-section">
@@ -355,7 +395,46 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
                     <div className="writing-expressions">{review.expressions.map((item, index) => <article key={item.pattern}><div><p><del>{item.original}</del><strong>{item.rewrite}</strong></p><button className={savedExpressions.has(index) ? "is-saved" : ""} onClick={() => void toggleExpression(index)} disabled={savingExpression === index}>{savedExpressions.has(index) ? <Check /> : <Bookmark />}{savedExpressions.has(index) ? (isEnglish ? "Saved" : "已保存") : (isEnglish ? "Save" : "保存表达")}</button></div><blockquote>{item.pattern}</blockquote><ul>{item.useCases.map((useCase) => <li key={useCase}>{useCase}</li>)}</ul></article>)}</div>
                   </section>
                 </div> : <div className="writing-review-loading"><Sparkles /><strong>{isEnglish ? "Review is not ready" : "批改尚未完成"}</strong><button onClick={() => void runReview(activeTask.id, attempt.id)}>{isEnglish ? "Review again" : "重新批改"}</button></div>
-            ) : <textarea value={answer} onChange={(event) => {
+            ) : usesLetterFrame ? <div className="writing-letter-editor">
+              <label className="writing-letter-line">
+                <span>{isEnglish ? "Salutation" : "称呼"}</span>
+                <input value={letterDraft.salutation} onChange={(event) => {
+                  const next = { ...letterDraft, salutation: keepEnglishInput(event.target.value) };
+                  setLetterDraft(next);
+                  setAnswer(composeLetterAnswer(next));
+                  setError(null);
+                }} placeholder="Dear …," spellCheck="true" inputMode="text" lang="en" autoCapitalize="sentences" />
+              </label>
+              <label className="writing-letter-body">
+                <span>{isEnglish ? "Body" : "正文"}</span>
+                <textarea value={letterDraft.body} onChange={(event) => {
+                  const next = { ...letterDraft, body: keepEnglishInput(event.target.value) };
+                  setLetterDraft(next);
+                  setAnswer(composeLetterAnswer(next));
+                  setError(null);
+                }} placeholder={isEnglish ? "Start writing here…" : "在这里开始写作…"} spellCheck="true" inputMode="text" lang="en" autoCapitalize="sentences" />
+              </label>
+              <div className="writing-letter-signoff">
+                <label className="writing-letter-line">
+                  <span>{isEnglish ? "Closing" : "结束语"}</span>
+                  <input value={letterDraft.closing} onChange={(event) => {
+                    const next = { ...letterDraft, closing: keepEnglishInput(event.target.value) };
+                    setLetterDraft(next);
+                    setAnswer(composeLetterAnswer(next));
+                    setError(null);
+                  }} placeholder="Yours sincerely," spellCheck="true" inputMode="text" lang="en" autoCapitalize="sentences" />
+                </label>
+                <label className="writing-letter-line">
+                  <span>{isEnglish ? "Signature" : "署名"}</span>
+                  <input value={letterDraft.signature} onChange={(event) => {
+                    const next = { ...letterDraft, signature: keepEnglishInput(event.target.value) };
+                    setLetterDraft(next);
+                    setAnswer(composeLetterAnswer(next));
+                    setError(null);
+                  }} placeholder="Your name" spellCheck="true" inputMode="text" lang="en" autoCapitalize="words" />
+                </label>
+              </div>
+            </div> : <textarea value={answer} onChange={(event) => {
               const next = keepEnglishInput(event.target.value);
               setAnswer(next);
               setError(null);

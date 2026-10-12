@@ -528,6 +528,15 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .writing-editor textarea { width: 100%; height: 100%; min-height: 280px; padding: 0; resize: none; border: 0; outline: 0; background: transparent; color: rgba(0,0,0,.84); font-family: Georgia, "Times New Roman", serif; font-size: 18px; line-height: 1.8; }
 .writing-editor textarea::placeholder { color: rgba(0,0,0,.3); }
 .writing-editor textarea:disabled { color: rgba(0,0,0,.72); -webkit-text-fill-color: rgba(0,0,0,.72); opacity: 1; }
+.writing-letter-editor { height: 100%; min-height: 280px; display: grid; grid-template-rows: auto minmax(180px, 1fr) auto; gap: 24px; }
+.writing-letter-line { width: min(220px, 48%); display: block; }
+.writing-letter-line > span, .writing-letter-body > span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; line-height: 16px; }
+.writing-letter-line input { width: 100%; padding: 0 2px; border: 0; outline: 0; background: transparent; color: rgba(0,0,0,.84); font-family: Georgia, "Times New Roman", serif; font-size: 18px; line-height: 1.5; }
+.writing-letter-line input::placeholder { color: rgba(0,0,0,.3); }
+.writing-letter-body { min-height: 0; display: block; }
+.writing-letter-body textarea { min-height: 180px; }
+.writing-letter-signoff { width: min(220px, 48%); margin-left: auto; display: grid; gap: 16px; }
+.writing-letter-signoff .writing-letter-line { width: 100%; }
 .writing-editor-loading { height: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 12px; }
 .writing-editor-loading svg { width: 16px; }
 .writing-editor-pane > footer { padding: 0 32px; display: flex; align-items: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
@@ -560,12 +569,17 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .writing-original-answer summary svg { width: 14px; height: 14px; transition: transform 160ms ease; }
 .writing-original-answer[open] summary svg { transform: rotate(180deg); }
 .writing-original-answer p { margin: 0; padding: 0 0 20px; white-space: pre-wrap; color: rgba(0,0,0,.74); font-family: Georgia, "Times New Roman", serif; font-size: 13px; line-height: 1.7; }
+.writing-original-letter { padding-bottom: 20px; display: grid; gap: 18px; }
+.writing-original-letter p { padding: 0; }
+.writing-original-letter p.is-missing { color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 10px; }
+.writing-original-letter .writing-original-signoff { width: min(220px, 48%); margin-left: auto; text-align: right; }
 .writing-review-section { border: 1px solid var(--border); border-radius: 9px; background: #fff; }
 .writing-review-section > header { padding: 18px 20px; display: flex; align-items: end; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--border); }
 .writing-review-section > header > div { display: flex; align-items: center; gap: 10px; }
 .writing-review-section > header span { color: var(--blue-dark); font-size: 10px; font-weight: 700; }
 .writing-review-section > header strong { font-size: 14px; }
 .writing-review-section > header small { color: var(--muted); font-size: 10px; }
+.writing-target-band { padding: 3px 7px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-dark); font-size: 9px; line-height: 14px; font-style: normal; font-weight: 600; white-space: nowrap; }
 .writing-review-section-actions { display: flex; align-items: center; gap: 14px; }
 .writing-review-section-actions a { display: inline-flex; align-items: center; gap: 5px; color: var(--blue-dark); font-size: 10px; font-weight: 600; white-space: nowrap; }
 .writing-review-section-actions a svg { width: 13px; height: 13px; }
@@ -768,6 +782,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
   .writing-editor-pane { height: auto; min-height: 70dvh; grid-template-rows: 64px minmax(440px, 1fr) 54px; overflow: visible; }
   .writing-editor-pane > header, .writing-editor-pane > footer { padding-inline: 20px; }
   .writing-editor { padding: 24px 20px; }
+  .writing-letter-line, .writing-letter-signoff { width: min(190px, 62%); }
   .writing-editor-pane.has-review .writing-editor { padding: 0; }
   .writing-review { width: auto; padding: 20px 16px 56px; }
   .writing-review-score { grid-template-columns: 1fr; gap: 18px; }

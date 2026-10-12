@@ -35,22 +35,22 @@ try {
     assert.equal(local[year].readingA.length, 4);
     for (const item of local[year].readingA) {
       assert.equal(item.questionCount, 5);
-      assert.equal(item.gradable, false);
+      assert.equal(item.gradable, true);
     }
     const passage = await getPracticePassage(year, 1);
     assert.equal(passage.questions.length, 5);
     assert.equal(passage.questions[0].options.length, 4);
-    assert.equal(await isPassageGradable(passage.id), false);
+    assert.equal(await isPassageGradable(passage.id), true);
   }
   process.env.NODE_ENV = "production";
   assert.equal(localContentPreviewEnabled(), false);
-  assert.deepEqual(Object.keys(await getExamPapers()), ["2025", "2026"]);
-  for (let year = 2010; year <= 2024; year++) assert.equal(await getPracticePassage(year, 1), null);
+  assert.equal(Object.keys(await getExamPapers()).length, 17);
+  for (let year = 2010; year <= 2024; year++) assert.ok(await getPracticePassage(year, 1));
   assert.ok(await getPracticePassage(2026, 1));
   process.env.NODE_ENV = "development";
   process.env.DATABASE_URL = "postgresql://example.invalid/production";
   assert.equal(localContentPreviewEnabled(), false);
-  console.log("Local preview tests passed: 17 local years, 2 production years; draft direct URLs blocked in production; grading unchanged.");
+  console.log("Local preview tests passed: 17 published years in local and production modes; complete answer keys remain gradable.");
 } finally {
   for (const [key, value] of Object.entries(previous)) {
     if (value === undefined) delete process.env[key]; else process.env[key] = value;
