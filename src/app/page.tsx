@@ -6,7 +6,7 @@ import { localContentPreviewEnabled } from "@/lib/content-preview";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = { lang?: string | string[]; type?: string | string[] };
+type SearchParams = { lang?: string | string[]; type?: string | string[]; year?: string | string[] };
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
   const { lang } = await searchParams;
@@ -14,8 +14,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 }
 
 export default async function Home({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const { lang, type } = await searchParams;
+  const { lang, type, year } = await searchParams;
   const papers = await getExamPapers();
-  const initialType: ExamSectionType = type === "writing" ? "writing" : "reading_a";
-  return <LibraryComparison papers={papers} allowPreview={localContentPreviewEnabled()} initialLanguage={lang === "en" ? "en" : "zh"} initialType={initialType} />;
+  const initialType: ExamSectionType = typeof type === "string" && ["writing", "translation", "cloze", "reading_b"].includes(type) ? type as ExamSectionType : "reading_a";
+  return <LibraryComparison papers={papers} allowPreview={localContentPreviewEnabled()} initialLanguage={lang === "en" ? "en" : "zh"} initialType={initialType} initialYear={typeof year === "string" ? Number(year) : undefined} />;
 }

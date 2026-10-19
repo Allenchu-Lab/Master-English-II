@@ -138,8 +138,8 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
   return <main className="intensive-page">
     <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number} · Intensive Reading` : `吃透英语二 · ${passage.year} Text ${passage.number} · 精读`}</title>
     <header className="intensive-header">
-      <Link href={languageHref("/")} className="practice-back" aria-label={isEnglish ? "Back to library" : "返回首页"}><ArrowLeft /></Link>
-      <nav><BookOpen /><Link href={languageHref("/")}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number} {isEnglish ? "Intensive Reading" : "精读"}</strong></nav>
+      <Link href={languageHref(`/?type=reading_a&year=${passage.year}`)} className="practice-back" aria-label={isEnglish ? "Back to library" : "返回首页"}><ArrowLeft /></Link>
+      <nav><BookOpen /><Link href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number} {isEnglish ? "Intensive Reading" : "精读"}</strong></nav>
       <Link className="intensive-review-link" href={languageHref(`/practice/${passage.year}/${passage.number}`)}><RotateCcw />{isEnglish ? "Review answers" : "回看作答"}</Link>
     </header>
 
@@ -179,7 +179,7 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
 
         <footer className="intensive-panel-nav">
           <button disabled={activeParagraph === 0} onClick={() => setActiveParagraph((current) => current - 1)}><ChevronLeft />{isEnglish ? "Previous" : "上一段"}</button>
-          {activeParagraph < paragraphs.length - 1 ? <button className="primary" onClick={() => setActiveParagraph((current) => current + 1)}>{isEnglish ? "Next" : "下一段"}<ChevronRight /></button> : <Link href={languageHref("/")}>{isEnglish ? "Finish and return" : "完成精读，返回首页"}<Check /></Link>}
+          {activeParagraph < paragraphs.length - 1 ? <button className="primary" onClick={() => setActiveParagraph((current) => current + 1)}>{isEnglish ? "Next" : "下一段"}<ChevronRight /></button> : <Link href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Finish and return" : "完成精读，返回首页"}<Check /></Link>}
         </footer>
       </aside>
     </div>

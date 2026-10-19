@@ -226,8 +226,8 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
     <main className="practice-page">
       <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number}` : `吃透英语二 · ${passage.year} Text ${passage.number}`}</title>
       <header className="practice-header">
-        <Link href={languageHref("/")} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
-        <nav><BookOpen /><Link href={languageHref("/")}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number}</strong></nav>
+        <Link href={languageHref(`/?type=reading_a&year=${passage.year}`)} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
+        <nav><BookOpen /><Link href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number}</strong></nav>
         <div className="practice-timer-group">
           <button className={`practice-timer ${timerRunning ? "is-running" : ""}`} onClick={() => setTimerRunning((running) => !running)} disabled={submitted} aria-label={timerRunning ? (isEnglish ? "Pause timer" : "暂停计时") : (isEnglish ? "Start timer" : "开始计时")}>
             {timerRunning ? <Pause /> : elapsedSeconds ? <Play /> : <Clock3 />}<span>{elapsed}</span><small>{timerRunning ? (isEnglish ? "Pause" : "暂停") : elapsedSeconds ? (isEnglish ? "Resume" : "继续") : (isEnglish ? "Start" : "开始")}</small>
@@ -273,7 +273,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
               </div>}
             </section>)}
           </div>
-          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href={languageHref("/")}>{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" disabled={restarting} aria-busy={restarting} onClick={() => { void restart(); }}>{restarting ? (isEnglish ? "Starting…" : "正在开始…") : (isEnglish ? "Redo" : "重新练习")}</button><Link href={languageHref(`/intensive/${passage.year}/${passage.number}`)}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
+          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" disabled={restarting} aria-busy={restarting} onClick={() => { void restart(); }}>{restarting ? (isEnglish ? "Starting…" : "正在开始…") : (isEnglish ? "Redo" : "重新练习")}</button><Link href={languageHref(`/intensive/${passage.year}/${passage.number}`)}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
         </aside>
       </div>
 

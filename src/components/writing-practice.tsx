@@ -332,8 +332,8 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     <main className="writing-page">
       <title>{isEnglish ? `ChiTouEN II · ${activeTask.year} Writing` : `吃透英语二 · ${activeTask.year} 写作`}</title>
       <header className="practice-header">
-        <Link href={languageHref("/?type=writing")} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
-        <nav><PenLine /><Link href={languageHref("/?type=writing")}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{activeTask.year}</span><span>/</span><strong>{isEnglish ? "Writing" : "写作"}</strong></nav>
+        <Link href={languageHref(`/?type=writing&year=${activeTask.year}`)} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
+        <nav><PenLine /><Link href={languageHref(`/?type=writing&year=${activeTask.year}`)}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{activeTask.year}</span><span>/</span><strong>{isEnglish ? "Writing" : "写作"}</strong></nav>
         <div className="practice-timer-group">
           <button className={`practice-timer ${timerRunning ? "is-running" : ""}`} onClick={() => setTimerRunning((running) => !running)} disabled={Boolean(attempt?.submitted_at)}>
             {timerRunning ? <Pause /> : elapsedSeconds ? <Play /> : <Clock3 />}<span>{elapsed}</span><small>{timerRunning ? (isEnglish ? "Pause" : "暂停") : elapsedSeconds ? (isEnglish ? "Resume" : "继续") : (isEnglish ? "Start" : "开始")}</small>

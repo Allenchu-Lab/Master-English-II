@@ -23,12 +23,12 @@ const sectionMeta: Record<ExamSectionType, { zh: string; en: string; zhUnit: str
 
 const sectionOrder: ExamSectionType[] = ["reading_a", "reading_b", "cloze", "translation", "writing"];
 
-export function LibraryComparison({ papers, initialLanguage = "zh", initialType = "reading_a", allowPreview = false }: { papers: ExamPaperMap; initialLanguage?: "zh" | "en"; initialType?: ExamSectionType; allowPreview?: boolean }) {
+export function LibraryComparison({ papers, initialLanguage = "zh", initialType = "reading_a", initialYear, allowPreview = false }: { papers: ExamPaperMap; initialLanguage?: "zh" | "en"; initialType?: ExamSectionType; initialYear?: number; allowPreview?: boolean }) {
   const pageRef = useRef<HTMLElement>(null);
   const sketchRef = useRef<HTMLDivElement>(null);
   const firstContentRender = useRef(true);
   const years = useMemo(() => Object.values(papers).map((paper) => paper.year).sort((a, b) => b - a), [papers]);
-  const [year, setYear] = useState(() => years[0] ?? 0);
+  const [year, setYear] = useState(() => initialYear && years.includes(initialYear) ? initialYear : years[0] ?? 0);
   const [activeType, setActiveType] = useState(() => Math.max(sectionOrder.indexOf(initialType), 0));
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
@@ -114,6 +114,13 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
   };
 
   const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
+
+  const selectYear = (value: number) => {
+    setYear(value);
+    const url = new URL(window.location.href);
+    url.searchParams.set("year", String(value));
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  };
 
   const selectType = (index: number, type: ExamSectionType) => {
     setActiveType(index);
@@ -253,7 +260,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
 
             <section className="year-library">
               <div className="paper-browser">
-                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => { const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => setYear(value)} aria-pressed={year === value}><strong>{value}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
+                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => { const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => selectYear(value)} aria-pressed={year === value}><strong>{value}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
                 <div className="article-group">
                   <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {progressLoaded ? articleDone : "—"} / {articleTotal}</span><i><b style={{ width: `${progressLoaded && articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>
                   <div className="article-list">{!progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
