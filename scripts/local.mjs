@@ -60,6 +60,9 @@ try {
   await client.query(readFileSync(`${root}deploy/postgres/013-writing-content.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/014-writing-reviews.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/015-writing-rewrites.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/016-translation.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/017-translation-content.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/018-translation-review.sql`, "utf8"));
 } finally {
   await client.end();
 }

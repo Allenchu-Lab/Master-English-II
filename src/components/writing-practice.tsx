@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bookmark, BookMarked, Check, ChevronDown, Clock3, LoaderCircle, Pause, PenLine, Play, RotateCcw, Sparkles } from "lucide-react";
+import { ArrowLeft, Bookmark, BookMarked, Check, ChevronDown, Clock3, LoaderCircle, Pause, PenLine, Play, RotateCcw, Sparkles, X } from "lucide-react";
 import type { WritingChart, WritingTask } from "@/data/get-writing-paper";
 import { requestAi } from "@/lib/ai-request";
-import type { WritingReview } from "@/lib/writing-review";
+import { writingBand, type WritingReview } from "@/lib/writing-review";
 
 type Attempt = { id: string; answer: string; elapsed_seconds: number; submitted_at: string | null; review: WritingReview | null };
 type LetterDraft = { salutation: string; body: string; closing: string; signature: string };
@@ -82,7 +82,7 @@ function formatRevisedAnswer(value: string, part: "A" | "B") {
 
 function PromptChart({ chart, year }: { chart: WritingChart; year: number }) {
   if (year >= 2010 && year <= 2026) {
-    return <figure className="writing-chart writing-chart-original"><Image src={`/writing/charts/${year}-part-b.png`} alt={chart.title} width={1600} height={1000} loading="eager" /></figure>;
+    return <figure className={`writing-chart writing-chart-original ${year === 2026 ? "writing-chart-enlarged" : ""}`}><Image src={`/writing/charts/${year}-part-b.png`} alt={chart.title} width={1600} height={1000} loading="eager" /></figure>;
   }
 
   if (chart.type === "table" && chart.columns && chart.rows) {
@@ -140,6 +140,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const rewriteDialog = useRef<HTMLDialogElement>(null);
   const [rewriting, setRewriting] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const [review, setReview] = useState<WritingReview | null>(null);
@@ -370,10 +371,10 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
               reviewing ? <div className="writing-review-loading"><LoaderCircle className="is-spinning" /><strong>{isEnglish ? "Reviewing your response" : "正在批改你的作文"}</strong><span>{isEnglish ? "Scoring, locating deductions and extracting reusable expressions…" : "正在评分、定位扣分依据并提炼可迁移表达…"}</span></div>
                 : review ? <div className="writing-review">
                   <section className="writing-review-score">
-                    <div><span>{isEnglish ? "ESTIMATED SCORE" : "AI 预估分"}</span><strong>{review.score}<small>/ {review.maxScore}</small></strong><em>{isEnglish ? `Band ${review.band}` : `第 ${review.band} 档`}</em></div>
+                    <div><span>{isEnglish ? "ESTIMATED SCORE" : "AI 预估分"}</span><strong>{review.score}<small>/ {review.maxScore}</small></strong><em>{isEnglish ? `Band ${writingBand(review.score, review.maxScore)}` : `第 ${writingBand(review.score, review.maxScore)} 档`}</em></div>
                     <div><p>{review.summary}</p><dl><dt>{isEnglish ? "To reach the next band" : "升档最优先修改"}</dt><dd>{review.nextBandGap}</dd></dl></div>
                   </section>
-                  <button className="writing-rewrite" onClick={() => void rewrite()} disabled={rewriting}>{rewriting && <LoaderCircle className="spin" />}{isEnglish ? "Write again" : "重新写一遍"}</button>
+                  <button className="writing-rewrite" onClick={() => rewriteDialog.current?.showModal()} disabled={rewriting}>{rewriting && <LoaderCircle className="spin" />}{isEnglish ? "Write again" : "重新写一遍"}</button>
                   <details className="writing-original-answer">
                     <summary><span>{isEnglish ? "View original response" : "查看本次原文"}</span><ChevronDown aria-hidden="true" /></summary>
                     {usesLetterFrame ? <div className="writing-original-letter">
@@ -387,7 +388,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
                     <div className="writing-deductions">{review.deductions.map((item, index) => <article key={`${item.original}-${index}`}><div><span>{isEnglish ? item.category : deductionLabels[item.category]}</span><strong>-{item.impact}</strong></div><blockquote>{item.original}</blockquote><p>{item.reason}</p><div className="writing-suggestion"><Check /><span>{item.suggestion}</span></div></article>)}</div>
                   </section>
                   <section className="writing-review-section">
-                    <header><div><span>02</span><strong>{isEnglish ? "Higher-scoring revision" : "基于原文的提分版本"}</strong><em className="writing-target-band">{review.band < 5 ? (isEnglish ? `Target Band ${review.band + 1}` : `目标第 ${review.band + 1} 档`) : (isEnglish ? "Band 5 revision" : "第 5 档优化版")}</em></div><small>{isEnglish ? "Your ideas, with only necessary changes" : "保留你的观点，只做必要修改"}</small></header>
+                    <header><div><span>02</span><strong>{isEnglish ? "Higher-scoring revision" : "基于原文的提分版本"}</strong><em className="writing-target-band">{writingBand(review.score, review.maxScore) < 5 ? (isEnglish ? `Target Band ${writingBand(review.score, review.maxScore) + 1}` : `目标第 ${writingBand(review.score, review.maxScore) + 1} 档`) : (isEnglish ? "Band 5 revision" : "第 5 档优化版")}</em></div><small>{isEnglish ? "Your ideas, with only necessary changes" : "保留你的观点，只做必要修改"}</small></header>
                     <div className="writing-revised-answer">{formatRevisedAnswer(review.revisedAnswer, activeTask.part)}</div>
                   </section>
                   <section className="writing-review-section">
@@ -445,6 +446,15 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
           </footer>
         </section>
       </div>
+    <dialog ref={rewriteDialog} className="translation-redo-dialog" aria-labelledby="writing-redo-title" aria-describedby="writing-redo-description">
+      <button className="translation-dialog-close" aria-label={isEnglish ? "Close" : "关闭"} onClick={() => rewriteDialog.current?.close()}><X size={20} /></button>
+      <h2 id="writing-redo-title">{isEnglish ? "Write again?" : "重新写这篇作文？"}</h2>
+      <p id="writing-redo-description">{isEnglish ? "You will start with a blank response. Your submitted writing and review will be kept." : "将开始一份空白作答，已提交的作文与批阅结果会保留。"}</p>
+      <div className="translation-dialog-actions">
+        <button autoFocus onClick={() => rewriteDialog.current?.close()}>{isEnglish ? "Keep reviewing" : "继续复盘"}</button>
+        <button className="translation-primary" onClick={() => { rewriteDialog.current?.close(); void rewrite(); }}>{isEnglish ? "Write again" : "重新写一遍"}</button>
+      </div>
+    </dialog>
     </main>
   );
 }

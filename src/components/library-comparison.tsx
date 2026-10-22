@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { BarChart3, BookMarked, BookOpen, ChevronRight, FileText, Languages, PenLine, TextCursorInput } from "lucide-react";
+import { BarChart3, BookMarked, BookOpen, ChevronRight, FileText, Languages, LoaderCircle, PenLine, TextCursorInput } from "lucide-react";
 import type { ExamPaperMap, ExamSectionType } from "@/data/exam-types";
 import { EmailAuth } from "@/components/email-auth";
 
@@ -26,15 +26,26 @@ const sectionOrder: ExamSectionType[] = ["reading_a", "reading_b", "cloze", "tra
 export function LibraryComparison({ papers, initialLanguage = "zh", initialType = "reading_a", initialYear, allowPreview = false }: { papers: ExamPaperMap; initialLanguage?: "zh" | "en"; initialType?: ExamSectionType; initialYear?: number; allowPreview?: boolean }) {
   const pageRef = useRef<HTMLElement>(null);
   const sketchRef = useRef<HTMLDivElement>(null);
-  const firstContentRender = useRef(true);
   const years = useMemo(() => Object.values(papers).map((paper) => paper.year).sort((a, b) => b - a), [papers]);
   const [year, setYear] = useState(() => initialYear && years.includes(initialYear) ? initialYear : years[0] ?? 0);
   const [activeType, setActiveType] = useState(() => Math.max(sectionOrder.indexOf(initialType), 0));
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
+  const [completionTimes,setCompletionTimes]=useState<Record<string,string|null>>({});
+  function completionLabel(id:string) {
+    const value=completionTimes[id];
+    if(!value)return '';
+    return (isEnglish?'Completed ':'完成于 ')+new Intl.DateTimeFormat(isEnglish?'en-GB':'zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
+  }
+  const [readingScores,setReadingScores]=useState<Record<string,number|null>>({});
+  const [writingScores,setWritingScores]=useState<Record<string,{score:number|null;submitted:boolean}>>({});
+  const [translationScores,setTranslationScores]=useState<Record<number,number|null>>({});
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
   const [writingAttempts, setWritingAttempts] = useState<Record<string, "draft" | "submitted">>({});
+  const [translationAttempts,setTranslationAttempts] = useState<Record<number,boolean>>({});
+  const [translationDrafts,setTranslationDrafts] = useState<Record<number,boolean>>({});
   const [progressLoaded, setProgressLoaded] = useState(false);
   const [authRevision, setAuthRevision] = useState(0);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const isEnglish = uiLanguage === "en";
   const selectedPaper = papers[String(year)];
 
@@ -56,13 +67,14 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
         done += paper.readingA.filter((article) => attempts[article.id] === "submitted").length;
       }
     }
+    if (type === "translation") done = Object.values(translationAttempts).filter(Boolean).length;
     if (type === "writing") {
       for (const paper of Object.values(papers)) {
         done += paper.writing.filter((task) => writingAttempts[task.id] === "submitted").length;
       }
     }
     return { type, ...sectionMeta[type], total, available, done };
-  }), [papers, attempts, writingAttempts]);
+  }), [papers, attempts, writingAttempts, translationAttempts]);
 
   const selectedType = typeItems[activeType];
   const articles = selectedType?.type === "reading_a" && selectedPaper ? selectedPaper.readingA : [];
@@ -72,6 +84,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     if (!progressLoaded) return null;
     const paper = papers[String(yearValue)];
     if (!paper) return null;
+    if (selectedType?.type === "translation") return { done: translationAttempts[yearValue] ? 1 : 0, total: paper.sections.find((section) => section.type === "translation")?.itemCount ?? 0 };
     if (selectedType?.type === "writing") {
       return { done: paper.writing.filter((task) => writingAttempts[task.id] === "submitted").length, total: paper.writing.length };
     }
@@ -115,13 +128,6 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
 
   const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
-  const selectYear = (value: number) => {
-    setYear(value);
-    const url = new URL(window.location.href);
-    url.searchParams.set("year", String(value));
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-  };
-
   const selectType = (index: number, type: ExamSectionType) => {
     setActiveType(index);
     const url = new URL(window.location.href);
@@ -130,17 +136,51 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
+  const selectYear = (value: number) => {
+    setYear(value);
+    const url = new URL(window.location.href);
+    url.searchParams.set("year", String(value));
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const beginNavigation = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    if (pendingHref) {
+      event.preventDefault();
+      return;
+    }
+    setPendingHref(href);
+  };
+
+  useEffect(() => {
+    if (!pendingHref) return;
+    const reset = () => setPendingHref(null);
+    const timer = window.setTimeout(reset, 10000);
+    window.addEventListener("pageshow", reset);
+    window.addEventListener("popstate", reset);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pageshow", reset);
+      window.removeEventListener("popstate", reset);
+    };
+  }, [pendingHref]);
+
   useEffect(() => {
     let cancelled = false;
     async function loadAttempts() {
       try {
-        const [response, writingResponse] = await Promise.all([fetch("/api/attempts"), fetch("/api/writing-attempts")]);
+        const [response, writingResponse, translationResponse] = await Promise.all([fetch("/api/attempts"), fetch("/api/writing-attempts"), fetch("/api/translation-attempts")]);
+        if (translationResponse.ok && !cancelled) { const data = await translationResponse.json() as {attempts: {year:number;submitted:boolean;has_draft:boolean;latest_score:number|null;completed_at:string|null}[]}; setCompletionTimes(previous=>({...previous,...Object.fromEntries(data.attempts.map(item=>[`translation-${item.year}`,item.completed_at]))})); setTranslationScores(Object.fromEntries(data.attempts.map(item=>[item.year,item.latest_score]))); setTranslationAttempts(Object.fromEntries(data.attempts.map(item=>[item.year,item.submitted]))); setTranslationDrafts(Object.fromEntries(data.attempts.map(item=>[item.year,item.has_draft]))); }
         if (!response.ok || cancelled) return;
         // 接口已按文章聚合，每篇一条结论，无需再依赖返回顺序累积推断。
-        const { attempts: data } = await response.json() as { attempts: { passage_id: string; submitted: boolean }[] };
+        const { attempts: data } = await response.json() as { attempts: { passage_id: string; submitted: boolean; correct_count:number|null;completed_at:string|null }[] };
+        setCompletionTimes(previous=>({...previous,...Object.fromEntries(data.map(item=>[item.passage_id,item.completed_at]))}));
+        setReadingScores(Object.fromEntries(data.map(item=>[item.passage_id,item.correct_count])));
         setAttempts(Object.fromEntries(data.map((attempt) => [attempt.passage_id, attempt.submitted ? "submitted" : "draft"] as const)));
         if (writingResponse.ok) {
-          const { attempts: writingData } = await writingResponse.json() as { attempts: { task_id: string; submitted: boolean; has_draft: boolean }[] };
+          const { attempts: writingData } = await writingResponse.json() as { attempts: { task_id: string; submitted: boolean; has_draft: boolean;latest_score:number|null;has_submission:boolean;completed_at:string|null }[] };
+          setCompletionTimes(previous=>({...previous,...Object.fromEntries(writingData.map(item=>[item.task_id,item.completed_at]))}));
+          setWritingScores(Object.fromEntries(writingData.map(item=>[item.task_id,{score:item.latest_score,submitted:item.has_submission}])));
           setWritingAttempts(Object.fromEntries(writingData.filter((item) => item.submitted || item.has_draft).map((item) => [item.task_id, item.submitted ? "submitted" : "draft"] as const)));
         }
       } catch { /* The library remains usable when account setup is unavailable. */ }
@@ -199,24 +239,6 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     return () => media.revert();
   }, { scope: pageRef });
 
-  useGSAP(() => {
-    if (firstContentRender.current) {
-      firstContentRender.current = false;
-      return;
-    }
-
-    const media = gsap.matchMedia();
-    media.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.fromTo(
-        ".article-group",
-        { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 0.16, ease: "power2.out", overwrite: "auto" },
-      );
-    });
-
-    return () => media.revert();
-  }, { dependencies: [year, activeType], scope: pageRef, revertOnUpdate: true });
-
   return (
     <main className="comparison" ref={pageRef}>
       <title>{isEnglish ? "ChiTouEN II" : "吃透英语二"}</title>
@@ -256,17 +278,20 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
               <div className="type-tabs">{typeItems.map(({ type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={type} onClick={() => selectType(index, type)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{available ? (isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`) : (isEnglish ? "Not open yet" : "尚未开放")}</small><span className="type-progress-copy"><span>{available ? (!progressLoaded ? (isEnglish ? "Loading progress" : "正在读取进度") : (isEnglish ? "Completed" : "已累计完成")) : (isEnglish ? "Not open yet" : "尚未开放")}</span><strong>{available && progressLoaded ? `${done} / ${total}` : "—"}</strong></span><i className="type-progress"><b style={{ width: available && progressLoaded && total ? `${(done / total) * 100}%` : "0%" }} /></i></button>)}</div>
             </section>
 
-            {selectedType?.type === "writing" && <Link className="writing-library-entry" href={languageHref("/writing/expressions")}><span><BookMarked /><span><strong>{isEnglish ? "My expressions" : "我的表达"}</strong><small>{isEnglish ? "Review language saved from your feedback" : "回看批改后保存的提分表达"}</small></span></span><ChevronRight /></Link>}
+            {selectedType?.type === "writing" && <Link className={`writing-library-entry ${pendingHref === languageHref("/writing/expressions") ? "is-pending" : ""}`} href={languageHref("/writing/expressions")} onClick={(event) => beginNavigation(event, languageHref("/writing/expressions"))} aria-busy={pendingHref === languageHref("/writing/expressions")}><span><BookMarked /><span><strong>{isEnglish ? "My expressions" : "我的表达"}</strong><small>{isEnglish ? "Review language saved from your feedback" : "回看批改后保存的提分表达"}</small></span></span>{pendingHref === languageHref("/writing/expressions") ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link>}
 
             <section className="year-library">
               <div className="paper-browser">
                 <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => { const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => selectYear(value)} aria-pressed={year === value}><strong>{value}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
                 <div className="article-group">
-                  <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {progressLoaded ? articleDone : "—"} / {articleTotal}</span><i><b style={{ width: `${progressLoaded && articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>
-                  <div className="article-list">{!progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
+                  {selectedType?.type === "translation" && selectedType.available && <article className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`}><div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div><div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</span>{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className="article-action" href={languageHref(`/translation/${year}`)}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></div></article>}
+                  {selectedType?.type !== "translation" && <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {progressLoaded ? articleDone : "—"} / {articleTotal}</span><i><b style={{ width: `${progressLoaded && articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>}
+                  <div className="article-list">{selectedType?.type === "translation" ? null : !progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
                     const state = writingAttempts[task.id];
                     const status = state === "submitted" ? (isEnglish ? "Completed" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
-                    return <article key={task.id} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Part {task.part}</h4><p>{isEnglish ? `${task.targetWords} words · ${task.points} points` : `约 ${task.targetWords} 词 · ${task.points} 分`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span></div><Link className="article-action" href={languageHref(`/writing/${year}?part=${task.part}`)}>{state === "draft" ? (isEnglish ? "Continue" : "继续写作") : state === "submitted" ? (isEnglish ? "View response" : "查看答案") : (isEnglish ? "Start writing" : "开始写作")}<ChevronRight /></Link></div></article>;
+                    const href = languageHref(`/writing/${year}?part=${task.part}`);
+                    const isPending = pendingHref === href;
+                    return <article key={task.id} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Part {task.part}</h4><p>{isEnglish ? `${task.targetWords} words · ${task.points} points` : `约 ${task.targetWords} 词 · ${task.points} 分`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span>{writingScores[task.id]?.submitted?<div className="article-result">{typeof writingScores[task.id].score==='number'?<><strong>{writingScores[task.id].score}<small> / {task.points}</small></strong><small>{completionLabel(task.id)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className={`article-action ${isPending ? "is-pending" : ""}`} href={href} onClick={(event) => beginNavigation(event, href)} aria-busy={isPending}>{isPending ? (isEnglish ? "Opening…" : "正在打开…") : state === "draft" ? (isEnglish ? "Continue" : "继续写作") : state === "submitted" ? (isEnglish ? "View response" : "查看答案") : (isEnglish ? "Start writing" : "开始写作")}{isPending ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div></article>;
                   }) : articles.length ? articles.map((article) => {
                     const state = attempts[article.id];
                     // 答案未录入的篇目提交时无法判分，直接标记为待开放而不是引导作答。
@@ -275,7 +300,11 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
                     }
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const action = state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
-                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span><small>{state === "submitted" ? (isEnglish ? "Intensive reading unlocked" : "已解锁精读") : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><Link className="article-action secondary" href={languageHref(`/practice/${year}/${article.number}?redo=1`)}>{isEnglish ? "Redo" : "重新练习"}</Link><Link className="article-action primary" href={languageHref(`/intensive/${year}/${article.number}`)}>{isEnglish ? "Study deeply" : "进入精读"}<ChevronRight /></Link></div> : <Link className="article-action" href={languageHref(`/practice/${year}/${article.number}`)}>{action}<ChevronRight /></Link>}</div></article>;
+                    const href = languageHref(`/practice/${year}/${article.number}`);
+                    const isPending = pendingHref === href;
+                    const redoHref = languageHref(`/practice/${year}/${article.number}?redo=1`);
+                    const intensiveHref = languageHref(`/intensive/${year}/${article.number}`);
+                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span>{state==='submitted'?<div className="article-result">{typeof readingScores[article.id]==='number'?<><strong>{readingScores[article.id]!*2}<small> / {article.questionCount*2}</small></strong><small>{isEnglish?`${readingScores[article.id]} correct · ${article.questionCount-readingScores[article.id]!} incorrect`:`对 ${readingScores[article.id]} · 错 ${article.questionCount-readingScores[article.id]!}`}</small></>:<small>{isEnglish?'Score unavailable':'暂无成绩'}</small>}</div>:null}<small>{state === "submitted" ? completionLabel(article.id) : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><Link className={`article-action secondary ${pendingHref === redoHref ? "is-pending" : ""}`} href={redoHref} onClick={(event) => beginNavigation(event, redoHref)} aria-busy={pendingHref === redoHref}>{pendingHref === redoHref ? (isEnglish ? "Opening…" : "正在打开…") : (isEnglish ? "Redo" : "重新练习")}{pendingHref === redoHref ? <LoaderCircle className="is-spinning" /> : null}</Link><Link className={`article-action primary ${pendingHref === intensiveHref ? "is-pending" : ""}`} href={intensiveHref} onClick={(event) => beginNavigation(event, intensiveHref)} aria-busy={pendingHref === intensiveHref}>{pendingHref === intensiveHref ? (isEnglish ? "Opening…" : "正在打开…") : (isEnglish ? "Study deeply" : "进入精读")}{pendingHref === intensiveHref ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div> : <Link className={`article-action ${isPending ? "is-pending" : ""}`} href={href} onClick={(event) => beginNavigation(event, href)} aria-busy={isPending}>{isPending ? (isEnglish ? "Opening…" : "正在打开…") : action}{isPending ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link>}</div></article>;
                   }) : <div className="article-empty"><p>{!selectedPaper ? (isEnglish ? "No paper has been imported yet." : "题库尚未导入任何真题。") : selectedType?.available ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "This section is not open yet." : "该题型尚未开放。")}</p></div>}</div>
                 </div>
               </div>

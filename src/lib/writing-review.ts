@@ -26,12 +26,18 @@ export type WritingReview = {
 
 const categories = new Set(["task", "grammar", "wording", "cohesion", "format", "length"]);
 
+export function writingBand(score: number, maxScore: number): number {
+  const thresholds = maxScore === 10 ? [9, 7, 5, 3] : [13, 10, 7, 4];
+  const index = thresholds.findIndex(threshold => score >= threshold);
+  return index < 0 ? 1 : 5 - index;
+}
+
 export function isWritingReview(value: unknown, maxScore: number): value is WritingReview {
   if (!value || typeof value !== "object") return false;
   const review = value as Partial<WritingReview>;
   return typeof review.score === "number" && review.score >= 0 && review.score <= maxScore
     && review.maxScore === maxScore
-    && typeof review.band === "number" && Number.isInteger(review.band) && review.band >= 1 && review.band <= 5
+    && review.band === writingBand(review.score, maxScore)
     && typeof review.summary === "string" && typeof review.nextBandGap === "string"
     && typeof review.revisedAnswer === "string"
     && Array.isArray(review.deductions) && review.deductions.length <= 8

@@ -11,8 +11,9 @@ import { query } from "@/lib/db";
  */
 export async function GET() {
   const user = await getOrCreateSessionUser();
-  const result = await query<{ passage_id: string; submitted: boolean }>(
-    `select passage_id, bool_or(submitted_at is not null) as submitted
+  const result = await query<{ passage_id: string; submitted: boolean; correct_count: number | null; completed_at: string | null }>(
+    `select passage_id, bool_or(submitted_at is not null) as submitted,
+       (array_agg(score order by submitted_at desc, id desc) filter (where submitted_at is not null))[1] as correct_count, max(submitted_at) as completed_at
      from practice_attempts where user_id = $1 group by passage_id`,
     [user.id],
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, LoaderCircle, LockKeyhole, RotateCcw, Sparkles } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { SelectableHighlight } from "@/components/selectable-highlight";
@@ -21,7 +21,6 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
   const [accessState, setAccessState] = useState<AccessState>("checking");
   const [activeParagraph, setActiveParagraph] = useState(0);
   const [analyses, setAnalyses] = useState<Record<number, ParagraphAnalysis>>({});
-  const [notes, setNotes] = useState<Record<number, string>>({});
   const [loadingParagraphs, setLoadingParagraphs] = useState<Record<number, boolean>>({});
   const pendingParagraphs = useRef(new Set<number>());
   const mounted = useRef(true);
@@ -73,9 +72,7 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
     const restore = window.setTimeout(() => {
       try {
         const savedAnalyses = window.localStorage.getItem(`intensive-analyses:${passage.id}`);
-        const savedNotes = window.localStorage.getItem(`intensive-notes:${passage.id}`);
         if (savedAnalyses) setAnalyses(JSON.parse(savedAnalyses));
-        if (savedNotes) setNotes(JSON.parse(savedNotes));
       } catch { /* Ignore invalid local study data. */ }
       setRestored(true);
     }, 0);
@@ -85,18 +82,11 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
   useEffect(() => {
     if (!restored) return;
     try {
-      window.localStorage.setItem(`intensive-notes:${passage.id}`, JSON.stringify(notes));
-    } catch { /* Notes remain editable when browser storage is unavailable. */ }
-  }, [notes, passage.id, restored]);
-
-  useEffect(() => {
-    if (!restored) return;
-    try {
       window.localStorage.setItem(`intensive-analyses:${passage.id}`, JSON.stringify(analyses));
     } catch { /* Keep the result usable if browser storage is full or disabled. */ }
   }, [analyses, passage.id, restored]);
 
-  const generateAnalysis = async () => {
+  const generateAnalysis = useCallback(async () => {
     if (!restored || pendingParagraphs.current.has(activeParagraph)) return;
     const paragraph = activeParagraph;
     pendingParagraphs.current.add(paragraph);
@@ -118,7 +108,12 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
       pendingParagraphs.current.delete(paragraph);
       if (mounted.current) setLoadingParagraphs((current) => ({ ...current, [paragraph]: false }));
     }
-  };
+  }, [restored, activeParagraph, paragraphs, passage.year, passage.number, isEnglish]);
+
+  useEffect(() => {
+    if (accessState !== "allowed" || !restored || analyses[activeParagraph] || analysisError || pendingParagraphs.current.has(activeParagraph)) return;
+    void generateAnalysis();
+  }, [accessState, restored, analyses, activeParagraph, analysisError, generateAnalysis]);
 
   if (accessState !== "allowed") {
     return <main className="intensive-gate">
@@ -158,15 +153,12 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
         <div className="intensive-insight-head"><strong>{isEnglish ? "Paragraph analysis" : "段落解析"}</strong><i><b style={{ width: `${completedCount / paragraphs.length * 100}%` }} /></i><span>{isEnglish ? `${completedCount} / ${paragraphs.length} analyzed` : `${completedCount} / ${paragraphs.length} 已解析`}</span></div>
 
         {!analysis ? <section className="analysis-empty">
-          <span className="analysis-step">STEP 1</span>
-          <h3>{isEnglish ? "Write down your understanding" : "先写下你的理解"}</h3>
-          <p>{isEnglish ? "Do not view the analysis yet. Summarize the paragraph in your own words, then let AI help you find gaps." : "暂时不要看解析。用自己的话概括这段，再让 AI 帮你找偏差。"}</p>
-          <label><span>{isEnglish ? "My summary" : "我的段意"}</span><textarea value={notes[activeParagraph] ?? ""} onChange={(event) => setNotes({ ...notes, [activeParagraph]: event.target.value })} placeholder={isEnglish ? "Think first, then summarize the paragraph in your own words…" : "先独立思考，再用自己的话概括这一段……"} /></label>
-          <button onClick={generateAnalysis} disabled={loadingParagraph === activeParagraph}>{loadingParagraph === activeParagraph ? <><LoaderCircle className="is-spinning" />{isEnglish ? "Analyzing paragraph" : "正在解析本段"}</> : <><Sparkles />{isEnglish ? "Analyze paragraph" : "段落解析"}</>}</button>
+          <LoaderCircle className="is-spinning" aria-hidden="true" />
+          <h3>{analysisError ? (isEnglish ? "Analysis unavailable" : "暂时无法解析") : (isEnglish ? "Analyzing paragraph" : "正在解析本段")}</h3>
+          {analysisError && <button onClick={generateAnalysis}>{isEnglish ? "Try again" : "重试"}</button>}
           {analysisError && <p className="analysis-error">{analysisError}</p>}
         </section> : <div className="analysis-content">
           <section className="understanding-compare">
-            <div className="understanding-mine"><span>{isEnglish ? "My summary" : "我的段意"}</span><textarea value={notes[activeParagraph] ?? ""} onChange={(event) => setNotes({ ...notes, [activeParagraph]: event.target.value })} placeholder={isEnglish ? "Think first, then summarize the paragraph in your own words…" : "先独立思考，再用自己的话概括这一段……"} /></div>
             <div className="understanding-ai"><span><Sparkles />{isEnglish ? "AI summary" : "AI 段意"}</span><p>{analysis.summary}</p></div>
           </section>
           <section className="analysis-card"><div className="analysis-card-title"><span>01</span><h3>{isEnglish ? "Reference translation" : "参考译文"}</h3></div><p>{analysis.translation}</p></section>
