@@ -46,7 +46,7 @@ try {
   assert.equal(writing.find(item=>item.task_id==='a').has_submission,true);
   assert.equal(writing.find(item=>item.task_id==='b').latest_score,null);
   const translation=await run('translation-attempts');
-  assert.deepEqual(translation.map(({year,submitted,has_draft,latest_score})=>({year,submitted,has_draft,latest_score})),[{year:2025,submitted:true,has_draft:true,latest_score:null}]);
+  assert.deepEqual(translation.map(({year,submitted,has_draft,latest_score})=>({year,submitted,has_draft,latest_score})),[{year:2025,submitted:false,has_draft:true,latest_score:null}]);
   assert.equal(translation[0].completed_at.toISOString(),'2026-01-02T00:00:00.000Z');
   assert.equal(writing.find(item=>item.task_id==='a').completed_at.toISOString(),'2026-01-02T00:00:00.000Z');
   await client.query("update translation_attempts set updated_at='2026-01-01' where id='t3'");
@@ -56,5 +56,10 @@ try {
   assert.equal((await client.query(detailSql,['me','task'])).rows[0].id,'t2','Detail page must open the submitted response, not the older draft');
   await client.query("update translation_attempts set updated_at='2026-01-03' where id='t3'");
   assert.equal((await client.query(detailSql,['me','task'])).rows[0].id,'t3','A genuine newer redo draft remains editable');
+  await client.query("update translation_attempts set answer='' where id='t3'");
+  const redo=(await run('translation-attempts'))[0];
+  assert.equal(redo.submitted,false);
+  assert.equal(redo.has_redo,true);
+  assert.equal(redo.has_draft,false);
   console.log('Library scores passed: latest submission, zero score, draft coexistence, pending review, and user isolation.');
 } finally { await client.end(); }
