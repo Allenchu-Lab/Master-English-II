@@ -93,12 +93,6 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     return { done, total: paper.readingA.length };
   };
 
-  const articleDone = selectedType?.type === "writing"
-    ? writingTasks.filter((task) => writingAttempts[task.id] === "submitted").length
-    : articles.filter((article) => attempts[article.id] === "submitted").length;
-  const sectionItemCount = selectedPaper?.sections.find((section) => section.type === selectedType?.type)?.itemCount ?? 0;
-  const articleTotal = articles.length || writingTasks.length || sectionItemCount;
-
   useEffect(() => {
     const urlLanguage = new URLSearchParams(window.location.search).get("lang");
     if (urlLanguage === "en" || urlLanguage === "zh") {
@@ -222,7 +216,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
       timeline
         .from([".learning-intro", ".question-types"], { autoAlpha: 0, y: 6 }, 0)
         .from(".year-library", { autoAlpha: 0 }, 0.04)
-        .from(".type-progress b, .article-group-head i b", {
+        .from(".type-progress b", {
           scaleX: 0,
           transformOrigin: "left center",
           duration: 0.24,
@@ -292,7 +286,6 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
                 })}</aside>
                 <div className="article-group">
                   {selectedType?.type === "translation" && selectedType.available && <article className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`}><div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div><div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationRedo[year] ? (isEnglish ? "Ready to redo" : "待重写") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</span>{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className="article-action" href={languageHref(`/translation/${year}`)}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></div></article>}
-                  {selectedType?.type !== "translation" && <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {progressLoaded ? articleDone : "—"} / {articleTotal}</span><i><b style={{ width: `${progressLoaded && articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>}
                   <div className="article-list">{selectedType?.type === "translation" ? null : !progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
                     const state = writingAttempts[task.id];
                     const status = state === "redo" ? (isEnglish ? "Ready to rewrite" : "待重写") : state === "submitted" ? (isEnglish ? "Completed" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
