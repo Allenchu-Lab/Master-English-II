@@ -6,7 +6,7 @@ import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { BarChart3, BookMarked, BookOpen, ChevronRight, CircleCheck, FileText, Languages, LoaderCircle, PenLine, TextCursorInput } from "lucide-react";
+import { BarChart3, BookMarked, BookOpen, Check, ChevronRight, FileText, Languages, LoaderCircle, PenLine, TextCursorInput } from "lucide-react";
 import type { ExamPaperMap, ExamSectionType } from "@/data/exam-types";
 import { EmailAuth } from "@/components/email-auth";
 
@@ -287,7 +287,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
                   const stats = yearStats(value);
                   const complete = Boolean(stats && stats.total > 0 && stats.done === stats.total);
                   return <button key={value} className={`${year === value ? "active" : ""}${complete ? " is-complete" : ""}`} onClick={() => selectYear(value)} aria-pressed={year === value}>
-                    <strong>{value}</strong><small className={complete ? "year-complete" : undefined}>{stats ? `${stats.done}/${stats.total}` : "—"}{complete && <CircleCheck size={16} aria-label={isEnglish ? "All completed" : "全部完成"} role="img" />}</small>
+                    <strong>{value}{complete && <Check className="year-complete" size={16} aria-label={isEnglish ? "All completed" : "全部完成"} role="img" />}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small>
                   </button>;
                 })}</aside>
                 <div className="article-group">
