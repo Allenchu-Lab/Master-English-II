@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { translationBand, validTranslationDeductions } from '../src/lib/translation-review.ts';
+import { translationBand, validTranslationDeductions, normalizeTranslationDeductions, translationDeductionFailure } from '../src/lib/translation-review.ts';
 
 for (const [score, band] of [[0,1],[4,1],[5,2],[8,2],[9,3],[12,3],[13,4],[15,4]]) {
   assert.equal(translationBand(score), band);
@@ -19,4 +19,14 @@ for (const change of [
 assert.equal(validTranslationDeductions([{ ...sentence, translation: '', deductions: [{ ...sentence.deductions[0], quote: '', category: 'omission' }] }], ''), true);
 assert.equal(validTranslationDeductions([{ ...sentence, deductions: [] }], sentence.translation), true);
 assert.equal(validTranslationDeductions([{ ...sentence, deductions: undefined }], sentence.translation), false);
+const combined = structuredClone(sentence);
+combined.translation = '衣服';
+assert.equal(validTranslationDeductions([combined], sentence.translation), true, 'Quotes may belong to a merged sentence in the full answer');
+combined.deductions[0].category = ' MEANING ';
+combined.deductions[0].severity = 'Major';
+normalizeTranslationDeductions([combined]);
+assert.equal(validTranslationDeductions([combined], sentence.translation), true);
+combined.deductions[0].quote = '编造的文字';
+assert.equal(translationDeductionFailure([combined], sentence.translation), 'answer-quote');
+assert.equal(validTranslationDeductions([combined], sentence.translation), false);
 console.log('Translation review: band boundaries, exact source/answer quotes, omissions and legacy data passed.');
