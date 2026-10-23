@@ -545,6 +545,13 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .reading-b-heading-answer select:disabled { opacity: 1; }
 .reading-b-header-count { color: var(--muted); font-size: 12px; }
 .reading-b-reference-option { margin-top: 20px; color: var(--blue-dark); font-size: 15px; line-height: 1.8; }
+.reading-b-true-false { display: grid; gap: 24px; }
+.reading-b-statement { display: block; width: 100%; margin-bottom: 12px; padding: 0; border: 0; background: transparent; text-align: left; font-size: 16px; line-height: 1.8; }
+.reading-b-true-false article.is-active .reading-b-statement { color: var(--blue-dark); }
+.reading-b-true-false article > div { display: flex; gap: 12px; }
+.reading-b-true-false article > div button { min-height: 44px; padding: 8px 20px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.reading-b-true-false button.is-selected, .reading-b-true-false button.is-correct { border-color: var(--blue); background: #edf8f3; }
+.reading-b-true-false button.is-incorrect { border-color: #c79757; background: #fff6e5; }
 @media (max-width: 767px) {
   .reading-b-page { height: 100dvh; overflow-y: auto; }
   .reading-b-page .practice-header { position: sticky; top: 0; z-index: 10; height: auto; min-height: 56px; padding: 8px 12px; flex-wrap: wrap; gap: 8px; }

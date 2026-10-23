@@ -42,7 +42,7 @@ export interface ExamPaper {
   sourceFile: string;
   sections: ExamSection[];
   readingA: ExamPassage[];
-  readingB?: { id: string; kind: 'headings' | 'matching' };
+  readingB?: { id: string; kind: 'headings' | 'matching' | 'true_false' };
   writing: ExamWritingTask[];
 }
 

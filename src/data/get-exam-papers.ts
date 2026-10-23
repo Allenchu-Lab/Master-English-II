@@ -36,7 +36,7 @@ export async function getExamPapers(): Promise<ExamPaperMap> {
   }
   if (!Object.keys(papers).length) return papers;
 
-  const readingB = await query<{year: number; id: string; kind: 'headings' | 'matching'}>(`
+  const readingB = await query<{year: number; id: string; kind: 'headings' | 'matching' | 'true_false'}>(`
     select p.year,t.id,t.content->>'kind' as kind from reading_b_tasks t
     join exam_sections s on s.id=t.section_id join exam_papers p on p.id=s.paper_id
     join private.reading_b_keys k on k.task_id=t.id

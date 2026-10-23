@@ -95,12 +95,12 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
 
   function choose(letter: string, number = active) {
     if (!ready || submitted || busy || mutationLock.current) return;
-    if (Object.entries(answers).some(([key, choice]) => key !== String(number) && choice === letter)) return;
+    if (content.kind !== 'true_false' && Object.entries(answers).some(([key, choice]) => key !== String(number) && choice === letter)) return;
     revision.current++;
     setActive(number);
     setAnswers(previous => {
       const next = { ...previous };
-      if (Object.entries(next).some(([key, choice]) => key !== String(number) && choice === letter)) return previous;
+      if (content.kind !== 'true_false' && Object.entries(next).some(([key, choice]) => key !== String(number) && choice === letter)) return previous;
       if (!letter || next[String(number)] === letter) delete next[String(number)]; else next[String(number)] = letter;
       return next;
     });
@@ -166,7 +166,7 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
     </header>
     <div className="reading-b-layout">
       <section className="reading-b-source" aria-label={isEnglish ? 'Reading passage' : '阅读原文'}>
-        <div className="reading-b-meta">{content.kind === 'headings' ? (isEnglish ? 'Subheading matching' : '小标题选择') : (isEnglish ? 'Information matching' : '信息匹配')} · {isEnglish ? '5 questions · 10 points' : '5 题 · 10 分'}</div>
+        <div className="reading-b-meta">{content.kind === 'headings' ? (isEnglish ? 'Subheading matching' : '小标题选择') : content.kind === 'matching' ? (isEnglish ? 'Information matching' : '信息匹配') : (isEnglish ? 'True or false' : '判断正误')} · {isEnglish ? '5 questions · 10 points' : '5 题 · 10 分'}</div>
         <p className="reading-b-directions">{content.directions}</p>
         {!ready && <div className="reading-b-loading">{notice ? <><p>{notice}</p><button onClick={() => setLoadRevision(value => value + 1)}>{isEnglish ? 'Retry' : '重新读取'}</button></> : <LoaderCircle className="is-spinning" aria-label={isEnglish ? 'Loading' : '正在读取'} />}</div>}
         {content.title && <h1>{content.title}</h1>}
@@ -186,7 +186,7 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
         <small className="reading-b-source-note">{isEnglish ? 'Source: original paper, pages ' : '来源：原试卷第 '}{content.sourcePages.join('–')}{isEnglish ? '' : ' 页'}</small>
       </section>
       <section className="reading-b-answer" aria-label={isEnglish ? 'Your answers' : '作答与复盘'}>
-        <div className="reading-b-answer-head"><div><span className="reading-b-meta">{submitted ? (isEnglish ? 'YOUR RESULT' : '作答结果') : (isEnglish ? 'YOUR ANSWERS' : '你的作答')}</span><h2>{submitted ? (isEnglish ? 'Review & improve' : '答案复盘') : (isEnglish ? 'Match the options' : '选择对应选项')}</h2></div>
+        <div className="reading-b-answer-head"><div><span className="reading-b-meta">{submitted ? (isEnglish ? 'YOUR RESULT' : '作答结果') : (isEnglish ? 'YOUR ANSWERS' : '你的作答')}</span><h2>{submitted ? (isEnglish ? 'Review & improve' : '答案复盘') : content.kind === 'true_false' ? (isEnglish ? 'True or false' : '判断各项正误') : (isEnglish ? 'Match the options' : '选择对应选项')}</h2></div>
           {submitted ? <strong className="reading-b-score">{attempt?.score}<small> / 10</small></strong> : <span className="reading-b-count">{ready ? 5 - missing.length : '—'} / 5</span>}
         </div>
         {content.kind === 'matching' && <>
@@ -194,10 +194,17 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
           <div className="reading-b-match-sheet">{questionNavigation}{matchingOptions}</div>
         </>}
         {content.kind === 'headings' && questionNavigation}
-          {content.kind !== 'matching' && <div className="reading-b-current"><span>{active}</span><h3>{isEnglish ? `Paragraph ${active}` : `第 ${active} 题小标题`}</h3></div>}
-          {content.kind !== 'matching' && !submitted && <p className="reading-b-hint">{isEnglish ? 'Choose an option below. Select it again to clear.' : '点击下方选项作答，再次点击可取消。'}</p>}
+        {content.kind === 'true_false' && <div className="reading-b-true-false">{content.questions.map(question => {
+          const key = attempt?.feedback?.find(item => item.number === question.number);
+          return <article key={question.number} className={active === question.number ? 'is-active' : ''}>
+            <button className="reading-b-statement" onClick={() => setActive(question.number)} aria-pressed={active === question.number}>{question.number}. {question.label}</button>
+            <div role="group" aria-label={`${question.number} ${isEnglish ? 'Answer' : '答案'}`}>{content.options.map(option => <button key={option.letter} disabled={!ready || busy || submitted} aria-pressed={answers[String(question.number)] === option.letter} className={`${answers[String(question.number)] === option.letter ? 'is-selected' : ''} ${submitted && key?.answer === option.letter ? 'is-correct' : submitted && answers[String(question.number)] === option.letter ? 'is-incorrect' : ''}`} onClick={() => choose(option.letter,question.number)}>{option.letter} · {option.text}</button>)}</div>
+          </article>;
+        })}</div>}
+          {content.kind === 'headings' && <div className="reading-b-current"><span>{active}</span><h3>{isEnglish ? `Paragraph ${active}` : `第 ${active} 题小标题`}</h3></div>}
+          {content.kind === 'headings' && !submitted && <p className="reading-b-hint">{isEnglish ? 'Choose an option below. Select it again to clear.' : '点击下方选项作答，再次点击可取消。'}</p>}
           {submitted && feedback && <div className="reading-b-feedback">
-            {content.kind === 'matching' && <h3>{active}. {activeQuestion.label}</h3>}
+            {content.kind !== 'headings' && <h3>{active}. {activeQuestion.label}</h3>}
             <p><span>{isEnglish ? 'Your answer' : '你的答案'}：{answers[String(active)] ?? (isEnglish ? 'Unanswered' : '未作答')}</span><strong>{isEnglish ? 'Correct answer' : '正确答案'}：{feedback.answer}</strong></p>
             <h4>{isEnglish ? 'Evidence' : '原文依据'}</h4><blockquote>{feedback.evidence}</blockquote>
             <h4>{isEnglish ? 'Why it matches' : '匹配依据'}</h4><p>{feedback.explanation}</p>

@@ -4,8 +4,9 @@ import pg from 'pg';
 import { gradeReadingB, validReadingBAnswers } from '../src/lib/reading-b.ts';
 
 const tasks = JSON.parse(readFileSync(new URL('../content/reading-b/tasks.json', import.meta.url), 'utf8'));
+assert.deepEqual(tasks.map(task => task.year), Array.from({length:17},(_,index)=>2010+index));
 for (const task of tasks) {
-  assert.equal(task.options.length, 7);
+  assert.equal(task.options.length, task.kind === 'true_false' ? 2 : 7);
   assert.deepEqual(task.questions.map(q => q.number), [41,42,43,44,45]);
   assert.equal(task.keys.length, 5);
   for (const key of task.keys) {
@@ -15,7 +16,7 @@ for (const task of tasks) {
   if (task.kind === 'headings') assert.deepEqual(task.paragraphs.filter(p => p.number).map(p => p.number), [41,42,43,44,45]);
   assert.equal(validReadingBAnswers({}, task), true);
   assert.equal(validReadingBAnswers({'41':'A','42':'A'}, task), false);
-  assert.equal(validReadingBAnswers({'41':'A','42':'B'}, task), true);
+  assert.equal(validReadingBAnswers(task.kind === 'true_false' ? {'41':'T','42':'T'} : {'41':'A','42':'B'}, task), true);
   for (const value of [null, [], {'40':'A'}, {'41':'H'}, {'41':1}, {'41':'<script>'}]) assert.equal(validReadingBAnswers(value, task), false);
   assert.equal(gradeReadingB(Object.fromEntries(task.keys.map(key => [key.number, key.answer])), task.keys), 10);
   assert.equal(gradeReadingB({}, task.keys), 0);
@@ -69,12 +70,20 @@ try {
   assert.equal(after.submitted_at,null);
   assert.equal(after.score,null);
   assert.equal((await db.query('select count(*) from reading_b_attempts where user_id=$1 and submitted_at is not null',[draft.data.attempt.user_id])).rows[0].count,'1');
-  for (const year of [2025,2026]) {
+  for (const year of tasks.map(task => task.year)) {
     const page = await fetch(`${base}/reading-b/${year}`);
     assert.equal(page.status,200);
     const html = await page.text();
     assert.ok(!html.includes('answerSource'));
     assert.ok(!html.includes('"explanation"'), 'Private explanations must not be in the initial page');
+    if (year !== 2026) {
+      const item = (await db.query(`select t.id,k.keys from reading_b_tasks t join private.reading_b_keys k on k.task_id=t.id where t.content->>'year'=$1`, [String(year)])).rows[0];
+      const allAnswers = Object.fromEntries(item.keys.map(key => [key.number,key.answer]));
+      const started = await api(`/api/reading-b-attempts/${item.id}`,{action:'save',attemptId:null,answers:allAnswers,elapsedSeconds:10});
+      assert.equal(started.status,200,`${year}: can save all answers`);
+      const finished = await api(`/api/reading-b-attempts/${item.id}`,{action:'submit',attemptId:started.data.attempt.id,answers:allAnswers,elapsedSeconds:20});
+      assert.equal(finished.data.attempt.score,10,`${year}: full answer key scores ten`);
+    }
   }
   console.log('Reading B passed: source integrity, grading, validation, autosave races, idempotency, privacy, redo and page availability.');
 } finally {

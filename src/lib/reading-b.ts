@@ -1,6 +1,6 @@
 export type ReadingBContent = {
   year: number;
-  kind: 'headings' | 'matching';
+  kind: 'headings' | 'matching' | 'true_false';
   title: string;
   directions: string;
   paragraphs: { text: string; number?: number }[];
@@ -17,7 +17,7 @@ export type ReadingBAttempt = {
 
 export function validReadingBAnswers(value: unknown, content: ReadingBContent): value is ReadingBAnswers {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  if (new Set(Object.values(value)).size !== Object.values(value).length) return false;
+  if (content.kind !== 'true_false' && new Set(Object.values(value)).size !== Object.values(value).length) return false;
   return Object.entries(value).every(([number, letter]) =>
     content.questions.some(question => String(question.number) === number)
     && content.options.some(option => option.letter === letter));
