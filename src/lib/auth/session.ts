@@ -68,6 +68,16 @@ export async function replaceSession(userId: string, previousUserId?: string) {
       const guest = await client.query("select id from app_users where id = $1 and is_anonymous = true for update", [previousUserId]);
       if (guest.rowCount) {
         await client.query("update practice_attempts set user_id = $1 where user_id = $2", [userId, previousUserId]);
+        await client.query("update reading_b_attempts set user_id = $1 where user_id = $2 and submitted_at is not null", [userId, previousUserId]);
+        await client.query(`
+          insert into reading_b_attempts(user_id,task_id,answers,elapsed_seconds,created_at,updated_at)
+          select $1,task_id,answers,elapsed_seconds,created_at,updated_at from reading_b_attempts
+          where user_id=$2 and submitted_at is null
+          on conflict(user_id,task_id) where submitted_at is null do update set
+            answers=case when excluded.updated_at>reading_b_attempts.updated_at then excluded.answers else reading_b_attempts.answers end,
+            elapsed_seconds=greatest(reading_b_attempts.elapsed_seconds,excluded.elapsed_seconds),
+            updated_at=greatest(reading_b_attempts.updated_at,excluded.updated_at)
+        `, [userId, previousUserId]);
         await client.query(`update writing_expressions set user_id = $1 where user_id = $2`, [userId, previousUserId]);
         await client.query(`update writing_attempts set user_id = $1 where user_id = $2 and submitted_at is not null`, [userId, previousUserId]);
         await client.query(`

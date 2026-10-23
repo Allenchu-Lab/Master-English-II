@@ -37,6 +37,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     return (isEnglish?'Completed ':'完成于 ')+new Intl.DateTimeFormat(isEnglish?'en-GB':'zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
   }
   const [readingScores,setReadingScores]=useState<Record<string,number|null>>({});
+  const [readingBAttempts, setReadingBAttempts] = useState<Record<string, { submitted_at: string | null; score: number | null; has_answers: boolean }>>({});
   const [writingScores,setWritingScores]=useState<Record<string,{score:number|null;submitted:boolean}>>({});
   const [translationScores,setTranslationScores]=useState<Record<number,number|null>>({});
   const [attempts, setAttempts] = useState<Record<string, "draft" | "submitted">>({});
@@ -69,22 +70,26 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
       }
     }
     if (type === "translation") done = Object.values(translationAttempts).filter(Boolean).length;
+    if (type === "reading_b") done = Object.values(readingBAttempts).filter(attempt => attempt.submitted_at).length;
     if (type === "writing") {
       for (const paper of Object.values(papers)) {
         done += paper.writing.filter((task) => writingAttempts[task.id] === "submitted").length;
       }
     }
     return { type, ...sectionMeta[type], total, available, done };
-  }), [papers, attempts, writingAttempts, translationAttempts]);
+  }), [papers, attempts, writingAttempts, translationAttempts, readingBAttempts]);
 
   const selectedType = typeItems[activeType];
   const articles = selectedType?.type === "reading_a" && selectedPaper ? selectedPaper.readingA : [];
   const writingTasks = selectedType?.type === "writing" && selectedPaper ? selectedPaper.writing : [];
+  const readingBTask = selectedType?.type === 'reading_b' ? selectedPaper?.readingB : undefined;
+  const readingBState = readingBTask ? readingBAttempts[readingBTask.id] : undefined;
 
   const yearStats = (yearValue: number) => {
     if (!progressLoaded) return null;
     const paper = papers[String(yearValue)];
     if (!paper) return null;
+    if (selectedType?.type === 'reading_b') return { done: paper.readingB && readingBAttempts[paper.readingB.id]?.submitted_at ? 1 : 0, total: 1 };
     if (selectedType?.type === "translation") return { done: translationAttempts[yearValue] ? 1 : 0, total: paper.sections.find((section) => section.type === "translation")?.itemCount ?? 0 };
     if (selectedType?.type === "writing") {
       return { done: paper.writing.filter((task) => writingAttempts[task.id] === "submitted").length, total: paper.writing.length };
@@ -164,7 +169,12 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     let cancelled = false;
     async function loadAttempts() {
       try {
-        const [response, writingResponse, translationResponse] = await Promise.all([fetch("/api/attempts"), fetch("/api/writing-attempts"), fetch("/api/translation-attempts")]);
+        const [response, writingResponse, translationResponse, readingBResponse] = await Promise.all([fetch("/api/attempts"), fetch("/api/writing-attempts"), fetch("/api/translation-attempts"), fetch("/api/reading-b-attempts")]);
+        if (readingBResponse.ok && !cancelled) {
+          const data = await readingBResponse.json() as { attempts: { task_id: string; submitted_at: string | null; score: number | null; has_answers: boolean }[] };
+          setReadingBAttempts(Object.fromEntries(data.attempts.map(item => [item.task_id, item])));
+          setCompletionTimes(previous => ({ ...previous, ...Object.fromEntries(data.attempts.map(item => [item.task_id, item.submitted_at])) }));
+        }
         if (translationResponse.ok && !cancelled) { const data = await translationResponse.json() as {attempts: {year:number;submitted:boolean;has_draft:boolean;has_redo:boolean;latest_score:number|null;completed_at:string|null}[]}; setCompletionTimes(previous=>({...previous,...Object.fromEntries(data.attempts.map(item=>[`translation-${item.year}`,item.completed_at]))})); setTranslationScores(Object.fromEntries(data.attempts.map(item=>[item.year,item.latest_score]))); setTranslationAttempts(Object.fromEntries(data.attempts.map(item=>[item.year,item.submitted]))); setTranslationRedo(Object.fromEntries(data.attempts.map(item=>[item.year,item.has_redo]))); setTranslationDrafts(Object.fromEntries(data.attempts.map(item=>[item.year,item.has_draft]))); }
         if (!response.ok || cancelled) return;
         // 接口已按文章聚合，每篇一条结论，无需再依赖返回顺序累积推断。
@@ -285,8 +295,14 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
                   </button>;
                 })}</aside>
                 <div className="article-group">
+                  {readingBTask && <article className={`article-row ${readingBState?.submitted_at ? 'status-ready' : readingBState?.has_answers ? 'status-review' : 'status-new'}`}>
+                    <div className="article-name"><h4>{readingBTask.kind === 'headings' ? (isEnglish ? 'Subheading matching' : '小标题选择') : (isEnglish ? 'Information matching' : '信息匹配')}</h4><p>{isEnglish ? '5 questions · 10 points' : '5 题 · 10 分'}</p></div>
+                    <div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? 'Loading…' : '正在读取…') : readingBState?.submitted_at ? (isEnglish ? 'Completed' : '已完成') : readingBState ? (isEnglish ? 'In progress' : '进行中') : (isEnglish ? 'Not started' : '未开始')}</span>
+                      {progressLoaded && readingBState?.submitted_at && <><div className="article-result"><strong>{readingBState.score}<small> / 10</small></strong></div><small>{completionLabel(readingBTask.id)}</small></>}
+                    </div><Link className={`article-action ${pendingHref === languageHref(`/reading-b/${year}`) ? 'is-pending' : ''}`} href={languageHref(`/reading-b/${year}`)} onClick={event => beginNavigation(event, languageHref(`/reading-b/${year}`))}>{readingBState?.submitted_at ? (isEnglish ? 'Review answers' : '查看解析') : readingBState ? (isEnglish ? 'Continue' : '继续练习') : (isEnglish ? 'Start practice' : '开始练习')}{pendingHref === languageHref(`/reading-b/${year}`) ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div>
+                  </article>}
                   {selectedType?.type === "translation" && selectedType.available && <article className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`}><div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div><div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationRedo[year] ? (isEnglish ? "Ready to redo" : "待重写") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</span>{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className="article-action" href={languageHref(`/translation/${year}`)}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></div></article>}
-                  <div className="article-list">{selectedType?.type === "translation" ? null : !progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
+                  <div className="article-list">{selectedType?.type === "translation" || readingBTask ? null : !progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
                     const state = writingAttempts[task.id];
                     const status = state === "redo" ? (isEnglish ? "Ready to rewrite" : "待重写") : state === "submitted" ? (isEnglish ? "Completed" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const href = languageHref(`/writing/${year}?part=${task.part}`);

@@ -36,6 +36,16 @@ export async function getExamPapers(): Promise<ExamPaperMap> {
   }
   if (!Object.keys(papers).length) return papers;
 
+  const readingB = await query<{year: number; id: string; kind: 'headings' | 'matching'}>(`
+    select p.year,t.id,t.content->>'kind' as kind from reading_b_tasks t
+    join exam_sections s on s.id=t.section_id join exam_papers p on p.id=s.paper_id
+    join private.reading_b_keys k on k.task_id=t.id
+    where t.status='published' and s.status='published' and p.status='published'
+  `);
+  for (const row of readingB.rows) {
+    if (papers[String(row.year)]) papers[String(row.year)].readingB = { id: row.id, kind: row.kind };
+  }
+
   // 只取列表需要的计数，不取正文、题干和选项内容。
   const [passageResult, coverageResult, writingResult] = await Promise.all([
     query<PassageRow>(`

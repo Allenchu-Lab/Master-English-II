@@ -63,6 +63,8 @@ try {
   await client.query(readFileSync(`${root}deploy/postgres/016-translation.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/017-translation-content.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/018-translation-review.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/019-reading-b.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/020-reading-b-content.sql`, "utf8"));
 } finally {
   await client.end();
 }
@@ -119,6 +121,7 @@ if (action === "test") {
     run(process.execPath, ["tests/ai-request.mjs"], testEnv);
     run(process.execPath, ["tests/content.mjs"], testEnv);
     run(process.execPath, ["tests/local-preview.mjs"], testEnv);
+    run(process.execPath, ["tests/reading-b.mjs"], testEnv);
   } finally {
     server.kill("SIGTERM");
   }
