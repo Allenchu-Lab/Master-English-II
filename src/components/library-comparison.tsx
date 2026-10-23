@@ -6,7 +6,7 @@ import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { BarChart3, BookMarked, BookOpen, ChevronRight, FileText, Languages, LoaderCircle, PenLine, TextCursorInput } from "lucide-react";
+import { BarChart3, BookMarked, BookOpen, ChevronRight, CircleCheck, FileText, Languages, LoaderCircle, PenLine, TextCursorInput } from "lucide-react";
 import type { ExamPaperMap, ExamSectionType } from "@/data/exam-types";
 import { EmailAuth } from "@/components/email-auth";
 
@@ -283,7 +283,13 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
 
             <section className="year-library">
               <div className="paper-browser">
-                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => { const stats = yearStats(value); return <button key={value} className={year === value ? "active" : ""} onClick={() => selectYear(value)} aria-pressed={year === value}><strong>{value}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small></button>})}</aside>
+                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => {
+                  const stats = yearStats(value);
+                  const complete = Boolean(stats && stats.total > 0 && stats.done === stats.total);
+                  return <button key={value} className={`${year === value ? "active" : ""}${complete ? " is-complete" : ""}`} onClick={() => selectYear(value)} aria-pressed={year === value}>
+                    <strong>{value}</strong><small className={complete ? "year-complete" : undefined}>{stats ? `${stats.done}/${stats.total}` : "—"}{complete && <CircleCheck size={16} aria-label={isEnglish ? "All completed" : "全部完成"} role="img" />}</small>
+                  </button>;
+                })}</aside>
                 <div className="article-group">
                   {selectedType?.type === "translation" && selectedType.available && <article className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`}><div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div><div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationRedo[year] ? (isEnglish ? "Ready to redo" : "待重写") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</span>{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className="article-action" href={languageHref(`/translation/${year}`)}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></div></article>}
                   {selectedType?.type !== "translation" && <div className="article-group-head"><div><h3>{isEnglish ? `${year} Paper` : `${year} 年真题`}</h3><span>{isEnglish ? selectedType.en : selectedType.zh}</span></div><div><span>{isEnglish ? "Completed" : "完成"} {progressLoaded ? articleDone : "—"} / {articleTotal}</span><i><b style={{ width: `${progressLoaded && articleTotal ? (articleDone / articleTotal) * 100 : 0}%` }} /></i></div></div>}

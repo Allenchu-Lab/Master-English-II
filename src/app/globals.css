@@ -193,6 +193,8 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .year-list small { color: var(--muted); font-size: 12px; line-height: 18px; }
 .year-list button.active strong { color: var(--blue-dark); font-weight: 500; }
 .year-list button.active small { color: var(--blue-dark); font-weight: 500; }
+.year-list small.year-complete { display: inline-flex; align-items: center; gap: 4px; color: var(--blue-dark); }
+.year-complete svg { flex-shrink: 0; }
 
 .article-group { min-width: 0; padding-left: 24px; background: #fff; }
 .article-group-head { min-height: 48px; padding: 0; display: flex; align-items: center; justify-content: space-between; }
@@ -825,6 +827,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
   .paper-browser { display: block; min-height: 0; }
   .year-list { width: 100%; height: auto; padding: 0 0 8px; display: flex; overflow-x: auto; overflow-y: hidden; border-right: 0; border-bottom: 1px solid var(--border); scrollbar-width: none; }
   .year-list button { flex: 0 0 76px; min-height: 52px; margin: 0 4px 0 0; padding: 0 8px; justify-content: center; gap: 4px; border-bottom: 0; }
+  .year-list button.is-complete { flex-basis: 100px; }
   .article-group { padding-left: 0; }
   .article-row { min-height: 120px; grid-template-columns: 1fr; gap: 10px; padding: 14px 16px; }
   .article-review { grid-template-columns: 1fr auto; }
