@@ -43,6 +43,7 @@ export interface ExamPaper {
   sections: ExamSection[];
   readingA: ExamPassage[];
   readingB?: { id: string; kind: 'headings' | 'matching' | 'true_false' };
+  cloze?: { id: string };
   writing: ExamWritingTask[];
 }
 

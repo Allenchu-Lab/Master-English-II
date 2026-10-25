@@ -81,6 +81,11 @@ try {
   await a.request(path, { attemptId: guest.id, answers }, 200, "PATCH");
   const submitted = await a.request(`${path}/submit`, { attemptId: guest.id, answers });
   const draft = (await a.request(secondPath)).attempt;
+  const clozeTasks = await db.query("select id from cloze_tasks where status='published' order by id limit 2");
+  const clozePath = `/api/cloze-attempts/${clozeTasks.rows[0].id}`;
+  const clozeDraftPath = `/api/cloze-attempts/${clozeTasks.rows[1].id}`;
+  const clozeSubmission = (await a.request(clozePath, { action: 'submit', attemptId: null, answers: { '1': 'A' }, elapsedSeconds: 12 })).attempt;
+  await a.request(clozeDraftPath, { action: 'save', attemptId: null, answers: { '2': 'B' }, elapsedSeconds: 15 });
   const codeA = await sendCode(a, ` ${emailA.toUpperCase()} `);
   await a.request("/api/auth/request-code", { email: emailA }, 429);
   await verify(a, emailA, codeA === "000000" ? "000001" : "000000", 400);
@@ -94,6 +99,8 @@ try {
   assert.equal(restored.grade.score, submitted.score);
   assert.equal((await a.request(`${path}/access`)).allowed, true);
   assert.equal((await a.request(secondPath)).attempt.id, draft.id);
+  assert.equal((await a.request(clozePath)).attempt.id, clozeSubmission.id, 'Guest cloze submission survives login');
+  assert.deepEqual((await a.request(clozeDraftPath)).attempt.answers, { '2': 'B' }, 'Guest cloze draft survives login');
 
   // Advance only this run's OTP timestamp instead of waiting for the resend cooldown.
   await db.query("update email_login_codes set created_at = now() - interval '2 minutes' where email = $1", [emailA]);
@@ -104,6 +111,7 @@ try {
   assert.equal((await b.request(path)).attempt.id, guestB.id);
   assert.equal((await b.request(`${path}/access`)).allowed, true, "Existing submission survives guest merge");
   assert.equal((await b.request(secondPath)).attempt.id, draft.id, "Draft must sync across devices");
+  assert.deepEqual((await b.request(clozeDraftPath)).attempt.answers, { '2': 'B' }, 'Cloze draft syncs across devices');
   const history = await db.query("select count(*)::int as count from practice_attempts p join app_users u on u.id=p.user_id where u.email=$1", [emailA]);
   assert.equal(history.rows[0].count, 3, "Guest merge must preserve both histories without duplication");
 

@@ -36,6 +36,16 @@ export async function getExamPapers(): Promise<ExamPaperMap> {
   }
   if (!Object.keys(papers).length) return papers;
 
+  const cloze = await query<{year: number; id: string}>(`
+    select p.year,t.id from cloze_tasks t
+    join exam_sections s on s.id=t.section_id join exam_papers p on p.id=s.paper_id
+    join private.cloze_keys k on k.task_id=t.id
+    where t.status='published' and s.status='published' and p.status='published'
+  `);
+  for (const row of cloze.rows) {
+    if (papers[String(row.year)]) papers[String(row.year)].cloze = { id: row.id };
+  }
+
   const readingB = await query<{year: number; id: string; kind: 'headings' | 'matching' | 'true_false'}>(`
     select p.year,t.id,t.content->>'kind' as kind from reading_b_tasks t
     join exam_sections s on s.id=t.section_id join exam_papers p on p.id=s.paper_id
