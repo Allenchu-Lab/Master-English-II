@@ -53,3 +53,27 @@ export function translationDeductionFailure(sentences: TranslationSentence[], an
   }
   return 'deduction-shape';
 }
+
+export function parseTranslationReview(value: unknown, passage: string, answer: string) {
+  if (!value || typeof value !== 'object') throw Error('response-format');
+  const review = value as Record<string, unknown>;
+  if (typeof review.score !== 'number' || !Number.isInteger(review.score) || review.score < 0 || review.score > 15) throw Error('score-format');
+  if (typeof review.summary !== 'string' || !review.summary.trim() || typeof review.reference !== 'string' || !review.reference.trim()) throw Error('response-format');
+  if (!Array.isArray(review.sentences) || review.sentences.some(s => !s || typeof s !== 'object'
+    || ['original','translation','suggestion'].some(k => typeof s[k] !== 'string')
+    || !s.original.trim() || !passage.includes(s.original))) throw Error('sentences');
+  const sentences = review.sentences as TranslationSentence[];
+  normalizeTranslationDeductions(sentences);
+  if (!validTranslationDeductions(sentences, answer)) throw Error(translationDeductionFailure(sentences, answer));
+  const issues = sentences.filter(s => s.deductions!.length > 0);
+  if (!issues.length && review.score !== 15) throw Error('score-consistency');
+  if (issues.length && review.score === 15) throw Error('score-consistency');
+  // Keep the existing stored/UI shape without asking the model to repeat its reasons.
+  for (const sentence of issues) sentence.reason = sentence.deductions!.map(item => item.reason).join('；');
+  const notes: Record<string, Record<string, string>[]> = {};
+  for (const [key, fields, source] of [['patterns',['original','explanation','usage'],'original'],['vocabulary',['word','meaning','usage'],'word']] as const) {
+    if (!Array.isArray(review[key]) || review[key].length > 8) throw Error('study-notes');
+    notes[key] = review[key].filter((item: Record<string, unknown>) => item && fields.every(field => typeof item[field] === 'string' && String(item[field]).trim()) && passage.includes(String(item[source])));
+  }
+  return { score: review.score, summary: review.summary, reference: review.reference, sentences: issues, patterns: notes.patterns, vocabulary: notes.vocabulary, rubricVersion: 2 };
+}
