@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, Clock3, LoaderCircle, Pause, Play, X } from 'lucide-react';
 import type { ClozeAnswers, ClozeAttempt, ClozeContent } from '@/lib/cloze';
+import { HighlightGuide, SelectableHighlight } from '@/components/selectable-highlight';
 
 export function ClozePractice({ task, isEnglish }: { task: { id: string; content: ClozeContent }; isEnglish: boolean }) {
   const router = useRouter();
@@ -146,9 +147,10 @@ export function ClozePractice({ task, isEnglish }: { task: { id: string; content
       <section className="reading-b-source cloze-source" aria-label={isEnglish ? 'Reading passage' : '阅读原文'}>
         <div className="reading-b-meta">{isEnglish ? 'USE OF ENGLISH · 20 QUESTIONS · 10 POINTS' : '完形填空 · 20 题 · 10 分'}</div>
         <p className="reading-b-directions">{content.directions}</p>
+        <HighlightGuide isEnglish={isEnglish} />
         {content.paragraphs.map((paragraph, index) => <p className="cloze-paragraph" key={index}>{paragraph.split(/(\{\{\d+\}\})/).map((piece, i) => {
           const match = /^\{\{(\d+)\}\}$/.exec(piece);
-          if (!match) return piece;
+          if (!match) return piece ? <SelectableHighlight key={`${task.id}:${index}:${i}`} text={piece} scope={`passage:${index}:segment:${i}`} storageKey={`cloze-highlights:${task.id}`} isEnglish={isEnglish} /> : null;
           const number = Number(match[1]);
           const key = attempt?.feedback?.find(item => item.number === number);
           const correct = key && answers[String(number)] === key.answer;

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, ChevronDown, Clock3, LoaderCircle, Pause, Play, X } from 'lucide-react';
 import type { ReadingBAnswers, ReadingBAttempt, ReadingBContent } from '@/lib/reading-b';
+import { HighlightGuide, SelectableHighlight } from '@/components/selectable-highlight';
 
 export function ReadingBPractice({ task, isEnglish }: { task: { id: string; content: ReadingBContent }; isEnglish: boolean }) {
   const router = useRouter();
@@ -90,8 +91,10 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
   }, [dirty]);
 
   useEffect(() => {
-    if (submitted) document.querySelector('.reading-b-source mark')?.scrollIntoView({ block: 'center', behavior: 'instant' });
-  }, [active, submitted]);
+    if (!submitted) return;
+    document.querySelector('.reading-b-source .highlight-evidence')?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    if (content.kind === 'matching' && feedback) document.getElementById(`reading-b-option-${feedback.answer}`)?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }, [active, submitted, content.kind, feedback]);
 
   function choose(letter: string, number = active) {
     if (!ready || submitted || busy || mutationLock.current) return;
@@ -141,13 +144,20 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
     </button>;
   })}</nav>;
 
+  const reviewFeedback = submitted && feedback ? <div className="reading-b-feedback">
+            {content.kind !== 'headings' && <h3>{active}. {activeQuestion.label}</h3>}
+            <p><span>{isEnglish ? 'Your answer' : '你的答案'}：{answers[String(active)] ?? (isEnglish ? 'Unanswered' : '未作答')}</span><strong>{isEnglish ? 'Correct answer' : '正确答案'}：{feedback.answer}</strong></p>
+            <h4>{isEnglish ? 'Evidence' : '原文依据'}</h4><blockquote>{feedback.evidence}</blockquote>
+            <h4>{isEnglish ? 'Why it matches' : '匹配依据'}</h4><p>{feedback.explanation}</p>
+          </div> : null;
+
   const matchingOptions = <div className="reading-b-options" role="group" aria-label={isEnglish ? 'Shared options' : '共享选项'}>{content.options.map(option => {
     const selected = answers[String(active)] === option.letter;
     const uses = content.questions.filter(question => answers[String(question.number)] === option.letter).map(question => question.number);
     const occupied = uses.some(number => number !== active);
-    return <button key={option.letter} className={`${selected ? 'is-selected' : ''} ${!submitted && occupied ? 'is-occupied' : ''} ${submitted && feedback?.answer === option.letter ? 'is-correct' : submitted && selected ? 'is-incorrect' : ''}`} disabled={!ready || busy || submitted || occupied} aria-pressed={selected} onClick={() => choose(option.letter)}>
+    return <div key={option.letter} id={`reading-b-option-${option.letter}`} className="reading-b-option"><button className={`${selected ? 'is-selected' : ''} ${!submitted && occupied ? 'is-occupied' : ''} ${submitted && feedback?.answer === option.letter ? 'is-correct' : submitted && selected ? 'is-incorrect' : ''}`} disabled={!ready || busy || submitted || occupied} aria-pressed={selected} onClick={() => choose(option.letter)}>
       <span className="reading-b-option-letter">{option.letter}</span><span>{option.text}{uses.length > 0 && <small>{isEnglish ? 'Selected for ' : '已选用于 '}{uses.join('、')}</small>}</span>
-    </button>;
+    </button>{content.kind === 'matching' && submitted && feedback?.answer === option.letter && reviewFeedback}</div>;
   })}</div>;
 
   const saveStatus = <footer className="reading-b-save" aria-live="polite">{notice || (submitted ? (isEnglish ? 'Graded against the answer key' : '按参考答案判分') : (isEnglish ? 'Draft saved automatically' : '草稿自动保存'))}{saveFailed && dirty && !submitted && <button disabled={busy} onClick={() => { void persist('save', answers).catch(error => setNotice(error.message)); }}>{isEnglish ? 'Retry saving' : '重试保存'}</button>}</footer>;
@@ -170,6 +180,7 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
         <p className="reading-b-directions">{content.directions}</p>
         {!ready && <div className="reading-b-loading">{notice ? <><p>{notice}</p><button onClick={() => setLoadRevision(value => value + 1)}>{isEnglish ? 'Retry' : '重新读取'}</button></> : <LoaderCircle className="is-spinning" aria-label={isEnglish ? 'Loading' : '正在读取'} />}</div>}
         {content.title && <h1>{content.title}</h1>}
+        <HighlightGuide isEnglish={isEnglish} />
         {content.paragraphs.map((paragraph, index) => <div key={index} id={paragraph.number ? `reading-b-${paragraph.number}` : undefined} className="reading-b-paragraph">
           {paragraph.number && <div className={`reading-b-gap reading-b-heading-answer ${active === paragraph.number ? 'is-active' : ''}`}>
             <button disabled={!ready || busy} aria-label={`${isEnglish ? 'Question' : '第'} ${paragraph.number}${isEnglish ? '' : ' 题'}`} onClick={() => setActive(paragraph.number!)}>{paragraph.number}.</button>
@@ -179,9 +190,7 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
             </select>
             <ChevronDown className="reading-b-select-chevron" aria-hidden="true" />
           </div>}
-          <p>{submitted && feedback?.evidence && paragraph.text.includes(feedback.evidence)
-            ? <>{paragraph.text.slice(0, paragraph.text.indexOf(feedback.evidence))}<mark>{feedback.evidence}</mark>{paragraph.text.slice(paragraph.text.indexOf(feedback.evidence) + feedback.evidence.length)}</>
-            : paragraph.text}</p>
+          <p><SelectableHighlight key={`${task.id}:${index}`} text={paragraph.text} scope={`passage:${index}`} storageKey={`reading-b-highlights:${task.id}`} isEnglish={isEnglish} evidence={submitted ? feedback?.evidence : undefined} /></p>
         </div>)}
         <small className="reading-b-source-note">{isEnglish ? 'Source: original paper, pages ' : '来源：原试卷第 '}{content.sourcePages.join('–')}{isEnglish ? '' : ' 页'}</small>
       </section>
@@ -203,13 +212,8 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
         })}</div>}
           {content.kind === 'headings' && <div className="reading-b-current"><span>{active}</span><h3>{isEnglish ? `Paragraph ${active}` : `第 ${active} 题小标题`}</h3></div>}
           {content.kind === 'headings' && !submitted && <p className="reading-b-hint">{isEnglish ? 'Choose an option below. Select it again to clear.' : '点击下方选项作答，再次点击可取消。'}</p>}
-          {submitted && feedback && <div className="reading-b-feedback">
-            {content.kind !== 'headings' && <h3>{active}. {activeQuestion.label}</h3>}
-            <p><span>{isEnglish ? 'Your answer' : '你的答案'}：{answers[String(active)] ?? (isEnglish ? 'Unanswered' : '未作答')}</span><strong>{isEnglish ? 'Correct answer' : '正确答案'}：{feedback.answer}</strong></p>
-            <h4>{isEnglish ? 'Evidence' : '原文依据'}</h4><blockquote>{feedback.evidence}</blockquote>
-            <h4>{isEnglish ? 'Why it matches' : '匹配依据'}</h4><p>{feedback.explanation}</p>
-          </div>}
-          {feedback && <p className="reading-b-reference-option">{feedback.answer}. {content.options.find(option => option.letter === feedback.answer)?.text}</p>}
+          {content.kind !== 'matching' && reviewFeedback}
+          {content.kind !== 'matching' && feedback && <p className="reading-b-reference-option">{feedback.answer}. {content.options.find(option => option.letter === feedback.answer)?.text}</p>}
         {content.kind === 'headings' && !submitted && matchingOptions}
         {saveStatus}
       </section>

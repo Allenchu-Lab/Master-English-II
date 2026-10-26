@@ -510,7 +510,7 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .reading-b-source h1 { margin: 0 0 24px; font-size: 20px; line-height: 1.6; }
 .reading-b-paragraph { margin: 0 0 22px; scroll-margin-top: 24px; }
 .reading-b-paragraph > p { margin: 0; font-size: 18px; line-height: 1.9; text-indent: 2em; overflow-wrap: anywhere; }
-.reading-b-paragraph mark { color: inherit; background: #fff0cf; border-radius: 3px; }
+.reading-b-paragraph .highlight-evidence { color: inherit; background: #fff0cf; border-radius: 3px; }
 .reading-b-gap { width: 100%; min-height: 44px; display: flex; align-items: baseline; gap: 12px; margin: 0 0 12px; padding: 10px 12px; text-align: left; color: var(--muted); background: #fff; border: 1px dashed var(--border); border-radius: 8px; }
 .reading-b-gap.is-active { color: var(--blue-dark); border-color: var(--blue); background: var(--green-soft, #edf8f3); }
 .reading-b-source-note { display: block; margin-top: 32px; font-size: 12px; color: var(--muted); }
@@ -530,6 +530,10 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .reading-b-current h3 { margin: 0; font-size: 18px; line-height: 1.5; }
 .reading-b-hint { margin: 0 0 20px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .reading-b-options { display: grid; gap: 10px; }
+.reading-b-option { min-width: 0; scroll-margin-top: 16px; }
+.reading-b-option > button { width: 100%; }
+.reading-b-option > .reading-b-feedback { margin: 8px 0 12px; padding: 16px; overflow-wrap: anywhere; }
+.reading-b-option > .reading-b-feedback h3 { font-size: 14px; }
 .reading-b-options button { min-height: 48px; display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: #fff; text-align: left; color: var(--ink); font-size: 15px; line-height: 1.65; }
 .reading-b-options button:not(:disabled):hover { background: #f6f8f7; border-color: #a0c5b4; }
 .reading-b-options button.is-selected, .reading-b-options button.is-correct { border-color: var(--blue); background: #edf8f3; }

@@ -63,7 +63,7 @@ function mergeHighlights(highlights: Highlight[]) {
     }, []);
 }
 
-export function SelectableHighlight({ text, scope, storageKey, isEnglish = false, mode = "highlight" }: { text: string; scope: string; storageKey: string; isEnglish?: boolean; mode?: InteractionMode }) {
+export function SelectableHighlight({ text, scope, storageKey, isEnglish = false, mode = "highlight", evidence }: { text: string; scope: string; storageKey: string; isEnglish?: boolean; mode?: InteractionMode; evidence?: string }) {
   const containerRef = useRef<HTMLSpanElement>(null);
   const lookupRequestRef = useRef(0);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
@@ -114,16 +114,25 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
   useEffect(() => () => { lookupRequestRef.current += 1; }, []);
 
   const segments = useMemo(() => {
-    const result: { text: string; highlightIndex?: number }[] = [];
+    const result: { text: string; start: number; highlightIndex?: number }[] = [];
     let cursor = 0;
     highlights.forEach((highlight, index) => {
-      if (highlight.start > cursor) result.push({ text: text.slice(cursor, highlight.start) });
-      result.push({ text: text.slice(highlight.start, highlight.end), highlightIndex: index });
+      if (highlight.start > cursor) result.push({ text: text.slice(cursor, highlight.start), start: cursor });
+      result.push({ text: text.slice(highlight.start, highlight.end), start: highlight.start, highlightIndex: index });
       cursor = highlight.end;
     });
-    if (cursor < text.length) result.push({ text: text.slice(cursor) });
+    if (cursor < text.length) result.push({ text: text.slice(cursor), start: cursor });
     return result;
   }, [highlights, text]);
+
+  const evidenceStart = evidence ? text.indexOf(evidence) : -1;
+  function segmentContent(segment: { text: string; start: number }) {
+    if (evidenceStart < 0 || !evidence) return segment.text;
+    const start = Math.max(0, evidenceStart - segment.start);
+    const end = Math.min(segment.text.length, evidenceStart + evidence.length - segment.start);
+    if (start >= end) return segment.text;
+    return <>{segment.text.slice(0, start)}<span className="highlight-evidence">{segment.text.slice(start, end)}</span>{segment.text.slice(end)}</>;
+  }
 
   const wordSegments = useMemo(() => {
     if (mode !== "lookup") return [];
@@ -241,12 +250,12 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
           aria-label={isEnglish ? `Look up ${segment.text}` : `查询 ${segment.text}`}
         >{segment.text}</button>
       : <span key={segment.start}>{segment.text}</span>) : segments.map((segment, index) => segment.highlightIndex === undefined
-      ? <span key={index}>{segment.text}</span>
+      ? <span key={index}>{segmentContent(segment)}</span>
       : <mark
           key={index}
           onClick={(event) => { event.stopPropagation(); removeHighlight(segment.highlightIndex!); }}
           title={isEnglish ? "Remove highlight" : "点击取消标记"}
-        >{segment.text}</mark>)}
+        >{segmentContent(segment)}</mark>)}
 
     {lookup && <span className="word-lookup" style={lookup.x === undefined ? undefined : { left: lookup.x, top: lookup.y }} role="dialog" aria-label={isEnglish ? "Word meaning" : "词汇释义"} onClick={(event) => event.stopPropagation()}>
       <span className="word-lookup-head">
