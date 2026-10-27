@@ -44,9 +44,15 @@ export function hasCompleteAnswers(keys: KeyRow[], answers: Record<string, numbe
   });
 }
 
+export function hasValidAnswers(keys: KeyRow[], answers: Record<string, number>): boolean {
+  return Object.entries(answers).every(([number, selected]) =>
+    keys.some((item) => String(item.question_number) === number)
+    && Number.isInteger(selected) && selected >= 0 && selected <= 3);
+}
+
 export function toGradeResult(keys: KeyRow[], answers: Record<string, number>): GradeResult {
   const questions = keys.map((item) => {
-    const selectedOption = answers[String(item.question_number)];
+    const selectedOption = answers[String(item.question_number)] ?? -1;
     return {
       questionNumber: item.question_number,
       selectedOption,
@@ -62,12 +68,12 @@ export function toGradeResult(keys: KeyRow[], answers: Record<string, number>): 
 
 /**
  * 为已提交的练习记录重建判分结果，用于刷新后恢复复盘视图。
- * 答案覆盖不完整时返回 null，调用方据此退回普通作答视图。
+ * 未作答的题目按错误计分，刷新后仍恢复已提交的复盘视图。
  */
 export async function loadGradeResult(passageId: string, answers: Record<string, number>): Promise<GradeResult | null> {
   const keys = await query<KeyRow>(KEYS_SQL, [passageId]);
   const total = await query<{ count: string }>(PUBLISHED_QUESTION_COUNT_SQL, [passageId]);
   if (!keys.rowCount || keys.rowCount !== Number(total.rows[0].count)) return null;
-  if (!hasCompleteAnswers(keys.rows, answers)) return null;
+  if (!hasValidAnswers(keys.rows, answers)) return null;
   return toGradeResult(keys.rows, answers);
 }

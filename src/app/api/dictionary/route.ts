@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth/session";
 import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
@@ -13,6 +14,8 @@ type DictionaryResult = {
 };
 
 export async function POST(request: Request) {
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   if (rateLimit(`dictionary:${clientKey(request)}`, { max: 20, windowMs: 10 * 60 * 1000 })) {
     return NextResponse.json({ error: "查词太频繁了，请稍后再试。" }, { status: 429 });
   }

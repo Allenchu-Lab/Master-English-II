@@ -2,7 +2,7 @@ import { TRANSLATION_RUBRIC } from '@/lib/review-rubrics';
 import { parseTranslationReview } from '@/lib/translation-review';
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { getOrCreateSessionUser } from '@/lib/auth/session';
+import { getSessionUser } from '@/lib/auth/session';
 import { clientKey, rateLimit } from '@/lib/rate-limit';
 export async function POST(request: Request,{params}:{params:Promise<{taskId:string}>}) {
   if(rateLimit(`translation-review:${clientKey(request)}`,{max:10,windowMs:600000}))return NextResponse.json({error:'请求过于频繁，请稍后重试。'},{status:429});
@@ -10,7 +10,8 @@ export async function POST(request: Request,{params}:{params:Promise<{taskId:str
   const body=await request.json().catch(()=>null);
   const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if(!uuid.test(taskId)||!uuid.test(body?.attemptId??''))return NextResponse.json({error:'Invalid attempt'},{status:400});
-  const user=await getOrCreateSessionUser();
+  const user=await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const result=await query<{id:string;answer:string;passage:string;review:unknown}>(`select a.id,a.answer,a.review,t.passage from translation_attempts a join translation_tasks t on t.id=a.task_id where a.user_id=$1 and a.task_id=$2 and a.id=$3 and a.submitted_at is not null`,[user.id,taskId,body.attemptId]);
   const attempt=result.rows[0];
   if(!attempt)return NextResponse.json({error:'Not found'},{status:404});

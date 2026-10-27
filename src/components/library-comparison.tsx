@@ -49,6 +49,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
   const [progressLoaded, setProgressLoaded] = useState(false);
   const [authRevision, setAuthRevision] = useState(0);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [loginRequest, setLoginRequest] = useState<{ href: string }>();
   const isEnglish = uiLanguage === "en";
   const selectedPaper = papers[String(year)];
 
@@ -150,11 +151,13 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
 
   const beginNavigation = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
     if (pendingHref) {
       event.preventDefault();
       return;
     }
     setPendingHref(href);
+    setLoginRequest({ href });
   };
 
   useEffect(() => {
@@ -272,7 +275,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
         <div className="product-main">
           <header className="content-header">
             <nav className="breadcrumb" aria-label={isEnglish ? "Breadcrumb" : "面包屑导航"}><BookOpen /><span aria-current="page">{isEnglish ? "Practice" : "刷题"}</span></nav>
-            <EmailAuth isEnglish={isEnglish} onAuthChange={() => { setProgressLoaded(false); setAuthRevision((value) => value + 1); }} />
+            <EmailAuth isEnglish={isEnglish} loginRequest={loginRequest} onCancel={() => { setLoginRequest(undefined); setPendingHref(null); }} onAuthChange={() => { setProgressLoaded(false); setAuthRevision((value) => value + 1); }} />
           </header>
 
           <section className="library">
@@ -317,7 +320,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
                       {progressLoaded && readingBState?.submitted_at && <><div className="article-result"><strong>{readingBState.score}<small> / 10</small></strong></div><small>{completionLabel(readingBTask.id)}</small></>}
                     </div><Link className={`article-action ${pendingHref === languageHref(`/reading-b/${year}`) ? 'is-pending' : ''}`} href={languageHref(`/reading-b/${year}`)} onClick={event => beginNavigation(event, languageHref(`/reading-b/${year}`))}>{readingBState?.submitted_at ? (isEnglish ? 'Review answers' : '查看解析') : readingBState ? (isEnglish ? 'Continue' : '继续练习') : (isEnglish ? 'Start practice' : '开始练习')}{pendingHref === languageHref(`/reading-b/${year}`) ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div>
                   </article>}
-                  {selectedType?.type === "translation" && selectedType.available && <article className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`}><div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div><div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationRedo[year] ? (isEnglish ? "Ready to redo" : "待重写") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</span>{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className="article-action" href={languageHref(`/translation/${year}`)}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></div></article>}
+                  {selectedType?.type === "translation" && selectedType.available && <article className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`}><div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div><div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationRedo[year] ? (isEnglish ? "Ready to redo" : "待重写") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</span>{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className="article-action" href={languageHref(`/translation/${year}`)} onClick={event => beginNavigation(event, languageHref(`/translation/${year}`))}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></div></article>}
                   <div className="article-list">{selectedType?.type === "translation" || readingBTask || clozeTask ? null : !progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
                     const state = writingAttempts[task.id];
                     const status = state === "redo" ? (isEnglish ? "Ready to rewrite" : "待重写") : state === "submitted" ? (isEnglish ? "Completed" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");

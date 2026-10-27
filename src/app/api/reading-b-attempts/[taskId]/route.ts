@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getOrCreateSessionUser } from '@/lib/auth/session';
+import { getSessionUser } from '@/lib/auth/session';
 import { query, transaction } from '@/lib/db';
 import { gradeReadingB, validReadingBAnswers, type ReadingBContent, type ReadingBKey, type ReadingBAttempt } from '@/lib/reading-b';
 import { clientKey, rateLimit } from '@/lib/rate-limit';
@@ -10,7 +10,8 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function GET(_request: Request, { params }: Context) {
   const { taskId } = await params;
   if (!uuid.test(taskId)) return NextResponse.json({ error: 'Invalid task' }, { status: 400 });
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const result = await query<ReadingBAttempt>(`
     select id, answers, elapsed_seconds, score, submitted_at, feedback
     from reading_b_attempts where user_id=$1 and task_id=$2
@@ -30,7 +31,8 @@ export async function POST(request: Request, { params }: Context) {
     || !Number.isInteger(body.elapsedSeconds) || body.elapsedSeconds < 0 || body.elapsedSeconds > 604800) {
     return NextResponse.json({ error: 'Invalid answer' }, { status: 400 });
   }
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   return transaction(async client => {
     // Serialize draft saves, submissions and retries for this user/task pair.
     await client.query('select pg_advisory_xact_lock(hashtext($1))', [`reading-b:${user.id}:${taskId}`]);

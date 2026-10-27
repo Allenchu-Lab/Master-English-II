@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getOrCreateSessionUser } from "@/lib/auth/session";
+import { getSessionUser } from "@/lib/auth/session";
 import { loadGradeResult } from "@/data/grade-attempt";
 import { isPassageGradable } from "@/data/passage-gradable";
 import { query } from "@/lib/db";
@@ -24,7 +24,8 @@ export async function GET(_request: Request, { params }: Context) {
   const { passageId } = await params;
   // 非 uuid 会让 Postgres 直接抛类型错误，先挡掉以免返回 500。
   if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const latest = await query<AttemptRow>(LATEST_ATTEMPT_SQL, [user.id, passageId]);
   const current = latest.rows[0];
 
@@ -52,7 +53,8 @@ export async function GET(_request: Request, { params }: Context) {
 export async function POST(_request: Request, { params }: Context) {
   const { passageId } = await params;
   if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   if (!await isPassageGradable(passageId)) {
     return NextResponse.json({ error: "这篇的答案尚未录入，暂未开放练习。" }, { status: 409 });
   }
@@ -75,7 +77,8 @@ function isValidAnswers(value: unknown): value is Record<string, number> {
 export async function PATCH(request: Request, { params }: Context) {
   const { passageId } = await params;
   if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const body = await request.json().catch(() => null) as { attemptId?: unknown; answers?: unknown } | null;
   const { attemptId, answers } = body ?? {};
   if (typeof attemptId !== "string" || !isValidAnswers(answers)) {

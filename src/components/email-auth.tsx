@@ -8,7 +8,7 @@ import { isValidEmail } from "@/lib/auth/email-validation";
 
 type Step = "email" | "code";
 
-export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onAuthChange: () => void }) {
+export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel }: { isEnglish: boolean; onAuthChange: () => void; loginRequest?: { href: string }; onCancel?: () => void }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("email");
@@ -30,12 +30,32 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
     }).catch(() => setUser(null));
   }, []);
 
+  useEffect(() => {
+    if (!loginRequest) return;
+    let cancelled = false;
+    getAuthUser().then(({ user: current, signInEnabled: enabled, localMail: local }) => {
+      if (cancelled) return;
+      setUser(current);
+      setSignInEnabled(enabled);
+      setLocalMail(local);
+      if (isEmailUser(current)) window.location.assign(loginRequest.href);
+      else setOpen(true);
+    }).catch(() => {
+      if (!cancelled) {
+        setOpen(true);
+        setError(isEnglish ? "Unable to check your account. Please try again." : "账户状态读取失败，请重试。");
+      }
+    });
+    return () => { cancelled = true; };
+  }, [loginRequest, isEnglish]);
+
   const close = () => {
     if (loading) return;
     setOpen(false);
     setError(null);
     setEmailError(null);
     setNotice(null);
+    onCancel?.();
   };
 
   const sendCode = async (event: FormEvent) => {
@@ -83,6 +103,7 @@ export function EmailAuth({ isEnglish, onAuthChange }: { isEnglish: boolean; onA
       setOpen(false);
       setStep("email");
       setCode("");
+      if (loginRequest) window.location.assign(loginRequest.href);
     } catch {
       setError(isEnglish ? "The code is incorrect or has expired." : "验证码错误或已过期，请重新输入。");
     } finally {

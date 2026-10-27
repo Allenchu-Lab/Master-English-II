@@ -139,7 +139,7 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
   const questionNavigation = <nav className={`reading-b-questions ${content.kind === 'matching' ? 'reading-b-people' : ''}`} aria-label={isEnglish ? 'Select question' : '选择题号'}>{content.questions.map(question => {
     const key = attempt?.feedback?.find(item => item.number === question.number);
     const correct = key && answers[String(question.number)] === key.answer;
-    return <button key={question.number} disabled={!ready || busy} className={`${active === question.number ? 'is-active' : ''} ${submitted ? correct ? 'is-correct' : 'is-wrong' : ''}`} aria-pressed={active === question.number} onClick={() => focusQuestion(question.number)}>
+    return <button id={`reading-b-question-${question.number}`} key={question.number} disabled={!ready || busy} className={`${active === question.number ? 'is-active' : ''} ${submitted ? correct ? 'is-correct' : 'is-wrong' : ''}`} aria-pressed={active === question.number} onClick={() => focusQuestion(question.number)}>
       <span>{question.number}</span>{content.kind === 'matching' && <span className="reading-b-person-name">{question.label}</span>}<b>{answers[String(question.number)] ?? '—'}</b>{submitted && (correct ? <Check size={14} aria-label={isEnglish ? 'Correct' : '正确'} /> : <X size={14} aria-label={isEnglish ? 'Incorrect' : '错误'} />)}
     </button>;
   })}</nav>;
@@ -222,7 +222,7 @@ export function ReadingBPractice({ task, isEnglish }: { task: { id: string; cont
       <button className="translation-dialog-close" aria-label={isEnglish ? 'Close' : '关闭'} onClick={() => confirm.current?.close()}><X size={20} /></button>
       <h2 id="reading-b-confirm-title">{submitted ? (isEnglish ? 'Start again?' : '重新练习这篇文章？') : (isEnglish ? 'Submit with unanswered questions?' : '还有题目未作答，确认提交？')}</h2>
       <p>{submitted ? (isEnglish ? 'Start with blank answers. Your submitted attempt will be kept.' : '将开始一份空白作答，已提交的练习记录会保留。') : `${isEnglish ? 'Unanswered questions: ' : '未作答题号：'}${missing.map(question => question.number).join('、')}`}</p>
-      <div className="translation-dialog-actions"><button autoFocus onClick={() => confirm.current?.close()}>{submitted ? (isEnglish ? 'Keep reviewing' : '继续复盘') : (isEnglish ? 'Continue answering' : '继续作答')}</button><button className="translation-primary" onClick={() => { confirm.current?.close(); void act(submitted ? 'redo' : 'submit'); }}>{submitted ? (isEnglish ? 'Start again' : '确认重做') : (isEnglish ? 'Submit' : '确认提交')}</button></div>
+      <div className="translation-dialog-actions"><button autoFocus onClick={() => { confirm.current?.close(); if (!submitted && missing[0]) { focusQuestion(missing[0].number); document.getElementById(`reading-b-question-${missing[0].number}`)?.focus(); } }}>{submitted ? (isEnglish ? 'Keep reviewing' : '继续复盘') : (isEnglish ? 'Check unanswered' : '返回检查')}</button><button className="translation-primary" onClick={() => { confirm.current?.close(); void act(submitted ? 'redo' : 'submit'); }}>{submitted ? (isEnglish ? 'Start again' : '确认重做') : (isEnglish ? 'Submit anyway' : '仍然提交')}</button></div>
     </dialog>
   </main>;
 }

@@ -1,6 +1,6 @@
 import { WRITING_RUBRIC } from '@/lib/review-rubrics';
 import { NextResponse } from "next/server";
-import { getOrCreateSessionUser } from "@/lib/auth/session";
+import { getSessionUser } from "@/lib/auth/session";
 import { query } from "@/lib/db";
 import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -31,7 +31,8 @@ export async function POST(request: Request, { params }: Context) {
   if (typeof body?.attemptId !== "string" || !UUID_PATTERN.test(body.attemptId)) {
     return NextResponse.json({ error: "Invalid attempt" }, { status: 400 });
   }
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const result = await query<ReviewRow>(`
     select a.id, a.answer, a.review, t.part, t.prompt, t.points, t.target_words, t.chart
     from writing_attempts a join writing_tasks t on t.id = a.task_id

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getOrCreateSessionUser } from "@/lib/auth/session";
+import { getSessionUser } from "@/lib/auth/session";
 import { transaction } from "@/lib/db";
-import { hasCompleteAnswers, KEYS_SQL, PUBLISHED_QUESTION_COUNT_SQL, toGradeResult, type KeyRow } from "@/data/grade-attempt";
+import { hasValidAnswers, KEYS_SQL, PUBLISHED_QUESTION_COUNT_SQL, toGradeResult, type KeyRow } from "@/data/grade-attempt";
 import { logError, logWarn } from "@/lib/log";
 
 /**
@@ -11,7 +11,7 @@ import { logError, logWarn } from "@/lib/log";
 const EXPECTED = {
   ATTEMPT_NOT_FOUND: { status: 404, message: "这次练习记录已失效，请返回重新开始。" },
   KEYS_UNAVAILABLE: { status: 409, message: "这篇的答案尚未录入，暂未开放练习。" },
-  INCOMPLETE: { status: 400, message: "请完成全部题目后再提交。" },
+  INVALID_ANSWERS: { status: 400, message: "作答选项无效，请检查后重试。" },
 } as const;
 
 type ExpectedCode = keyof typeof EXPECTED;
@@ -23,9 +23,11 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 export async function POST(request: Request, { params }: { params: Promise<{ passageId: string }> }) {
   const { passageId } = await params;
   if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getOrCreateSessionUser();
-  const { attemptId, answers } = await request.json() as { attemptId?: string; answers?: Record<string, number> };
-  if (!attemptId || !answers || Array.isArray(answers)) return NextResponse.json({ error: "请完成全部题目后再提交。" }, { status: 400 });
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  const body = await request.json().catch(() => null) as { attemptId?: string; answers?: Record<string, number> } | null;
+  const { attemptId, answers } = body ?? {};
+  if (typeof attemptId !== "string" || !UUID_PATTERN.test(attemptId) || !answers || typeof answers !== "object" || Array.isArray(answers)) return NextResponse.json({ error: "Invalid answers" }, { status: 400 });
 
   try {
     const result = await transaction(async (client) => {
@@ -34,7 +36,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pas
       const keys = await client.query<KeyRow>(KEYS_SQL, [passageId]);
       const questionCount = await client.query<{ count: string }>(PUBLISHED_QUESTION_COUNT_SQL, [passageId]);
       if (!keys.rowCount || keys.rowCount !== Number(questionCount.rows[0].count)) throw new Error("KEYS_UNAVAILABLE");
-      if (!hasCompleteAnswers(keys.rows, answers)) throw new Error("INCOMPLETE");
+      if (!hasValidAnswers(keys.rows, answers)) throw new Error("INVALID_ANSWERS");
       const result = toGradeResult(keys.rows, answers);
       await client.query("update practice_attempts set answers = $1, submitted_at = now(), score = $2 where id = $3", [answers, result.score, attemptId]);
       return result;

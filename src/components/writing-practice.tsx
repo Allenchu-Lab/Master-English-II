@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bookmark, BookMarked, Check, ChevronDown, Clock3, LoaderCircle, Pause, PenLine, Play, RotateCcw, Sparkles, X } from "lucide-react";
 import type { WritingChart, WritingTask } from "@/data/get-writing-paper";
@@ -131,6 +132,13 @@ function PromptChart({ chart, year }: { chart: WritingChart; year: number }) {
 }
 
 export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "A" }: { tasks: WritingTask[]; initialLanguage?: "zh" | "en"; initialPart?: "A" | "B" }) {
+  const router = useRouter();
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const saveTimer = useRef<number | null>(null);
+  const navigationLock = useRef(false);
+  const [navigating, setNavigating] = useState(false);
+  const [savedDraft, setSavedDraft] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [activePart, setActivePart] = useState<"A" | "B">(initialPart);
   const [answer, setAnswer] = useState("");
   const [letterDraft, setLetterDraft] = useState<LetterDraft>(emptyLetterDraft);
@@ -148,7 +156,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   const [savingExpression, setSavingExpression] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
-  const hydratedTaskId = useRef<string | null>(null);
+  const [hydratedTaskId, setHydratedTaskId] = useState<string | null>(null);
   const activeTask = tasks.find((task) => task.part === activePart) ?? tasks[0];
   const isEnglish = uiLanguage === "en";
   const usesLetterFrame = isLetterWritingTask(activeTask);
@@ -159,13 +167,56 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   const elapsed = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
   const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
-  const selectPart = (part: "A" | "B") => {
-    setActivePart(part);
-    const url = new URL(window.location.href);
-    if (part === "B") url.searchParams.set("part", "B");
-    else url.searchParams.delete("part");
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  const snapshot = JSON.stringify({ answer, elapsedSeconds });
+  const dirty = !loading && hydratedTaskId === activeTask?.id && !attempt?.submitted_at && savedDraft !== snapshot;
+  const saveDraft = useCallback(() => {
+    const operation = saveQueue.current.catch(() => {}).then(async () => {
+      setSaving(true);
+      try {
+        const response = await fetch(`/api/writing-attempts/${activeTask.id}`, {
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answer, elapsedSeconds }),
+        });
+        if (!response.ok) throw new Error();
+        setSavedDraft(JSON.stringify({ answer, elapsedSeconds }));
+        setSaveError(null);
+      } catch (error) {
+        setSaveError(isEnglish ? "Draft not saved. Try again before leaving." : "草稿保存失败，请重试后再离开。");
+        throw error;
+      } finally { setSaving(false); }
+    });
+    saveQueue.current = operation;
+    return operation;
+  }, [activeTask, answer, elapsedSeconds, isEnglish]);
+
+  const navigate = async (target: "A" | "B" | string) => {
+    if (navigationLock.current || loading || submitting || rewriting) return;
+    if (target === activePart) return;
+    navigationLock.current = true;
+    setNavigating(true);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    try {
+      await saveQueue.current.catch(() => {});
+      if (dirty) await saveDraft();
+      if (target === "A" || target === "B") {
+        setHydratedTaskId(null);
+        setLoading(true);
+        setActivePart(target);
+        const url = new URL(window.location.href);
+        if (target === "B") url.searchParams.set("part", "B");
+        else url.searchParams.delete("part");
+        window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+      } else router.push(target);
+    } catch { /* Keep the unsaved response on screen. */ }
+    finally { navigationLock.current = false; setNavigating(false); }
   };
+
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   useEffect(() => {
     const urlLanguage = new URLSearchParams(window.location.search).get("lang");
@@ -193,7 +244,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     if (!activeTask) return;
     setLoading(true);
     setError(null);
-    hydratedTaskId.current = null;
+    setHydratedTaskId(null);
     try {
       const response = await fetch(`/api/writing-attempts/${activeTask.id}`);
       if (!response.ok) throw new Error();
@@ -209,10 +260,12 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
         setSavedExpressions(new Set());
       }
       setAnswer(data.attempt.answer);
+      setSavedDraft(JSON.stringify({ answer: data.attempt.answer, elapsedSeconds: data.attempt.elapsed_seconds }));
+      setSaveError(null);
       setLetterDraft(parseLetterAnswer(data.attempt.answer));
       setElapsedSeconds(data.attempt.elapsed_seconds);
       setTimerRunning(false);
-      hydratedTaskId.current = activeTask.id;
+      setHydratedTaskId(activeTask.id);
     } catch {
       setError(isEnglish ? "Could not open this writing task." : "暂时无法打开这道写作题，请稍后重试。");
     } finally {
@@ -226,24 +279,13 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   }, [loadAttempt]);
 
   useEffect(() => {
-    if (!activeTask || hydratedTaskId.current !== activeTask.id || attempt?.submitted_at) return;
-    const timer = window.setTimeout(async () => {
-      setSaving(true);
-      try {
-        const response = await fetch(`/api/writing-attempts/${activeTask.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ answer, elapsedSeconds }),
-        });
-        if (!response.ok) throw new Error();
-      } catch {
-        setError(isEnglish ? "Draft not saved. Keep this page open and try again." : "草稿暂未保存，请保持页面打开后重试。");
-      } finally {
-        setSaving(false);
-      }
+    if (!dirty || navigating || submitting) return;
+    const timer = window.setTimeout(() => {
+      if (!navigationLock.current) void saveDraft().catch(() => {});
     }, 500);
+    saveTimer.current = timer;
     return () => window.clearTimeout(timer);
-  }, [activeTask, answer, attempt?.submitted_at, elapsedSeconds, isEnglish]);
+  }, [dirty, snapshot, navigating, submitting, saveDraft]);
 
   const runReview = async (taskId: string, attemptId: string) => {
     setReviewing(true);
@@ -257,13 +299,16 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   };
 
   const submit = async () => {
-    if (!activeTask || !answer.trim() || submitting) {
+    if (!activeTask || !answer.trim() || submitting || navigationLock.current) {
       if (!answer.trim()) setError(isEnglish ? "Write your response before submitting." : "请先写下答案再提交。");
       return;
     }
+    navigationLock.current = true;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
     setSubmitting(true);
     setError(null);
     try {
+      await saveQueue.current.catch(() => {});
       const response = await fetch(`/api/writing-attempts/${activeTask.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -277,6 +322,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     } catch {
       setError(isEnglish ? "Could not submit this draft. Please try again." : "提交失败，请稍后重试。");
     } finally {
+      navigationLock.current = false;
       setSubmitting(false);
     }
   };
@@ -296,7 +342,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
       setLetterDraft(emptyLetterDraft);
       setElapsedSeconds(0);
       setTimerRunning(false);
-      hydratedTaskId.current = activeTask.id;
+      setHydratedTaskId(activeTask.id);
     } catch {
       setError(isEnglish ? "Could not start a new draft. Please try again." : "暂时无法开始重写，请稍后重试。");
     } finally {
@@ -333,8 +379,8 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     <main className="writing-page">
       <title>{isEnglish ? `ChiTouEN II · ${activeTask.year} Writing` : `吃透英语二 · ${activeTask.year} 写作`}</title>
       <header className="practice-header">
-        <Link href={languageHref(`/?type=writing&year=${activeTask.year}`)} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
-        <nav><PenLine /><Link href={languageHref(`/?type=writing&year=${activeTask.year}`)}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{activeTask.year}</span><span>/</span><strong>{isEnglish ? "Writing" : "写作"}</strong></nav>
+        <Link href={languageHref(`/?type=writing&year=${activeTask.year}`)} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); void navigate(event.currentTarget.href); } }}><ArrowLeft /></Link>
+        <nav><PenLine /><Link href={languageHref(`/?type=writing&year=${activeTask.year}`)} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); void navigate(event.currentTarget.href); } }}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{activeTask.year}</span><span>/</span><strong>{isEnglish ? "Writing" : "写作"}</strong></nav>
         <div className="practice-timer-group">
           <button className={`practice-timer ${timerRunning ? "is-running" : ""}`} onClick={() => setTimerRunning((running) => !running)} disabled={Boolean(attempt?.submitted_at)}>
             {timerRunning ? <Pause /> : elapsedSeconds ? <Play /> : <Clock3 />}<span>{elapsed}</span><small>{timerRunning ? (isEnglish ? "Pause" : "暂停") : elapsedSeconds ? (isEnglish ? "Resume" : "继续") : (isEnglish ? "Start" : "开始")}</small>
@@ -344,14 +390,14 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
         <div className="practice-header-actions">
           {attempt?.submitted_at
             ? <span className="header-submitted"><Check />{isEnglish ? "Completed" : "已完成"}</span>
-            : <button className="header-submit" onClick={submit} disabled={loading || submitting || !answer.trim()} aria-busy={submitting}>{submitting && <LoaderCircle className="spin" />}{submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "完成写作")}</button>}
+            : <button className="header-submit" onClick={submit} disabled={loading || submitting || navigating || !answer.trim()} aria-busy={submitting}>{submitting && <LoaderCircle className="spin" />}{submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "完成写作")}</button>}
         </div>
       </header>
 
       <div className="writing-layout">
         <section className="writing-prompt-pane">
           <div className="writing-part-tabs" role="tablist" aria-label={isEnglish ? "Writing task" : "写作任务"}>
-            {tasks.map((task) => <button key={task.id} role="tab" aria-selected={activePart === task.part} className={activePart === task.part ? "active" : ""} onClick={() => selectPart(task.part)}><strong>Part {task.part}</strong><span>{task.targetWords} {isEnglish ? "words" : "词"} · {task.points} {isEnglish ? "pts" : "分"}</span></button>)}
+            {tasks.map((task) => <button key={task.id} role="tab" aria-selected={activePart === task.part} className={activePart === task.part ? "active" : ""} disabled={loading || navigating || submitting || rewriting} onClick={() => { void navigate(task.part); }}><strong>Part {task.part}</strong><span>{task.targetWords} {isEnglish ? "words" : "词"} · {task.points} {isEnglish ? "pts" : "分"}</span></button>)}
           </div>
           <article className="writing-prompt">
             <span className="writing-question-number">{activeTask.questionNumber}. Directions</span>
@@ -399,7 +445,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
             ) : usesLetterFrame ? <div className="writing-letter-editor">
               <label className="writing-letter-line">
                 <span>{isEnglish ? "Salutation" : "称呼"}</span>
-                <input value={letterDraft.salutation} onChange={(event) => {
+                <input disabled={navigating || submitting} value={letterDraft.salutation} onChange={(event) => {
                   const next = { ...letterDraft, salutation: keepEnglishInput(event.target.value) };
                   setLetterDraft(next);
                   setAnswer(composeLetterAnswer(next));
@@ -408,7 +454,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
               </label>
               <label className="writing-letter-body">
                 <span>{isEnglish ? "Body" : "正文"}</span>
-                <textarea value={letterDraft.body} onChange={(event) => {
+                <textarea disabled={navigating || submitting} value={letterDraft.body} onChange={(event) => {
                   const next = { ...letterDraft, body: keepEnglishInput(event.target.value) };
                   setLetterDraft(next);
                   setAnswer(composeLetterAnswer(next));
@@ -418,7 +464,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
               <div className="writing-letter-signoff">
                 <label className="writing-letter-line">
                   <span>{isEnglish ? "Closing" : "结束语"}</span>
-                  <input value={letterDraft.closing} onChange={(event) => {
+                  <input disabled={navigating || submitting} value={letterDraft.closing} onChange={(event) => {
                     const next = { ...letterDraft, closing: keepEnglishInput(event.target.value) };
                     setLetterDraft(next);
                     setAnswer(composeLetterAnswer(next));
@@ -427,7 +473,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
                 </label>
                 <label className="writing-letter-line">
                   <span>{isEnglish ? "Signature" : "署名"}</span>
-                  <input value={letterDraft.signature} onChange={(event) => {
+                  <input disabled={navigating || submitting} value={letterDraft.signature} onChange={(event) => {
                     const next = { ...letterDraft, signature: keepEnglishInput(event.target.value) };
                     setLetterDraft(next);
                     setAnswer(composeLetterAnswer(next));
@@ -435,14 +481,14 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
                   }} placeholder="Your name" spellCheck="true" inputMode="text" lang="en" autoCapitalize="words" />
                 </label>
               </div>
-            </div> : <textarea value={answer} onChange={(event) => {
+            </div> : <textarea disabled={navigating || submitting} value={answer} onChange={(event) => {
               const next = keepEnglishInput(event.target.value);
               setAnswer(next);
               setError(null);
             }} placeholder={isEnglish ? "Start writing here…" : "在这里开始写作…"} spellCheck="true" inputMode="text" lang="en" autoCapitalize="sentences" aria-label={isEnglish ? "Writing response" : "写作答案"} />}
           </div>
           <footer>
-            <span aria-live="polite" className={error ? "has-error" : showLengthWarning ? "has-warning" : ""}>{error ?? (attempt?.submitted_at ? (isEnglish ? "AI estimate for practice only" : "AI 评分仅供练习参考") : saving ? (isEnglish ? "Saving…" : "正在保存…") : showLengthWarning ? (isEnglish ? `${wordsRemaining} words below the suggested length. A shorter response may lower your score.` : `距离建议字数还差 ${wordsRemaining} 词，字数不足可能影响得分。`) : (isEnglish ? "Draft saved automatically" : "草稿已自动保存"))}</span>
+            <span aria-live="polite" className={error || saveError ? "has-error" : showLengthWarning ? "has-warning" : ""}>{error ?? saveError ?? (attempt?.submitted_at ? (isEnglish ? "AI estimate for practice only" : "AI 评分仅供练习参考") : saving || dirty ? (isEnglish ? "Saving…" : "正在保存…") : showLengthWarning ? (isEnglish ? `${wordsRemaining} words below the suggested length. A shorter response may lower your score.` : `距离建议字数还差 ${wordsRemaining} 词，字数不足可能影响得分。`) : (isEnglish ? "Draft saved automatically" : "草稿已自动保存"))}</span>
           </footer>
         </section>
       </div>

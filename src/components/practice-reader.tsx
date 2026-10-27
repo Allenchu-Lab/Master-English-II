@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, BookOpen, Check, Clock3, LoaderCircle, Pause, Play, RotateCcw } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Clock3, LoaderCircle, Pause, Play, RotateCcw, X } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { HighlightGuide, SelectableHighlight } from "@/components/selectable-highlight";
 
@@ -10,6 +11,11 @@ type GradedQuestion = { questionNumber: number; selectedOption: number; correctO
 type GradeResult = { score: number; total: number; questions: GradedQuestion[] };
 
 export function PracticeReader({ passage, startFresh = false, initialLanguage = "zh", previewOnly = false }: { passage: PracticePassage; startFresh?: boolean; initialLanguage?: "zh" | "en"; previewOnly?: boolean }) {
+  const router = useRouter();
+  const confirm = useRef<HTMLDialogElement>(null);
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const [leaving, setLeaving] = useState(false);
+  const [savedAnswers, setSavedAnswers] = useState("{}");
   const openedRef = useRef(false);
   /**
    * 练习记录编号必须是 state 而不是 ref。
@@ -81,6 +87,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
       const { attempt: current, grade } = await response.json() as { attempt: { id: string; answers: Record<string, number>; submitted_at: string | null }; grade?: GradeResult };
       setAttemptId(current.id);
       setAnswers(current.answers ?? {});
+      setSavedAnswers(JSON.stringify(current.answers ?? {}));
       // 带回判分结果说明这条记录已提交，直接恢复复盘视图，
       // 而不是让用户面对一份空白的答题页。
       setGradeResult(grade ?? null);
@@ -104,6 +111,39 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
     void openAttempt(startFresh);
   }, [openAttempt, startFresh]);
 
+  const persistAnswers = useCallback(() => {
+    const operation = saveQueue.current.catch(() => {}).then(async () => {
+      const response = await fetch(`/api/attempts/${passage.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptId, answers }),
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      setSavedAnswers(JSON.stringify(answers));
+    });
+    saveQueue.current = operation;
+    return operation;
+  }, [answers, attemptId, passage.id]);
+
+  const dirty = !submitted && Boolean(attemptId) && savedAnswers !== JSON.stringify(answers);
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
+  const leave = async (href: string) => {
+    if (actionPending.current) return;
+    actionPending.current = true;
+    setLeaving(true);
+    try {
+      if (!previewOnly && !submitted && dirty) await persistAnswers();
+      router.push(href);
+    } catch {
+      setSubmitError(isEnglish ? "Could not save. Your answers are still here. Try again." : "保存失败，答案仍保留在当前页面，请重试。");
+    } finally { actionPending.current = false; setLeaving(false); }
+  };
+
   /**
    * 保存作答。依赖 attemptId，编号到位后会自动重新运行。
    *
@@ -118,13 +158,8 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
 
     const save = async (attempt: number) => {
       try {
-        const response = await fetch(`/api/attempts/${passage.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ attemptId, answers }),
-        });
-        if (cancelled || response.ok) return;
-        retry(attempt, response.status);
+        if (actionPending.current) return;
+        await persistAnswers();
       } catch {
         if (!cancelled) retry(attempt);
       }
@@ -140,7 +175,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
 
     timer = window.setTimeout(() => { void save(0); }, 200);
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [answers, attemptId, passage.id, submitted, previewOnly]);
+  }, [answers, attemptId, passage.id, submitted, previewOnly, persistAnswers]);
 
   /** 重做：请服务端新建一条记录，历史提交保留不动。 */
   const restart = async () => {
@@ -172,10 +207,6 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
 
   const submit = async () => {
     if (previewOnly || actionPending.current) return;
-    if (Object.keys(answers).length !== passage.questions.length) {
-      setSubmitError(isEnglish ? "Answer every question before submitting." : "请完成全部题目后再提交。");
-      return;
-    }
     setSubmitError(null);
     actionPending.current = true;
     setSubmitting(true);
@@ -188,6 +219,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
     };
 
     try {
+      await saveQueue.current.catch(() => {});
       // 编号缺失时当场补建再继续提交。原先直接 return，点按钮毫无反应，
       // 用户答完一整篇得不到任何提示，也无法自行恢复。
       const activeId = attemptId ?? await openAttempt();
@@ -218,7 +250,16 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
     }
   };
 
+  const missing = passage.questions.filter(question => answers[String(question.number)] === undefined);
   const answeredCount = Object.keys(answers).length;
+  const checkMissing = () => {
+    confirm.current?.close();
+    if (missing[0]) {
+      const heading = document.getElementById(`question-${missing[0].number}`);
+      heading?.scrollIntoView({ block: "center", behavior: "instant" });
+      heading?.focus({ preventScroll: true });
+    }
+  };
   const elapsed = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
   const highlightStorageKey = `reading-highlights:${passage.id}`;
   const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
@@ -226,8 +267,8 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
     <main className="practice-page">
       <title>{isEnglish ? `ChiTouEN II · ${passage.year} Text ${passage.number}` : `吃透英语二 · ${passage.year} Text ${passage.number}`}</title>
       <header className="practice-header">
-        <Link href={languageHref(`/?type=reading_a&year=${passage.year}`)} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"}><ArrowLeft /></Link>
-        <nav><BookOpen /><Link href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number}</strong></nav>
+        <Link href={languageHref(`/?type=reading_a&year=${passage.year}`)} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); void leave(event.currentTarget.href); } }}><ArrowLeft /></Link>
+        <nav><BookOpen /><Link href={languageHref(`/?type=reading_a&year=${passage.year}`)} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); void leave(event.currentTarget.href); } }}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number}</strong></nav>
         <div className="practice-timer-group">
           <button className={`practice-timer ${timerRunning ? "is-running" : ""}`} onClick={() => setTimerRunning((running) => !running)} disabled={submitted} aria-label={timerRunning ? (isEnglish ? "Pause timer" : "暂停计时") : (isEnglish ? "Start timer" : "开始计时")}>
             {timerRunning ? <Pause /> : elapsedSeconds ? <Play /> : <Clock3 />}<span>{elapsed}</span><small>{timerRunning ? (isEnglish ? "Pause" : "暂停") : elapsedSeconds ? (isEnglish ? "Resume" : "继续") : (isEnglish ? "Start" : "开始")}</small>
@@ -237,7 +278,7 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
         <div className="practice-header-actions">
           {submitted
             ? <span className="header-submitted"><Check />{isEnglish ? "Submitted" : "已提交"}</span>
-            : <button className="header-submit" onClick={submit} disabled={previewOnly || submitting} aria-busy={submitting}>{showSubmitSpinner && <LoaderCircle className="spin" />}{previewOnly ? (isEnglish ? "Answer key pending" : "答案待补") : submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "提交作答")}</button>}
+            : <button className="header-submit" onClick={() => missing.length ? confirm.current?.showModal() : void submit()} disabled={previewOnly || submitting || leaving || answeredCount === 0} aria-busy={submitting}>{showSubmitSpinner && <LoaderCircle className="spin" />}{previewOnly ? (isEnglish ? "Answer key pending" : "答案待补") : submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "提交作答")}</button>}
         </div>
       </header>
 
@@ -253,12 +294,12 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
           <div className="question-progress"><strong>Text {passage.number}</strong><i><b style={{ width: `${answeredCount / passage.questions.length * 100}%` }} /></i><span>{isEnglish ? `${answeredCount} / ${passage.questions.length} answered` : `${answeredCount} / ${passage.questions.length} 已作答`}</span></div>
           <div className="question-scroll">
             {passage.questions.map((question) => <section className={`question-item ${submitted ? "is-disabled" : ""}`} key={question.id} role="group" aria-labelledby={`question-${question.number}`}>
-              <h2 id={`question-${question.number}`}><span>{question.number}</span><SelectableHighlight text={question.prompt} scope={`question:${question.id}`} storageKey={highlightStorageKey} isEnglish={isEnglish} /></h2>
+              <h2 id={`question-${question.number}`} tabIndex={-1}><span>{question.number}</span><SelectableHighlight text={question.prompt} scope={`question:${question.id}`} storageKey={highlightStorageKey} isEnglish={isEnglish} /></h2>
               <div className="option-list">{question.options.map((option) => {
                 const selected = answers[String(question.number)] === option.index;
                 const graded = gradeResult?.questions.find((item) => item.questionNumber === question.number);
                 const optionState = submitted && option.index === graded?.correctOption ? "correct" : submitted && selected && !graded?.isCorrect ? "incorrect" : selected ? "selected" : "";
-                return <label key={option.index} className={optionState}><input type="checkbox" checked={selected} disabled={submitted} onChange={() => setAnswers((current) => {
+                return <label key={option.index} className={optionState}><input type="checkbox" checked={selected} disabled={submitted || submitting || leaving} onChange={() => setAnswers((current) => {
                   const key = String(question.number);
                   if (current[key] !== option.index) return { ...current, [key]: option.index };
                   const next = { ...current };
@@ -273,10 +314,16 @@ export function PracticeReader({ passage, startFresh = false, initialLanguage = 
               </div>}
             </section>)}
           </div>
-          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" disabled={restarting} aria-busy={restarting} onClick={() => { void restart(); }}>{restarting ? (isEnglish ? "Starting…" : "正在开始…") : (isEnglish ? "Redo" : "重新练习")}</button><Link href={languageHref(`/intensive/${passage.year}/${passage.number}`)}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
+          {(submitError || submitted) && <footer className={`practice-submit ${submitError ? "has-error" : ""}`}><span>{submitError ?? (isEnglish ? <><strong>{gradeResult?.score} / {gradeResult?.total}</strong> correct</> : <>答对 <strong>{gradeResult?.score} / {gradeResult?.total}</strong> 题</>)}</span>{submitted && <div className="practice-submit-actions"><Link className="secondary" href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Back to library" : "返回首页"}</Link><button className="practice-restart" disabled={restarting} aria-busy={restarting} onClick={() => confirm.current?.showModal()}>{restarting ? (isEnglish ? "Starting…" : "正在开始…") : (isEnglish ? "Redo" : "重新练习")}</button><Link href={languageHref(`/intensive/${passage.year}/${passage.number}`)}>{isEnglish ? "Intensive reading" : "进入精读"}</Link></div>}</footer>}
         </aside>
       </div>
 
+      <dialog ref={confirm} className="translation-redo-dialog" aria-labelledby="reading-confirm-title">
+        <button className="translation-dialog-close" aria-label={isEnglish ? "Close" : "关闭"} onClick={() => confirm.current?.close()}><X size={20} /></button>
+        <h2 id="reading-confirm-title">{submitted ? (isEnglish ? "Start again?" : "重新练习这篇文章？") : (isEnglish ? "Submit with unanswered questions?" : "还有题目未作答，确认提交？")}</h2>
+        <p>{submitted ? (isEnglish ? "Start with blank answers. Your submitted attempt will be kept." : "将开始一份空白作答，已提交的练习记录会保留。") : `${isEnglish ? "Unanswered questions: " : "未作答题号："}${missing.map(question => question.number).join("、")}`}</p>
+        <div className="translation-dialog-actions"><button autoFocus onClick={submitted ? () => confirm.current?.close() : checkMissing}>{submitted ? (isEnglish ? "Keep reviewing" : "继续复盘") : (isEnglish ? "Check unanswered" : "返回检查")}</button><button className="translation-primary" onClick={() => { confirm.current?.close(); void (submitted ? restart() : submit()); }}>{submitted ? (isEnglish ? "Start again" : "确认重做") : (isEnglish ? "Submit anyway" : "仍然提交")}</button></div>
+      </dialog>
     </main>
   );
 }

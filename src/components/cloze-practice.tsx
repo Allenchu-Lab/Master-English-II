@@ -191,7 +191,7 @@ export function ClozePractice({ task, isEnglish }: { task: { id: string; content
       <button className="translation-dialog-close" aria-label={isEnglish ? 'Close' : '关闭'} onClick={() => confirm.current?.close()}><X size={20} /></button>
       <h2 id="cloze-confirm-title">{submitted ? (isEnglish ? 'Start again?' : '重新练习这篇文章？') : (isEnglish ? 'Submit with unanswered questions?' : '还有题目未作答，确认提交？')}</h2>
       <p>{submitted ? (isEnglish ? 'Start with blank answers. Your submitted attempt will be kept.' : '将开始一份空白作答，已提交的练习记录会保留。') : `${isEnglish ? 'Unanswered questions: ' : '未作答题号：'}${missing.map(q=>q.number).join('、')}`}</p>
-      <div className="translation-dialog-actions"><button autoFocus onClick={() => confirm.current?.close()}>{submitted ? (isEnglish ? 'Keep reviewing' : '继续复盘') : (isEnglish ? 'Continue answering' : '继续作答')}</button><button className="translation-primary" onClick={() => { confirm.current?.close(); void act(submitted ? 'redo' : 'submit'); }}>{submitted ? (isEnglish ? 'Start again' : '确认重做') : (isEnglish ? 'Submit' : '确认提交')}</button></div>
+      <div className="translation-dialog-actions"><button autoFocus onClick={() => { confirm.current?.close(); if (!submitted && missing[0]) focusQuestion(missing[0].number, true); }}>{submitted ? (isEnglish ? 'Keep reviewing' : '继续复盘') : (isEnglish ? 'Check unanswered' : '返回检查')}</button><button className="translation-primary" onClick={() => { confirm.current?.close(); void act(submitted ? 'redo' : 'submit'); }}>{submitted ? (isEnglish ? 'Start again' : '确认重做') : (isEnglish ? 'Submit anyway' : '仍然提交')}</button></div>
     </dialog>
   </main>;
 }

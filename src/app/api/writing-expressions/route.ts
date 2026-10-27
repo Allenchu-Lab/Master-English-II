@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { getOrCreateSessionUser } from "@/lib/auth/session";
+import { getSessionUser } from "@/lib/auth/session";
 import { query } from "@/lib/db";
 import { isWritingReview } from "@/lib/writing-review";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(request: Request) {
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const attemptId = new URL(request.url).searchParams.get("attemptId");
   if (attemptId && !UUID_PATTERN.test(attemptId)) return NextResponse.json({ error: "Invalid attempt" }, { status: 400 });
   const result = await query<{
@@ -26,7 +27,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const body = await request.json().catch(() => null) as { attemptId?: unknown; expressionIndex?: unknown } | null;
   if (typeof body?.attemptId !== "string" || typeof body.expressionIndex !== "number" || !Number.isInteger(body.expressionIndex)) {
     return NextResponse.json({ error: "Invalid expression" }, { status: 400 });
@@ -49,7 +51,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const user = await getOrCreateSessionUser();
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   const body = await request.json().catch(() => null) as { expressionId?: unknown; attemptId?: unknown; expressionIndex?: unknown } | null;
   if (typeof body?.expressionId === "string" && UUID_PATTERN.test(body.expressionId)) {
     const deleted = await query("delete from writing_expressions where id = $1 and user_id = $2", [body.expressionId, user.id]);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth/session";
 import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
@@ -13,6 +14,8 @@ type ParagraphAnalysis = {
 };
 
 export async function POST(request: Request) {
+  const user = await getSessionUser();
+  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
   if (rateLimit(`intensive:${clientKey(request)}`, { max: 30, windowMs: 10 * 60 * 1000 })) {
     return NextResponse.json({ error: "精读解析请求太频繁了，请稍后再试。" }, { status: 429 });
   }
