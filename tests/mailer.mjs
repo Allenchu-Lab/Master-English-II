@@ -52,6 +52,7 @@ try {
   };
   const configUrl = compile("src/lib/auth/config.ts");
   const imports = {
+    "@/styles/runtime-tokens": compile("src/styles/runtime-tokens.ts"),
     "@/lib/auth/config": configUrl,
     "@/lib/db": moduleUrl("export const query = (...args) => globalThis.__mailerTest.query(...args);"),
     "tencentcloud-sdk-nodejs-ses": moduleUrl("export const ses = globalThis.__mailerTest.ses;"),

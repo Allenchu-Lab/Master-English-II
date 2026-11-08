@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
 import { gradeReadingB, validReadingBAnswers } from '../src/lib/reading-b.ts';
+import { login } from './login-helper.mjs';
 
 const tasks = JSON.parse(readFileSync(new URL('../content/reading-b/tasks.json', import.meta.url), 'utf8'));
 assert.deepEqual(tasks.map(task => task.year), Array.from({length:17},(_,index)=>2010+index));
@@ -27,7 +28,7 @@ const db = new pg.Client({connectionString:'postgresql://chitouen_local@127.0.0.
 await db.connect();
 const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:3000';
 assert.match(base, /^http:\/\/127\.0\.0\.1:\d+$/);
-const users = new Set();
+let email;
 try {
   assert.equal((await db.query('show data_directory')).rows[0].data_directory, `${process.cwd()}/.local-db/data`);
   const task = (await db.query(`select t.id,t.content,k.keys from reading_b_tasks t join private.reading_b_keys k on k.task_id=t.id order by t.content->>'year' desc limit 1`)).rows[0];
@@ -37,6 +38,7 @@ try {
     if (ownCookie === undefined && response.headers.get('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0];
     return {status:response.status, data:await response.json()};
   }
+  ({ cookie, email } = await login(base));
   const path = `/api/reading-b-attempts/${task.id}`;
   assert.equal((await api(path)).data.attempt, null);
   const invalid = await api(path, {action:'save',attemptId:null,answers:{'41':'H'},elapsedSeconds:0});
@@ -48,7 +50,6 @@ try {
   assert.equal(draft.status, 200);
   assert.equal(draft.data.attempt.feedback, null);
   assert.equal(draft.data.attempt.score, null);
-  users.add(draft.data.attempt.user_id);
   const answers = Object.fromEntries(task.keys.slice(0,2).map(key => [key.number,key.answer]));
   const submitted = await api(path, {action:'submit',attemptId:draft.data.attempt.id,answers,elapsedSeconds:15,score:10});
   assert.equal(submitted.status, 200);
@@ -59,7 +60,7 @@ try {
   const list = await api('/api/reading-b-attempts');
   assert.equal(list.data.attempts.find(item=>item.task_id===task.id).score, 4);
   const stranger = await api(path, undefined, '');
-  assert.equal(stranger.data.attempt, null, 'Other users cannot see saved answers');
+  assert.equal(stranger.status, 401, 'Guests must be rejected, not shown saved answers');
   const redo = await api(path,{action:'redo',attemptId:submitted.data.attempt.id,answers:{},elapsedSeconds:0});
   assert.equal(redo.status,200);
   assert.deepEqual(redo.data.attempt.answers,{});
@@ -71,7 +72,7 @@ try {
   assert.equal(after.score,null);
   assert.equal((await db.query('select count(*) from reading_b_attempts where user_id=$1 and submitted_at is not null',[draft.data.attempt.user_id])).rows[0].count,'1');
   for (const year of tasks.map(task => task.year)) {
-    const page = await fetch(`${base}/reading-b/${year}`);
+    const page = await fetch(`${base}/reading-b/${year}`,{headers:{Cookie:cookie}});
     assert.equal(page.status,200);
     const html = await page.text();
     assert.ok(!html.includes('answerSource'));
@@ -87,6 +88,6 @@ try {
   }
   console.log('Reading B passed: source integrity, grading, validation, autosave races, idempotency, privacy, redo and page availability.');
 } finally {
-  for (const id of users) await db.query('delete from app_users where id=$1 and is_anonymous=true',[id]);
+  if (email) await db.query('delete from app_users where email=$1',[email]);
   await db.end();
 }

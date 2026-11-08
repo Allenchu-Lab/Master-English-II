@@ -1,14 +1,17 @@
 "use client";
 
-import Image from "next/image";
+import { Button } from "@/components/ui/button";
+
+import { Modal } from "@heroui/react/modal";
+import { Input } from "@heroui/react/input";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowLeft, Check, CircleUserRound, LoaderCircle, LogOut, X } from "lucide-react";
-import { getAuthUser, isEmailUser, requestEmailOtp, signOut, verifyEmailOtp, type AuthUser } from "@/lib/auth/email-otp";
+import { ArrowLeft, Check, CircleUserRound, LoaderCircle, LogOut, AlertCircle } from "lucide-react";
+import { AuthApiError, getAuthUser, isEmailUser, requestEmailOtp, signOut, verifyEmailOtp, type AuthUser } from "@/lib/auth/email-otp";
 import { isValidEmail } from "@/lib/auth/email-validation";
 
 type Step = "email" | "code";
 
-export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel }: { isEnglish: boolean; onAuthChange: () => void; loginRequest?: { href: string }; onCancel?: () => void }) {
+export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel, compact = false }: { compact?: boolean; isEnglish: boolean; onAuthChange: () => void; loginRequest?: { href: string }; onCancel?: () => void }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("email");
@@ -49,6 +52,14 @@ export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel }: {
     return () => { cancelled = true; };
   }, [loginRequest, isEnglish]);
 
+  const requestError = (failure: unknown, verifying = false) => {
+    if (!(failure instanceof AuthApiError)) return isEnglish ? "Connection failed. Check your network and try again." : "连接失败，请检查网络后重试。";
+    if (!isEnglish) return failure.message;
+    if (failure.status === 429) return failure.message.includes("一分钟") ? "Please wait one minute before requesting another code." : failure.message.includes("今日") ? "Daily code limit reached. Please try again tomorrow." : "Too many attempts. Please wait before trying again.";
+    if (failure.status >= 500) return "Sign-in is temporarily unavailable. Please try again later.";
+    return verifying ? "This code is incorrect or expired. Check it and try again." : "Check your email address and try again.";
+  };
+
   const close = () => {
     if (loading) return;
     setOpen(false);
@@ -77,8 +88,8 @@ export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel }: {
       setEmail(normalizedEmail);
       setCode("");
       setStep("code");
-    } catch {
-      setError(isEnglish ? "Unable to send the code. Please try again later." : "验证码发送失败，请稍后重试。");
+    } catch (failure) {
+      setError(requestError(failure));
     } finally {
       setLoading(false);
     }
@@ -104,8 +115,8 @@ export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel }: {
       setStep("email");
       setCode("");
       if (loginRequest) window.location.assign(loginRequest.href);
-    } catch {
-      setError(isEnglish ? "The code is incorrect or has expired." : "验证码错误或已过期，请重新输入。");
+    } catch (failure) {
+      setError(requestError(failure, true));
     } finally {
       setLoading(false);
     }
@@ -133,63 +144,39 @@ export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel }: {
   const entryDisabled = !signedIn && !signInEnabled;
 
   return <>
-    <button
-      className="account-button"
-      onClick={() => setOpen(true)}
-      disabled={entryDisabled}
-      aria-disabled={entryDisabled}
-      title={entryDisabled ? (isEnglish ? "Coming soon. Your progress is already saved." : "即将上线，你的进度已自动保存") : undefined}
-      aria-label={isEnglish ? "User account" : "个人账户"}
-    >
-      <CircleUserRound aria-hidden="true" />
-      <div>
-        <strong>{signedIn ? user?.email : (isEnglish ? "Sign in" : "登录 / 注册")}</strong>
-        <small>{signedIn
-          ? (isEnglish ? "Email account" : "邮箱账户")
-          : entryDisabled
-            ? (isEnglish ? "Coming soon" : "即将上线")
-            : (isEnglish ? "Continue your progress" : "同步学习进度")}</small>
-      </div>
-    </button>
-
-    {open && <div className="auth-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
-      <section className="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <button className="auth-close" onClick={close} aria-label={isEnglish ? "Close" : "关闭"}><X /></button>
-        <div className="auth-scene" aria-hidden="true">
-          <div className="auth-scene-brand"><Image src="/favicon.svg" alt="" width={28} height={28} /><span>MASTER ENGLISH II</span></div>
-          <svg viewBox="0 0 360 74" focusable="false"><path d="M8 56 C70 56 58 18 118 18 S174 60 226 52 S284 16 352 20" /><circle cx="8" cy="56" r="3" /><circle cx="118" cy="18" r="3" /><circle cx="226" cy="52" r="3" /><circle cx="352" cy="20" r="3" /><circle className="auth-route-dot" r="4" /></svg>
-          <strong>{isEnglish ? "Keep every step of your progress." : "让每一步学习，都有迹可循。"}</strong>
-        </div>
-
-        <div className="auth-dialog-body">
-        {signedIn ? <div className="auth-account-view" key="account">
-          <span className="auth-status-mark"><Check /></span>
-          <h2 id="auth-title">{isEnglish ? "Signed in" : "已登录"}</h2>
-          <p>{user?.email}</p>
-          <small>{isEnglish ? "Your answers, scores and intensive-reading access sync across devices. Highlights and AI analyses stay in this browser." : "答案、成绩与精读解锁状态会跨设备同步；划词高亮与 AI 解析仍保存在当前浏览器。"}</small>
-          <button className="auth-secondary-action" onClick={handleSignOut} disabled={loading}>{loading ? <LoaderCircle className="is-spinning" /> : <LogOut />}{isEnglish ? "Sign out" : "退出登录"}</button>
-          {error && <p className="auth-error">{error}</p>}
-        </div> : step === "email" ? <form onSubmit={sendCode} key="email" noValidate>
-          <h2 id="auth-title">{isEnglish ? "Sign in with email" : "邮箱验证码登录"}</h2>
-          <p>{localMail ? (isEnglish ? "Local test: no email will be sent. Find the code in .local-db/mail.jsonl." : "本地测试：不会发送真实邮件，验证码保存在 .local-db/mail.jsonl。") : (isEnglish ? "No password needed. We will send a one-time code to your email." : "无需设置密码，我们会向你的邮箱发送一次性验证码。")}</p>
-          <label><input className={emailError ? "has-error" : ""} type="email" value={email} onChange={(event) => { setEmail(event.target.value); setEmailError(null); }} onBlur={() => {
-            const value = email.trim();
-            setEmailError(value && !isValidEmail(value) ? (isEnglish ? "Enter a valid email address." : "请输入正确的邮箱地址。") : null);
-          }} placeholder={isEnglish ? "Enter your email address" : "请输入邮箱地址"} aria-label={isEnglish ? "Email" : "邮箱"} aria-invalid={Boolean(emailError)} aria-describedby={emailError ? "auth-email-error" : undefined} autoComplete="email" autoFocus />{emailError && <span className="auth-field-error" id="auth-email-error" role="alert">{emailError}</span>}</label>
-          <button className="auth-primary-action" disabled={loading}>{loading ? <LoaderCircle className="is-spinning" /> : null}{isEnglish ? "Send code" : "发送验证码"}</button>
-          <small className="auth-privacy">{isEnglish ? "Your email is used only for login and progress sync." : "邮箱仅用于登录和同步学习进度。"}</small>
-          {error && <p className="auth-error">{error}</p>}
-        </form> : <form onSubmit={verifyCode} key="code" noValidate>
-          <button type="button" className="auth-back" onClick={() => { setStep("email"); setError(null); }}><ArrowLeft />{isEnglish ? "Change email" : "更换邮箱"}</button>
-          <h2 id="auth-title">{isEnglish ? "Enter verification code" : "输入邮箱验证码"}</h2>
-          <p>{localMail ? (isEnglish ? "The test code is in .local-db/mail.jsonl; no email was sent." : "测试验证码已写入 .local-db/mail.jsonl，没有发送真实邮件。") : (isEnglish ? <>A verification code was sent to <strong>{email}</strong></> : <>验证码已发送至 <strong>{email}</strong></>)}</p>
-          <label><span>{isEnglish ? "Verification code" : "验证码"}</span><input className="auth-code-input" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="000000" autoFocus /></label>
-          <button className="auth-primary-action" disabled={loading || code.length < 6}>{loading ? <LoaderCircle className="is-spinning" /> : null}{isEnglish ? "Verify and sign in" : "验证并登录"}</button>
-          {notice && <p className="auth-notice">{notice}</p>}
-          {error && <p className="auth-error">{error}</p>}
-        </form>}
-        </div>
-      </section>
-    </div>}
+    <Button variant="secondary" className={compact ? "account-entry is-compact" : "account-entry"} title={signedIn ? user?.email ?? undefined : undefined} onClick={() => setOpen(true)} disabled={entryDisabled} aria-label={isEnglish ? "User account" : "个人账户"}>
+      <CircleUserRound /><span className="account-entry-label">{signedIn ? (compact ? user?.email?.split("@")[0] : user?.email) : (isEnglish ? "Sign in" : "登录 / 注册")}</span>
+    </Button>
+    <Modal.Backdrop isOpen={open} onOpenChange={(value) => { if (!value) close(); }} isDismissable={!loading} isKeyboardDismissDisabled={loading}>
+      <Modal.Container size="sm" placement="center">
+        <Modal.Dialog className="hui-auth-dialog">
+          <Modal.CloseTrigger isDisabled={loading} aria-label={isEnglish ? "Close" : "关闭"}/>
+          <Modal.Header>
+            <Modal.Icon>{signedIn ? <Check/> : <CircleUserRound/>}</Modal.Icon>
+            <Modal.Heading>{signedIn ? (isEnglish ? "Your account" : "学习账户") : step === "email" ? (isEnglish ? "Welcome back" : "欢迎回来") : (isEnglish ? "Check your email" : "输入验证码")}</Modal.Heading>
+          </Modal.Header>
+          <Modal.Body>
+            {signedIn ? <div className="hui-account"><strong>{user?.email}</strong><p>{isEnglish ? "Your answers, scores and reading progress sync across devices." : "答案、成绩与精读解锁状态会跨设备同步。"}</p><p>{isEnglish ? "Highlights and AI analyses stay in this browser." : "划词高亮与 AI 解析保存在当前浏览器。"}</p><Button variant="danger-soft" fullWidth disabled={loading} onClick={handleSignOut}><LogOut/>{isEnglish ? "Sign out" : "退出登录"}</Button></div> : step === "email" ? <form className="hui-auth-form" onSubmit={sendCode} noValidate>
+              <p>{localMail ? (isEnglish ? "Local preview: no real email is sent." : "本地预览：不会发送真实邮件。") : (isEnglish ? "Sign in with a one-time code. No password needed." : "使用邮箱验证码登录，无需设置密码。")}</p>
+              <label htmlFor="hui-email">{isEnglish ? "Email address" : "邮箱地址"}</label>
+              <Input id="hui-email" type="email" value={email} onChange={event => { setEmail(event.target.value); setEmailError(null); setError(null); }} placeholder="you@example.com" autoComplete="email" autoFocus aria-invalid={!!emailError} aria-describedby={emailError ? "hui-email-error" : undefined}/>
+              {emailError && <span id="hui-email-error" className="hui-field-error" role="alert">{emailError}</span>}
+              <Button type="submit" variant="primary" fullWidth disabled={loading}>{loading && <LoaderCircle className="is-spinning"/>}{loading ? (isEnglish ? "Sending…" : "正在发送……") : (isEnglish ? "Send verification code" : "发送验证码")}</Button>
+              {error && <div className="hui-auth-error" role="alert"><AlertCircle aria-hidden="true"/><span>{error}</span></div>}
+              <small>{isEnglish ? "Your email is only used for sign-in and progress sync." : "邮箱仅用于登录和同步学习进度。"}</small>
+            </form> : <form className="hui-auth-form" onSubmit={verifyCode} noValidate>
+              <p>{localMail ? (isEnglish ? "Find the test code in .local-db/mail.jsonl." : "测试验证码保存在 .local-db/mail.jsonl。") : email}</p>
+              <label htmlFor="hui-code">{isEnglish ? "Verification code" : "验证码"}</label>
+              <Input id="hui-code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={event => { setCode(event.target.value.replace(/\D/g, "").slice(0, 6)); setError(null); }} placeholder="000000" autoFocus/>
+              <Button type="submit" variant="primary" fullWidth disabled={loading || code.length < 6}>{loading && <LoaderCircle className="is-spinning"/>}{loading ? (isEnglish ? "Signing in…" : "正在登录……") : (isEnglish ? "Verify and sign in" : "验证并登录")}</Button>
+              {error && <div className="hui-auth-error" role="alert"><AlertCircle aria-hidden="true"/><span>{error}</span></div>}
+              <Button variant="ghost" onClick={() => { setStep("email"); setError(null); }}><ArrowLeft/>{isEnglish ? "Change email" : "更换邮箱"}</Button>
+            </form>}
+            {notice && <p role="status">{notice}</p>}
+            {signedIn && error && <div className="hui-auth-error" role="alert"><AlertCircle aria-hidden="true"/><span>{error}</span></div>}
+          </Modal.Body>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   </>;
 }

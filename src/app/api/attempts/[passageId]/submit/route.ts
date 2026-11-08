@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/guard";
+import { isUuid } from "@/lib/uuid";
 import { transaction } from "@/lib/db";
 import { hasValidAnswers, KEYS_SQL, PUBLISHED_QUESTION_COUNT_SQL, toGradeResult, type KeyRow } from "@/data/grade-attempt";
 import { logError, logWarn } from "@/lib/log";
@@ -18,16 +19,14 @@ type ExpectedCode = keyof typeof EXPECTED;
 
 const isExpected = (value: unknown): value is ExpectedCode => typeof value === "string" && value in EXPECTED;
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export async function POST(request: Request, { params }: { params: Promise<{ passageId: string }> }) {
   const { passageId } = await params;
-  if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const body = await request.json().catch(() => null) as { attemptId?: string; answers?: Record<string, number> } | null;
   const { attemptId, answers } = body ?? {};
-  if (typeof attemptId !== "string" || !UUID_PATTERN.test(attemptId) || !answers || typeof answers !== "object" || Array.isArray(answers)) return NextResponse.json({ error: "Invalid answers" }, { status: 400 });
+  if (typeof attemptId !== "string" || !isUuid(attemptId) || !answers || typeof answers !== "object" || Array.isArray(answers)) return NextResponse.json({ error: "Invalid answers" }, { status: 400 });
 
   try {
     const result = await transaction(async (client) => {

@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/guard";
+import { isUuid } from "@/lib/uuid";
 import { query } from "@/lib/db";
 import { isWritingReview } from "@/lib/writing-review";
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export async function GET(request: Request) {
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const attemptId = new URL(request.url).searchParams.get("attemptId");
-  if (attemptId && !UUID_PATTERN.test(attemptId)) return NextResponse.json({ error: "Invalid attempt" }, { status: 400 });
+  if (attemptId && !isUuid(attemptId)) return NextResponse.json({ error: "Invalid attempt" }, { status: 400 });
   const result = await query<{
     id: string; original: string; rewrite: string; pattern: string; use_cases: string[];
     status: string; created_at: string; year: number; part: "A" | "B";
@@ -27,8 +26,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const body = await request.json().catch(() => null) as { attemptId?: unknown; expressionIndex?: unknown } | null;
   if (typeof body?.attemptId !== "string" || typeof body.expressionIndex !== "number" || !Number.isInteger(body.expressionIndex)) {
     return NextResponse.json({ error: "Invalid expression" }, { status: 400 });
@@ -51,16 +50,16 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const body = await request.json().catch(() => null) as { expressionId?: unknown; attemptId?: unknown; expressionIndex?: unknown } | null;
-  if (typeof body?.expressionId === "string" && UUID_PATTERN.test(body.expressionId)) {
+  if (typeof body?.expressionId === "string" && isUuid(body.expressionId)) {
     const deleted = await query("delete from writing_expressions where id = $1 and user_id = $2", [body.expressionId, user.id]);
     return deleted.rowCount
       ? NextResponse.json({ ok: true })
       : NextResponse.json({ error: "Expression not found" }, { status: 404 });
   }
-  if (typeof body?.attemptId !== "string" || !UUID_PATTERN.test(body.attemptId)
+  if (typeof body?.attemptId !== "string" || !isUuid(body.attemptId)
     || typeof body.expressionIndex !== "number" || !Number.isInteger(body.expressionIndex)) {
     return NextResponse.json({ error: "Invalid expression" }, { status: 400 });
   }

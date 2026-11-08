@@ -1,7 +1,9 @@
+import { loadTs } from './load-ts.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import * as validation from '../src/lib/translation-review.ts';
+import { isUuid } from '../src/lib/uuid.ts';
 
 const source=readFileSync('src/app/api/translation-attempts/[taskId]/review/route.ts','utf8');
 const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
@@ -12,11 +14,16 @@ const valid={score:10,summary:'词义颠倒。',reference:'衣服能增强信心
 let stored=null;
 let saved=null;
 const modules={
+  '@/lib/deepseek-error':{deepseekFailure:async r=>({message:'AI 服务暂时异常',status:r.status,code:'test'})},
+  '@/lib/deepseek-config':{deepseekModel:'deepseek-flash',deepseekThinking:{type:'disabled'}},
+  '@/lib/deepseek-client':loadTs('src/lib/deepseek-client.ts',{'./deepseek-config':{deepseekModel:'deepseek-flash',deepseekThinking:{type:'disabled'}}}),
+  '@/lib/review-stream':{reviewStream:(_request,run)=>run(()=>{})},
   '@/lib/review-rubrics':{TRANSLATION_RUBRIC:'UNCHANGED_RUBRIC'},
   '@/lib/translation-review':validation,
-  'next/server':{NextResponse:{json:(value,options)=>Response.json(value,options)}},
+  'next/server':{NextResponse:class NextResponse{static json(value,options){return Response.json(value,options);}}},
   '@/lib/db':{query:async(sql,values)=>{if(sql.startsWith('update')){saved=JSON.parse(values[0]);return {rows:[]};}return {rows:[{id,passage:original,answer,review:stored}]};}},
-  '@/lib/auth/session':{getOrCreateSessionUser:async()=>({id})},
+  '@/lib/auth/guard':{requireUser:async()=>({id,isAnonymous:false})},
+  '@/lib/uuid':{isUuid},
   '@/lib/rate-limit':{rateLimit:()=>false,clientKey:()=> 'local-test'},
 };
 const exports={};

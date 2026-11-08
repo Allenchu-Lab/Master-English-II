@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import pg from "pg";
+import { login } from "./login-helper.mjs";
 
 assert.equal(process.env.ALLOW_TEST_WRITES, "1", "Set ALLOW_TEST_WRITES=1 to acknowledge that this test creates practice records.");
 
@@ -25,50 +27,60 @@ async function json(path, init = {}, expectedStatus = 200) {
   return response.json();
 }
 
-const page = await request(`/practice/${year}/${text}?lang=en`);
-assert.equal(page.status, 200, "Practice page did not open");
-const html = await page.text();
-const passageId = html.match(/\\"passage\\":\{\\"id\\":\\"([0-9a-f-]{36})\\"/i)?.[1];
-assert.ok(passageId, "Could not find the passage ID in the practice page");
+const db = new pg.Client({ connectionString: "postgresql://chitouen_local@127.0.0.1:55432/chitouen_local" });
+await db.connect();
+let email;
+try {
+  ({ cookie, email } = await login(baseUrl));
 
-const attemptPath = `/api/attempts/${passageId}`;
-const opened = await json(attemptPath);
-assert.ok(opened.attempt?.id, "Opening practice did not create an attempt");
-assert.equal(opened.attempt.submitted_at, null);
+  const page = await request(`/practice/${year}/${text}?lang=en`);
+  assert.equal(page.status, 200, "Practice page did not open");
+  const html = await page.text();
+  const passageId = html.match(/\\"passage\\":\{\\"id\\":\\"([0-9a-f-]{36})\\"/i)?.[1];
+  assert.ok(passageId, "Could not find the passage ID in the practice page");
 
-const accessBefore = await json(`${attemptPath}/access`);
-assert.equal(accessBefore.allowed, false, "Intensive reading unlocked before submission");
+  const attemptPath = `/api/attempts/${passageId}`;
+  const opened = await json(attemptPath);
+  assert.ok(opened.attempt?.id, "Opening practice did not create an attempt");
+  assert.equal(opened.attempt.submitted_at, null);
 
-const answers = Object.fromEntries([21, 22, 23, 24, 25].map((number) => [String(number), 0]));
-await json(attemptPath, {
-  method: "PATCH",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ attemptId: opened.attempt.id, answers }),
-});
+  const accessBefore = await json(`${attemptPath}/access`);
+  assert.equal(accessBefore.allowed, false, "Intensive reading unlocked before submission");
 
-const restored = await json(attemptPath);
-assert.deepEqual(restored.attempt.answers, answers, "Saved answers were not restored");
+  const answers = Object.fromEntries([21, 22, 23, 24, 25].map((number) => [String(number), 0]));
+  await json(attemptPath, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ attemptId: opened.attempt.id, answers }),
+  });
 
-const grade = await json(`${attemptPath}/submit`, {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ attemptId: opened.attempt.id, answers }),
-});
-assert.equal(grade.total, 5, "Submission did not grade all five questions");
-assert.equal(grade.questions?.length, 5, "Submission did not return five question results");
+  const restored = await json(attemptPath);
+  assert.deepEqual(restored.attempt.answers, answers, "Saved answers were not restored");
 
-const accessAfter = await json(`${attemptPath}/access`);
-assert.equal(accessAfter.allowed, true, "Intensive reading did not unlock after submission");
+  const grade = await json(`${attemptPath}/submit`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ attemptId: opened.attempt.id, answers }),
+  });
+  assert.equal(grade.total, 5, "Submission did not grade all five questions");
+  assert.equal(grade.questions?.length, 5, "Submission did not return five question results");
 
-const submitted = await json(attemptPath);
-assert.equal(submitted.attempt.id, opened.attempt.id);
-assert.equal(submitted.grade?.total, 5, "Submitted review did not restore the grade");
+  const accessAfter = await json(`${attemptPath}/access`);
+  assert.equal(accessAfter.allowed, true, "Intensive reading did not unlock after submission");
 
-const redo = await json(attemptPath, { method: "POST" });
-assert.ok(redo.attempt?.id && redo.attempt.id !== opened.attempt.id, "Redo did not create a fresh attempt");
-assert.equal(redo.attempt.submitted_at, null);
+  const submitted = await json(attemptPath);
+  assert.equal(submitted.attempt.id, opened.attempt.id);
+  assert.equal(submitted.grade?.total, 5, "Submitted review did not restore the grade");
 
-const latest = await json(attemptPath);
-assert.equal(latest.attempt.id, redo.attempt.id, "Refresh did not keep the latest Redo attempt");
+  const redo = await json(attemptPath, { method: "POST" });
+  assert.ok(redo.attempt?.id && redo.attempt.id !== opened.attempt.id, "Redo did not create a fresh attempt");
+  assert.equal(redo.attempt.submitted_at, null);
 
-console.log(`Core learning flow passed for ${year} Text ${text} against ${baseUrl}`);
+  const latest = await json(attemptPath);
+  assert.equal(latest.attempt.id, redo.attempt.id, "Refresh did not keep the latest Redo attempt");
+
+  console.log(`Core learning flow passed for ${year} Text ${text} against ${baseUrl}`);
+} finally {
+  if (email) await db.query("delete from app_users where email=$1", [email]);
+  await db.end();
+}

@@ -1,6 +1,11 @@
+import { deepseekFailure } from "@/lib/deepseek-error";
+import { callDeepseek } from "@/lib/deepseek-client";
+import { deepseekModel } from "@/lib/deepseek-config";
+import { reviewStream, type ReportReviewProgress } from "@/lib/review-stream";
 import { WRITING_RUBRIC } from '@/lib/review-rubrics';
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/guard";
+import { isUuid } from "@/lib/uuid";
 import { query } from "@/lib/db";
 import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -18,21 +23,25 @@ type ReviewRow = {
   chart: unknown;
 };
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const AI_TIMEOUT_MS = 75_000;
 
-export async function POST(request: Request, { params }: Context) {
+export async function POST(request: Request, context: Context) {
+  return reviewStream(request, report => runReview(request, context, report));
+}
+
+async function runReview(request: Request, { params }: Context, report: ReportReviewProgress) {
   if (rateLimit(`writing-review:${clientKey(request)}`, { max: 10, windowMs: 10 * 60 * 1000 })) {
     return NextResponse.json({ error: "批改请求较多，请稍后再试。" }, { status: 429 });
   }
   const { taskId } = await params;
-  if (!UUID_PATTERN.test(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
+  if (!isUuid(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
   const body = await request.json().catch(() => null) as { attemptId?: unknown } | null;
-  if (typeof body?.attemptId !== "string" || !UUID_PATTERN.test(body.attemptId)) {
+  if (typeof body?.attemptId !== "string" || !isUuid(body.attemptId)) {
     return NextResponse.json({ error: "Invalid attempt" }, { status: 400 });
   }
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
+  report(0);
   const result = await query<ReviewRow>(`
     select a.id, a.answer, a.review, t.part, t.prompt, t.points, t.target_words, t.chart
     from writing_attempts a join writing_tasks t on t.id = a.task_id
@@ -45,16 +54,12 @@ export async function POST(request: Request, { params }: Context) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "AI 批改服务尚未配置。" }, { status: 503 });
 
+  report(1);
   let response: Response;
+  let data: { choices?: { message?: { content?: string } }[] };
   try {
-    response = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
-      body: JSON.stringify({
-        model: "deepseek-chat",
+    response = await callDeepseek({
         temperature: 0.15,
-        response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
@@ -65,20 +70,22 @@ export async function POST(request: Request, { params }: Context) {
             content: `题型：Part ${attempt.part}\n满分：${attempt.points}\n目标词数：${attempt.target_words}\n题目：\n${attempt.prompt}\n图表信息：${JSON.stringify(attempt.chart)}\n\n考生原文：\n${attempt.answer}`,
           },
         ],
-      }),
-    });
+      }, AbortSignal.timeout(AI_TIMEOUT_MS));
+    if (!response.ok) {
+      const failure = await deepseekFailure(response);
+      logWarn("writing_review.upstream_error", { ...failure, model: deepseekModel, taskId });
+      return NextResponse.json({ error: failure.message }, { status: 502 });
+    }
+    data = await response.json();
   } catch (error) {
     logError("writing_review.upstream_unreachable", error, { taskId });
     return NextResponse.json({ error: "AI 批改暂时不可用，请稍后重试。" }, { status: 502 });
   }
-  if (!response.ok) {
-    logWarn("writing_review.upstream_error", { status: response.status, taskId });
-    return NextResponse.json({ error: "AI 批改暂时不可用，请稍后重试。" }, { status: 502 });
-  }
-  const data = await response.json() as { choices?: { message?: { content?: string } }[] };
+  report(2);
   try {
     const review = JSON.parse(data.choices?.[0]?.message?.content ?? "") as unknown;
     if (!isWritingReview(review, attempt.points)) throw new Error("Invalid review shape");
+    report(3);
     await query("update writing_attempts set review = $1::jsonb, reviewed_at = now(), updated_at = now() where id = $2", [JSON.stringify(review), attempt.id]);
     return NextResponse.json({ review });
   } catch {

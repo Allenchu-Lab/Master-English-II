@@ -1,5 +1,7 @@
+import { callDeepseek } from "@/lib/deepseek-client";
+import { reviewStream, type ReportReviewProgress } from "@/lib/review-stream";
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/guard";
 import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
@@ -14,8 +16,13 @@ type ParagraphAnalysis = {
 };
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  return reviewStream(request, report => runAnalysis(request, report));
+}
+
+async function runAnalysis(request: Request, report: ReportReviewProgress) {
+  report(0);
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   if (rateLimit(`intensive:${clientKey(request)}`, { max: 30, windowMs: 10 * 60 * 1000 })) {
     return NextResponse.json({ error: "精读解析请求太频繁了，请稍后再试。" }, { status: 429 });
   }
@@ -32,16 +39,14 @@ export async function POST(request: Request) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "AI 精读服务尚未配置。" }, { status: 503 });
 
+  report(1);
   let response: Response;
+  let result: { choices?: { message?: { content?: string } }[] };
+  const signal = AbortSignal.timeout(AI_TIMEOUT_MS);
   try {
-    response = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
-      body: JSON.stringify({
-        model: "deepseek-chat",
+    for (let retry = 0; ; retry++) {
+    response = await callDeepseek({
         temperature: 0.2,
-        response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
@@ -49,8 +54,23 @@ export async function POST(request: Request) {
           },
           { role: "user", content: `${year} 年英语二 Text ${text}，第 ${paragraphNumber} 段：\n${paragraph}` },
         ],
-      }),
-    });
+      }, signal);
+    if (retry === 0 && [500, 502, 503, 504].includes(response.status)) {
+      logWarn("intensive.upstream_retry", { status: response.status, year, text });
+      await response.body?.cancel();
+      continue;
+    }
+    break;
+    }
+    if (!response.ok) {
+      logWarn("intensive.upstream_error", { status: response.status, year, text });
+      const error = response.status === 402 ? "AI 服务账户额度不足，请联系管理员。"
+        : response.status === 401 ? "AI 服务密钥验证失败，请检查配置。"
+        : response.status === 429 ? "AI 服务请求较多，请稍后重试。"
+        : "AI 服务暂时异常，请稍后重试。";
+      return NextResponse.json({ error }, { status: 502 });
+    }
+    result = await response.json();
   } catch (error) {
     if (error instanceof Error && error.name === "TimeoutError") {
       logWarn("intensive.upstream_timeout", { timeoutMs: AI_TIMEOUT_MS, year, text });
@@ -60,11 +80,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "AI 精读服务暂时不可用。" }, { status: 502 });
   }
 
-  if (!response.ok) {
-    logWarn("intensive.upstream_error", { status: response.status, year, text });
-    return NextResponse.json({ error: "AI 精读服务暂时不可用。" }, { status: 502 });
-  }
-  const result = await response.json() as { choices?: { message?: { content?: string } }[] };
+  report(2);
   const content = result.choices?.[0]?.message?.content;
   if (!content) return NextResponse.json({ error: "AI 没有返回精读内容。" }, { status: 502 });
 
@@ -81,6 +97,7 @@ export async function POST(request: Request) {
     if (typeof analysis.summary !== "string" || typeof analysis.translation !== "string" || !structureValid || !vocabularyValid || typeof analysis.examTip !== "string") {
       throw new Error("Invalid analysis shape");
     }
+    report(3);
     return NextResponse.json(analysis);
   } catch {
     return NextResponse.json({ error: "精读内容格式异常，请重试。" }, { status: 502 });

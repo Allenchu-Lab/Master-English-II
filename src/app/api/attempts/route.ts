@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { optionalUser } from "@/lib/auth/guard";
 import { query } from "@/lib/db";
 
 /**
@@ -10,8 +10,8 @@ import { query } from "@/lib/db";
  * 持续增长。改为在数据库侧聚合：只要有过一次提交，这篇就算已完成。
  */
 export async function GET() {
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ attempts: [] });
+  const user = await optionalUser();
+  if (!user) return NextResponse.json({ attempts: [] });
   const result = await query<{ passage_id: string; submitted: boolean; correct_count: number | null; completed_at: string | null }>(
     `select passage_id, bool_or(submitted_at is not null) as submitted,
        (array_agg(score order by submitted_at desc, id desc) filter (where submitted_at is not null))[1] as correct_count, max(submitted_at) as completed_at

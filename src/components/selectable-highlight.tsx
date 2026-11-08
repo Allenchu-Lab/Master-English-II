@@ -1,10 +1,12 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MousePointer2, X } from "lucide-react";
 import { requestAi } from "@/lib/ai-request";
+import { mergeHighlights, type Highlight } from "@/lib/highlight";
 
-type Highlight = { start: number; end: number };
 type InteractionMode = "highlight" | "lookup";
 const guideStorageKey = "reading-highlight-onboarding-complete-v2";
 
@@ -50,17 +52,6 @@ function rememberEntry(term: string, value: DictionaryEntry) {
   try {
     window.localStorage.setItem(cacheStorageKey, JSON.stringify(Object.fromEntries(dictionaryCache)));
   } catch { /* 存储写满时仅失去持久化，内存缓存仍然有效。 */ }
-}
-
-function mergeHighlights(highlights: Highlight[]) {
-  return [...highlights]
-    .sort((a, b) => a.start - b.start)
-    .reduce<Highlight[]>((merged, highlight) => {
-      const previous = merged.at(-1);
-      if (!previous || highlight.start > previous.end) return [...merged, highlight];
-      previous.end = Math.max(previous.end, highlight.end);
-      return merged;
-    }, []);
 }
 
 export function SelectableHighlight({ text, scope, storageKey, isEnglish = false, mode = "highlight", evidence }: { text: string; scope: string; storageKey: string; isEnglish?: boolean; mode?: InteractionMode; evidence?: string }) {
@@ -241,14 +232,14 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
 
   return <span ref={containerRef} className={`selectable-highlight ${mode === "lookup" ? "lookup-by-word" : ""}`} onMouseUp={addSelection} onTouchEnd={addSelection}>
     {mode === "lookup" ? wordSegments.map((segment) => segment.word
-      ? <button
+      ? <Button
           type="button"
           key={segment.start}
           className={`lookup-word ${lookup?.start === segment.start ? "is-open" : ""} ${pendingLookupStart === segment.start ? "is-looking" : ""}`}
           onClick={(event) => { void openLookup(segment.text, segment.start, event.currentTarget); }}
           aria-busy={pendingLookupStart === segment.start}
           aria-label={isEnglish ? `Look up ${segment.text}` : `查询 ${segment.text}`}
-        >{segment.text}</button>
+        >{segment.text}</Button>
       : <span key={segment.start}>{segment.text}</span>) : segments.map((segment, index) => segment.highlightIndex === undefined
       ? <span key={index}>{segmentContent(segment)}</span>
       : <mark
@@ -271,8 +262,8 @@ export function SelectableHighlight({ text, scope, storageKey, isEnglish = false
         </span>}
       </>}
       <span className="word-lookup-actions">
-        {lookup.index !== undefined && <button type="button" onClick={() => removeHighlight(lookup.index!)}>{isEnglish ? "Remove highlight" : "取消标记"}</button>}
-        <button type="button" onClick={() => { lookupRequestRef.current += 1; setLookup(null); }}>{isEnglish ? "Close" : "关闭"}</button>
+        {lookup.index !== undefined && <Button type="button" onClick={() => removeHighlight(lookup.index!)}>{isEnglish ? "Remove highlight" : "取消标记"}</Button>}
+        <Button type="button" onClick={() => { lookupRequestRef.current += 1; setLookup(null); }}>{isEnglish ? "Close" : "关闭"}</Button>
       </span>
     </span>}
   </span>;
@@ -316,7 +307,7 @@ export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
 
   return <div className="highlight-onboarding-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) dismiss(); }}>
     <section ref={dialogRef} className="highlight-onboarding" role="dialog" aria-modal="true" aria-labelledby="highlight-onboarding-title" tabIndex={-1}>
-      <button className="highlight-onboarding-close" type="button" onClick={dismiss} aria-label={isEnglish ? "Close guide" : "关闭引导"}><X /></button>
+      <Button className="highlight-onboarding-close" type="button" onClick={dismiss} aria-label={isEnglish ? "Close guide" : "关闭引导"}><X /></Button>
       <span className="highlight-onboarding-eyebrow">{isEnglish ? "Reading tool" : "阅读小工具"}</span>
       <h2 id="highlight-onboarding-title">{isEnglish ? "Highlight what matters" : "划出重点，读得更清楚"}</h2>
       <p>{isEnglish ? "Drag across any important phrase to save a highlight. Click it once to remove it." : "拖动选中重要内容即可留下高亮，再点击一次就能取消。"}</p>
@@ -327,7 +318,7 @@ export function HighlightGuide({ isEnglish }: { isEnglish: boolean }) {
         <span className="highlight-demo-tip">{isEnglish ? "Drag to highlight · Click to remove" : "拖动划重点 · 点击取消"}</span>
       </div>
 
-      <button className="highlight-onboarding-start" type="button" onClick={dismiss}>{isEnglish ? "Start practice" : "知道了，开始做题"}</button>
+      <Button variant="primary" className="highlight-onboarding-start" type="button" onClick={dismiss}>{isEnglish ? "Start practice" : "知道了，开始做题"}</Button>
     </section>
   </div>;
 }

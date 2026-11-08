@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { getSessionUser } from '@/lib/auth/session';
+import { optionalUser } from '@/lib/auth/guard';
 
 export async function GET() {
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ attempts: [] });
+  const user = await optionalUser();
+  if (!user) return NextResponse.json({ attempts: [] });
   const result = await query(`
     select distinct on (task_id) task_id, submitted_at, score,
       answers <> '{}'::jsonb as has_answers

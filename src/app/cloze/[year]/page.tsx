@@ -17,5 +17,5 @@ export default async function Page({ params, searchParams }: {
   `, [Number(year)]);
   const task = result.rows[0];
   if (!task) notFound();
-  return <ClozePractice task={task} isEnglish={lang === 'en'} />;
+  return <ClozePractice key={task.id} task={task} isEnglish={lang === 'en'} />;
 }

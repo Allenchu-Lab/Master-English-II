@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
@@ -18,6 +18,7 @@ function browser(initialCookie = "") {
   let cookie = initialCookie;
   return {
     cookie: () => cookie,
+    setCookie: (value) => { cookie = value; },
     async request(path, body, expected = 200, method = "POST") {
       const response = await fetch(new URL(path, base), {
         method: body === undefined ? "GET" : method,
@@ -50,6 +51,7 @@ async function sendCode(device, email) {
 const verify = (device, email, code, status = 200) => device.request("/api/auth/verify-code", { email, code }, status);
 const session = (device) => device.request("/api/auth/session");
 
+let guestId;
 try {
   const directory = await db.query("show data_directory");
   assert.equal(directory.rows[0].data_directory, `${root}.local-db/data`, "Refusing a different database");
@@ -74,18 +76,35 @@ try {
   assert.equal(passages.rowCount, 2);
   const path = `/api/attempts/${passages.rows[0].id}`;
   const secondPath = `/api/attempts/${passages.rows[1].id}`;
-  const guest = (await a.request(path)).attempt;
+  // Browsing never creates a guest; the practice APIs reject anonymous callers.
+  await a.request(path, undefined, 401);
+  assert.deepEqual((await a.request("/api/attempts")).attempts, []);
+
+  // The app no longer creates guests, but verify-code still migrates a pre-existing
+  // anonymous session. Seed one directly (as practice-auth does) to cover that path.
+  guestId = (await db.query("insert into app_users(is_anonymous) values(true) returning id")).rows[0].id;
+  const guestToken = randomUUID();
+  await db.query("insert into user_sessions(user_id,token_hash,expires_at) values($1,$2,now()+interval '1 day')",
+    [guestId, createHash("sha256").update(guestToken).digest("hex")]);
+  a.setCookie(`master_english_session=${guestToken}`);
   const oldGuestCookie = a.cookie();
-  const questions = await db.query("select question_number from questions where passage_id = $1", [passages.rows[0].id]);
+  const questions = await db.query("select question_number from questions where passage_id = $1 and status='published'", [passages.rows[0].id]);
   const answers = Object.fromEntries(questions.rows.map((row) => [String(row.question_number), 0]));
-  await a.request(path, { attemptId: guest.id, answers }, 200, "PATCH");
-  const submitted = await a.request(`${path}/submit`, { attemptId: guest.id, answers });
-  const draft = (await a.request(secondPath)).attempt;
+  const guestAttempt = (await db.query(
+    "insert into practice_attempts(user_id,passage_id,answers,score,submitted_at) values($1,$2,$3,0,now()) returning id",
+    [guestId, passages.rows[0].id, JSON.stringify(answers)])).rows[0].id;
+  const guestDraft = (await db.query(
+    "insert into practice_attempts(user_id,passage_id,answers) values($1,$2,$3) returning id",
+    [guestId, passages.rows[1].id, JSON.stringify(answers)])).rows[0].id;
   const clozeTasks = await db.query("select id from cloze_tasks where status='published' order by id limit 2");
   const clozePath = `/api/cloze-attempts/${clozeTasks.rows[0].id}`;
   const clozeDraftPath = `/api/cloze-attempts/${clozeTasks.rows[1].id}`;
-  const clozeSubmission = (await a.request(clozePath, { action: 'submit', attemptId: null, answers: { '1': 'A' }, elapsedSeconds: 12 })).attempt;
-  await a.request(clozeDraftPath, { action: 'save', attemptId: null, answers: { '2': 'B' }, elapsedSeconds: 15 });
+  const guestCloze = (await db.query(
+    "insert into cloze_attempts(user_id,task_id,answers,score,submitted_at) values($1,$2,$3,0,now()) returning id",
+    [guestId, clozeTasks.rows[0].id, JSON.stringify({ '1': 'A' })])).rows[0].id;
+  await db.query("insert into cloze_attempts(user_id,task_id,answers,elapsed_seconds) values($1,$2,$3,15)",
+    [guestId, clozeTasks.rows[1].id, JSON.stringify({ '2': 'B' })]);
+
   const codeA = await sendCode(a, ` ${emailA.toUpperCase()} `);
   await a.request("/api/auth/request-code", { email: emailA }, 429);
   await verify(a, emailA, codeA === "000000" ? "000001" : "000000", 400);
@@ -94,30 +113,29 @@ try {
   assert.equal((await session(browser(oldGuestCookie))).user, null, "Guest session must be revoked after migration");
   await verify(browser(), emailA, codeA, 400);
   const restored = await a.request(path);
-  assert.equal(restored.attempt.id, guest.id);
+  assert.equal(restored.attempt.id, guestAttempt, "Guest submission survives login");
   assert.deepEqual(restored.attempt.answers, answers);
-  assert.equal(restored.grade.score, submitted.score);
+  assert.ok(restored.grade, "Submitted review must be restored after migration");
   assert.equal((await a.request(`${path}/access`)).allowed, true);
-  assert.equal((await a.request(secondPath)).attempt.id, draft.id);
-  assert.equal((await a.request(clozePath)).attempt.id, clozeSubmission.id, 'Guest cloze submission survives login');
-  assert.deepEqual((await a.request(clozeDraftPath)).attempt.answers, { '2': 'B' }, 'Guest cloze draft survives login');
+  assert.equal((await a.request(secondPath)).attempt.id, guestDraft, "Guest draft survives login");
+  assert.equal((await a.request(clozePath)).attempt.id, guestCloze, "Guest cloze submission survives login");
+  assert.deepEqual((await a.request(clozeDraftPath)).attempt.answers, { '2': 'B' }, "Guest cloze draft survives login");
 
   // Advance only this run's OTP timestamp instead of waiting for the resend cooldown.
   await db.query("update email_login_codes set created_at = now() - interval '2 minutes' where email = $1", [emailA]);
-  const guestB = (await b.request(path)).attempt;
   await verify(b, emailA, await sendCode(b, emailA));
   assert.equal((await session(a)).user.email, emailA, "Second device must not log out the first");
   assert.equal((await session(b)).user.email, emailA);
-  assert.equal((await b.request(path)).attempt.id, guestB.id);
-  assert.equal((await b.request(`${path}/access`)).allowed, true, "Existing submission survives guest merge");
-  assert.equal((await b.request(secondPath)).attempt.id, draft.id, "Draft must sync across devices");
-  assert.deepEqual((await b.request(clozeDraftPath)).attempt.answers, { '2': 'B' }, 'Cloze draft syncs across devices');
+  assert.equal((await b.request(path)).attempt.id, guestAttempt, "Merged submission syncs across devices");
+  assert.equal((await b.request(`${path}/access`)).allowed, true);
+  assert.equal((await b.request(secondPath)).attempt.id, guestDraft, "Draft must sync across devices");
+  assert.deepEqual((await b.request(clozeDraftPath)).attempt.answers, { '2': 'B' }, "Cloze draft syncs across devices");
   const history = await db.query("select count(*)::int as count from practice_attempts p join app_users u on u.id=p.user_id where u.email=$1", [emailA]);
-  assert.equal(history.rows[0].count, 3, "Guest merge must preserve both histories without duplication");
+  assert.equal(history.rows[0].count, 2, "Cross-device login must not duplicate the merged history");
 
   await verify(other, emailB, await sendCode(other, emailB));
   assert.deepEqual((await other.request("/api/attempts")).attempts, []);
-  await other.request(secondPath, { attemptId: draft.id, answers: {} }, 404, "PATCH");
+  await other.request(secondPath, { attemptId: guestDraft, answers: {} }, 404, "PATCH");
   assert.equal((await other.request(`${path}/access`)).allowed, false);
   const loggedOutCookie = a.cookie();
   await a.request("/api/auth/logout", {});
@@ -148,7 +166,10 @@ try {
   if (first !== second) await verify(browser(), supersededEmail, first, 400);
   await verify(browser(), supersededEmail, second);
   await verify(browser(), supersededEmail, first, 400);
-  console.log("Auth flow passed: local mail, OTP validation, guest merge, cross-device access, account isolation and logout.");
+  console.log("Auth flow passed: local mail, OTP validation, guest rejection, legacy guest merge, cross-device access, account isolation and logout.");
 } finally {
+  await db.query("delete from app_users where email like $1", [`${prefix}%`]);
+  if (guestId) await db.query("delete from app_users where id=$1", [guestId]);
+  await db.query("delete from email_login_codes where email like $1", [`${prefix}%`]);
   await db.end();
 }

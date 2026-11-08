@@ -1,5 +1,6 @@
+import { callDeepseek } from "@/lib/deepseek-client";
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/guard";
 import { logError, logWarn } from "@/lib/log";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
@@ -14,8 +15,8 @@ type DictionaryResult = {
 };
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   if (rateLimit(`dictionary:${clientKey(request)}`, { max: 20, windowMs: 10 * 60 * 1000 })) {
     return NextResponse.json({ error: "查词太频繁了，请稍后再试。" }, { status: 429 });
   }
@@ -32,14 +33,8 @@ export async function POST(request: Request) {
 
   let response: Response;
   try {
-    response = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
-      body: JSON.stringify({
-        model: "deepseek-chat",
+    response = await callDeepseek({
         temperature: 0.2,
-        response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
@@ -47,8 +42,7 @@ export async function POST(request: Request) {
           },
           { role: "user", content: `Term: ${term}\nContext: ${context}` },
         ],
-      }),
-    });
+      }, AbortSignal.timeout(AI_TIMEOUT_MS));
   } catch (error) {
     if (error instanceof Error && error.name === "TimeoutError") {
       logWarn("dictionary.upstream_timeout", { timeoutMs: AI_TIMEOUT_MS });
@@ -63,11 +57,11 @@ export async function POST(request: Request) {
     logWarn("dictionary.upstream_error", { status: response.status });
     return NextResponse.json({ error: "查词服务暂时不可用。" }, { status: 502 });
   }
-  const result = await response.json() as { choices?: { message?: { content?: string } }[] };
-  const content = result.choices?.[0]?.message?.content;
-  if (!content) return NextResponse.json({ error: "没有查到释义。" }, { status: 502 });
-
   try {
+    const result = await response.json() as { choices?: { message?: { content?: string } }[] } | null;
+    const content = result?.choices?.[0]?.message?.content;
+    if (!content) return NextResponse.json({ error: "没有查到释义。" }, { status: 502 });
+
     const parsed = JSON.parse(content) as DictionaryResult;
     if (typeof parsed.term !== "string" || typeof parsed.meaning !== "string") {
       throw new Error("Invalid dictionary shape");

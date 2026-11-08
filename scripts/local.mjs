@@ -68,6 +68,7 @@ try {
   await client.query(readFileSync(`${root}deploy/postgres/021-reading-b-older-content.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/022-cloze.sql`, "utf8"));
   await client.query(readFileSync(`${root}deploy/postgres/023-cloze-content.sql`, "utf8"));
+  await client.query(readFileSync(`${root}deploy/postgres/024-practice-updated-at.sql`, "utf8"));
 } finally {
   await client.end();
 }
@@ -126,6 +127,9 @@ if (action === "test") {
     run(process.execPath, ["tests/local-preview.mjs"], testEnv);
     run(process.execPath, ["tests/reading-b.mjs"], testEnv);
     run(process.execPath, ["tests/cloze.mjs"], testEnv);
+    run(process.execPath, ["tests/practice-auth.mjs"], testEnv);
+    run(process.execPath, ["tests/reading-partial-submit.mjs"], testEnv);
+    run(process.execPath, ["tests/resume-practice.mjs"], testEnv);
   } finally {
     server.kill("SIGTERM");
   }

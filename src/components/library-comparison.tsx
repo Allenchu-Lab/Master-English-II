@@ -1,16 +1,29 @@
 "use client";
+import { SiteFooter } from "@/components/ui/site-footer";
+import { ResumePractice } from "@/components/ui/resume-practice";
+import { HomeIntro } from "@/components/ui/home-intro";
+import { runtimeTokens } from "@/styles/runtime-tokens";
 
+import { PracticeBadge } from "@/components/ui/practice-badge";
+import { LibraryTaskCard } from "@/components/ui/library-task-card";
+import { Button } from "@/components/ui/button";
+
+import { buttonVariants } from "@heroui/styles";
+import { Dropdown } from "@heroui/react/dropdown";
+import { Chip } from "@heroui/react/chip";
+import { Card } from "@heroui/react/card";
+import { Surface } from "@heroui/react/surface";
+import { ProgressBar } from "@heroui/react/progress-bar";
 import Image from "next/image";
 import Link from "next/link";
 import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { BarChart3, BookMarked, BookOpen, Check, ChevronRight, FileText, Languages, LoaderCircle, PenLine, TextCursorInput } from "lucide-react";
+import { BookMarked, BookOpen, Check, ChevronRight, FileText, Languages, LoaderCircle, PenLine, TextCursorInput } from "lucide-react";
 import type { ExamPaperMap, ExamSectionType } from "@/data/exam-types";
 import { EmailAuth } from "@/components/email-auth";
 
-gsap.registerPlugin(useGSAP, MotionPathPlugin);
+gsap.registerPlugin(useGSAP);
 
 // 题型的展示文案与图标属于界面表现，数量与可用状态一律来自数据库。
 const sectionMeta: Record<ExamSectionType, { zh: string; en: string; zhUnit: string; enUnit: string; icon: typeof BookOpen }> = {
@@ -25,7 +38,6 @@ const sectionOrder: ExamSectionType[] = ["reading_a", "reading_b", "cloze", "tra
 
 export function LibraryComparison({ papers, initialLanguage = "zh", initialType = "reading_a", initialYear, allowPreview = false }: { papers: ExamPaperMap; initialLanguage?: "zh" | "en"; initialType?: ExamSectionType; initialYear?: number; allowPreview?: boolean }) {
   const pageRef = useRef<HTMLElement>(null);
-  const sketchRef = useRef<HTMLDivElement>(null);
   const years = useMemo(() => Object.values(papers).map((paper) => paper.year).sort((a, b) => b - a), [papers]);
   const [year, setYear] = useState(() => initialYear && years.includes(initialYear) ? initialYear : years[0] ?? 0);
   const [activeType, setActiveType] = useState(() => Math.max(sectionOrder.indexOf(initialType), 0));
@@ -120,8 +132,7 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     document.documentElement.lang = isEnglish ? "en" : "zh-CN";
   }, [isEnglish]);
 
-  const switchLanguage = () => {
-    const nextLanguage = isEnglish ? "zh" : "en";
+  const switchLanguage = (nextLanguage: "zh" | "en") => {
     document.title = nextLanguage === "en" ? "ChiTouEN II" : "吃透英语二";
     document.documentElement.lang = nextLanguage === "en" ? "en" : "zh-CN";
     setUiLanguage(nextLanguage);
@@ -210,31 +221,11 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     return () => { cancelled = true; };
   }, [authRevision]);
 
-  const playSketchInteraction = () => {
-    if (!sketchRef.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const dot = sketchRef.current.querySelector(".sketch-tracer");
-    const image = sketchRef.current.querySelector(".learning-sketch");
-    gsap.killTweensOf([dot, image]);
-    gsap.timeline()
-      .set(dot, { autoAlpha: 1 })
-      .fromTo(dot, {
-        motionPath: { path: "#sketch-motion-path", align: "#sketch-motion-path", alignOrigin: [0.5, 0.5], start: 0, end: 0 },
-      }, {
-        motionPath: { path: "#sketch-motion-path", align: "#sketch-motion-path", alignOrigin: [0.5, 0.5], start: 0, end: 1 },
-        duration: 0.72,
-        ease: "power1.inOut",
-      })
-      .to(dot, { autoAlpha: 0, scale: 1.5, duration: 0.14, ease: "power2.out" })
-      .to(image, { y: -3, rotation: 1, duration: 0.16, ease: "power2.out" }, "<")
-      .to(image, { y: 0, rotation: 0, duration: 0.24, ease: "power2.out" });
-  };
-
   useGSAP(() => {
     const media = gsap.matchMedia();
 
     media.add("(prefers-reduced-motion: no-preference)", () => {
-      const timeline = gsap.timeline({ defaults: { duration: 0.22, ease: "power2.out" } });
+      const timeline = gsap.timeline({ defaults: { duration: runtimeTokens.motion.duration.enter, ease: runtimeTokens.motion.ease.response } });
 
       timeline
         .from([".learning-intro", ".question-types"], { autoAlpha: 0, y: 6 }, 0)
@@ -242,13 +233,13 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
         .from(".type-progress b", {
           scaleX: 0,
           transformOrigin: "left center",
-          duration: 0.24,
+          duration: runtimeTokens.motion.duration.settle,
         }, 0)
         .to(".learning-sketch", {
           keyframes: [
-            { y: 2, rotation: -1.5, duration: 0.1 },
-            { y: -5, rotation: 1.5, duration: 0.2, ease: "power2.out" },
-            { y: 0, rotation: 0, duration: 0.28, ease: "power2.out" },
+            { y: 2, rotation: -1.5, duration: runtimeTokens.motion.duration.quick },
+            { y: -5, rotation: 1.5, duration: runtimeTokens.motion.duration.standard, ease: runtimeTokens.motion.ease.response },
+            { y: 0, rotation: 0, duration: runtimeTokens.motion.duration.finish, ease: runtimeTokens.motion.ease.response },
           ],
           transformOrigin: "30% 78%",
         }, 0.12);
@@ -261,77 +252,81 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
     <main className="comparison" ref={pageRef}>
       <title>{isEnglish ? "ChiTouEN II" : "吃透英语二"}</title>
       <div className="product-shell">
-        <aside className="product-nav">
-          <div className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><Image src="/favicon.svg" width={22} height={22} alt="" aria-hidden="true" /><strong>{isEnglish ? "ChiTouEN II" : "吃透英语二"}</strong></div>
-          <nav>
-            <button className="active" aria-current="page"><BookOpen /><span>{isEnglish ? "Practice" : "刷题"}</span></button>
+        <header className="home-topbar">
+          <div className="home-topbar-inner">
+          <Link href={isEnglish ? "/?lang=en" : "/"} className={`product-brand ${isEnglish ? "is-english" : "is-chinese"}`}><Image src="/favicon.svg" width={22} height={22} alt="" aria-hidden="true" /><strong>{isEnglish ? "ChiTouEN II" : "吃透英语二"}</strong></Link>
+          <nav className="hui-navigation" aria-label={isEnglish ? "Main navigation" : "主导航"}>
+            <Link href={isEnglish ? "/?lang=en" : "/"} className={`${buttonVariants({ variant: "ghost" })} hui-nav-action`} aria-current="page"><span>{isEnglish ? "Practice" : "刷题"}</span></Link>
             {/* 统计页尚未实现。保持可见以交代产品结构，但明确标为不可用，
                 而不是留一个点下去毫无反应的按钮。 */}
-            <button disabled aria-disabled="true" title={isEnglish ? "Coming soon" : "即将上线"}><BarChart3 /><span>{isEnglish ? "Statistics" : "统计"}</span><small>{isEnglish ? "Soon" : "即将上线"}</small></button>
+            <Button variant="ghost" className="hui-nav-action" aria-label={isEnglish ? "Statistics — coming soon" : "统计，即将上线"} disabled aria-disabled="true" title={isEnglish ? "Coming soon" : "即将上线"}><span>{isEnglish ? "Statistics" : "统计"}</span><Chip size="sm" variant="soft" className="home-nav-soon"><Chip.Label>{isEnglish ? "Soon" : "即将上线"}</Chip.Label></Chip></Button>
           </nav>
-          <div className="sidebar-tools"><button className="language-switch" onClick={switchLanguage} aria-label={isEnglish ? "Switch to Chinese" : "切换到英文"} aria-pressed={isEnglish}><Languages /><span>{isEnglish ? "中文" : "English"}</span></button></div>
-        </aside>
-
+            <div className="home-topbar-actions">
+              <Dropdown>
+                <Dropdown.Trigger className="home-language-trigger" aria-label={isEnglish ? "Choose language" : "选择语言"}><Languages aria-hidden="true" /></Dropdown.Trigger>
+                <Dropdown.Popover className="home-language-menu" placement="bottom end">
+                  <p id="home-language-heading">{isEnglish ? "Choose language" : "选择语言"}</p>
+                  <Dropdown.Menu aria-labelledby="home-language-heading" selectionMode="single" disallowEmptySelection selectedKeys={[uiLanguage]} onAction={key => { if (key === "en" || key === "zh") switchLanguage(key); }}>
+                    <Dropdown.Item id="en" textValue="English"><Dropdown.ItemIndicator>{({ isSelected }) => isSelected ? <Check aria-hidden="true" /> : null}</Dropdown.ItemIndicator><span lang="en">English</span></Dropdown.Item>
+                    <Dropdown.Item id="zh" textValue="简体中文"><Dropdown.ItemIndicator>{({ isSelected }) => isSelected ? <Check aria-hidden="true" /> : null}</Dropdown.ItemIndicator><span lang="zh-CN">简体中文</span></Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown.Popover>
+              </Dropdown>
+            <EmailAuth compact isEnglish={isEnglish} loginRequest={loginRequest} onCancel={() => { setLoginRequest(undefined); setPendingHref(null); }} onAuthChange={() => { setProgressLoaded(false); setAuthRevision((value) => value + 1); }} />
+            </div>
+          </div>
+        </header>
         <div className="product-main">
-          <header className="content-header">
-            <nav className="breadcrumb" aria-label={isEnglish ? "Breadcrumb" : "面包屑导航"}><BookOpen /><span aria-current="page">{isEnglish ? "Practice" : "刷题"}</span></nav>
-            <EmailAuth isEnglish={isEnglish} loginRequest={loginRequest} onCancel={() => { setLoginRequest(undefined); setPendingHref(null); }} onAuthChange={() => { setProgressLoaded(false); setAuthRevision((value) => value + 1); }} />
-          </header>
-
           <section className="library">
-            <header className={`learning-intro ${isEnglish ? "is-english" : ""}`}>
-              <div>
-                <h1>{isEnglish ? "Read it. Solve it." : "读懂真题，把题做对。"}</h1>
-                <p>{isEnglish ? "One passage at a time." : "一次练一篇，读懂再继续。"}</p>
+            <HomeIntro english={isEnglish}><ResumePractice english={isEnglish} revision={authRevision} /></HomeIntro>
+            <section className="hui-types" aria-label={isEnglish ? "Question types" : "选择题型"}>
+              <div className="hui-topic-grid" role="radiogroup" aria-label={isEnglish ? "Question types" : "题型"}>
+                {typeItems.map(({type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon}, index) => <Card key={type} className="hui-topic-card" role="radio" aria-checked={activeType === index} aria-labelledby={`topic-${type}`} tabIndex={activeType === index ? 0 : -1} onClick={() => selectType(index, type)} onKeyDown={event => {
+                    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectType(index, type); }
+                    const direction = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+                    if (direction || event.key === "Home" || event.key === "End") {
+                      event.preventDefault();
+                      const next = event.key === "Home" ? 0 : event.key === "End" ? typeItems.length - 1 : (index + direction + typeItems.length) % typeItems.length;
+                      selectType(next, typeItems[next].type);
+                      (event.currentTarget.parentElement?.querySelectorAll<HTMLElement>('[role="radio"]')[next])?.focus();
+                    }
+                  }}>
+                  <Card.Header><Card.Title id={`topic-${type}`} className="hui-topic-title"><Icon data-icon-size="18"/>{isEnglish ? en : zh}</Card.Title></Card.Header>
+                  <Card.Content>
+                    <Card.Description>{available ? (isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`) : (isEnglish ? "Coming soon" : "尚未开放")}</Card.Description>
+                    <div className="hui-topic-progress"><span>{isEnglish ? "Completed" : "已累计完成"}</span><strong>{progressLoaded ? `${done} / ${total}` : "—"}</strong></div>
+                    <ProgressBar aria-label={`${isEnglish ? en : zh} ${isEnglish ? "progress" : "进度"}`} value={progressLoaded ? done : 0} maxValue={total || 1}><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
+                  </Card.Content>
+                </Card>)}
               </div>
-              <div className="sketch-scene" ref={sketchRef} onPointerEnter={playSketchInteraction} aria-hidden="true">
-                <Image className="learning-sketch" src="/reading-path-sketch.png" alt="" width={178} height={112} loading="eager" />
-                <svg className="sketch-track" viewBox="0 0 144 91" focusable="false">
-                  <path id="sketch-motion-path" d="M35 68 C48 55 61 59 66 47 C70 37 58 30 67 24 C77 17 86 29 81 40 C78 51 101 60 116 43" />
-                  <circle className="sketch-tracer" r="2.6" />
-                </svg>
-              </div>
-            </header>
-            <section className="question-types">
-              <div className="type-tabs">{typeItems.map(({ type, zh, en, done, total, available, zhUnit, enUnit, icon: Icon }, index) => <button className={activeType === index ? "active" : ""} key={type} onClick={() => selectType(index, type)} aria-pressed={activeType === index}><span className="type-label"><Icon /><span>{isEnglish ? en : zh}</span></span><small className="type-total">{available ? (isEnglish ? `${total} ${enUnit} in past papers` : `历年真题共 ${total} ${zhUnit}`) : (isEnglish ? "Not open yet" : "尚未开放")}</small><span className="type-progress-copy"><span>{available ? (!progressLoaded ? (isEnglish ? "Loading progress" : "正在读取进度") : (isEnglish ? "Completed" : "已累计完成")) : (isEnglish ? "Not open yet" : "尚未开放")}</span><strong>{available && progressLoaded ? `${done} / ${total}` : "—"}</strong></span><i className="type-progress"><b style={{ width: available && progressLoaded && total ? `${(done / total) * 100}%` : "0%" }} /></i></button>)}</div>
             </section>
 
-            {selectedType?.type === "writing" && <Link className={`writing-library-entry ${pendingHref === languageHref("/writing/expressions") ? "is-pending" : ""}`} href={languageHref("/writing/expressions")} onClick={(event) => beginNavigation(event, languageHref("/writing/expressions"))} aria-busy={pendingHref === languageHref("/writing/expressions")}><span><BookMarked /><span><strong>{isEnglish ? "My expressions" : "我的表达"}</strong><small>{isEnglish ? "Review language saved from your feedback" : "回看批改后保存的提分表达"}</small></span></span>{pendingHref === languageHref("/writing/expressions") ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link>}
+            {selectedType?.type === "writing" && <Card className="hui-expressions-card"><Link className={`hui-expressions-link ${pendingHref === languageHref("/writing/expressions") ? "is-pending" : ""}`} href={languageHref("/writing/expressions")} onClick={(event) => beginNavigation(event, languageHref("/writing/expressions"))} aria-busy={pendingHref === languageHref("/writing/expressions")}><Surface className="home-expressions-icon" aria-hidden="true"><BookMarked /></Surface><span className="home-expressions-copy"><strong>{isEnglish ? "My expressions" : "我的表达"}</strong><small>{isEnglish ? "Revisit useful language from your writing reviews" : "收藏批阅中的好表达，积累自己的写法"}</small></span>{pendingHref === languageHref("/writing/expressions") ? <LoaderCircle className="home-expressions-indicator is-spinning" aria-hidden="true" /> : <ChevronRight className="home-expressions-indicator" aria-hidden="true" />}</Link></Card>}
 
             <section className="year-library">
               <div className="paper-browser">
-                <aside className="year-list" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => {
+                <aside className="hui-years" aria-label={isEnglish ? "Select year" : "选择年份"}>{years.map((value) => {
                   const stats = yearStats(value);
                   const complete = Boolean(stats && stats.total > 0 && stats.done === stats.total);
-                  return <button key={value} className={`${year === value ? "active" : ""}${complete ? " is-complete" : ""}`} onClick={() => selectYear(value)} aria-pressed={year === value}>
-                    <strong>{value}{complete && <Check className="year-complete" size={16} aria-label={isEnglish ? "All completed" : "全部完成"} role="img" />}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small>
-                  </button>;
+                  return <Button key={value} variant={year === value ? "primary" : "ghost"} className="hui-year-button" onClick={() => selectYear(value)} aria-pressed={year === value}>
+                    <strong>{value}{complete && <Check className="year-complete" data-icon-size="16" aria-label={isEnglish ? "All completed" : "全部完成"} role="img" />}</strong><small>{stats ? `${stats.done}/${stats.total}` : "—"}</small>
+                  </Button>;
                 })}</aside>
                 <div className="article-group">
-                  {clozeTask && <article className={`article-row ${clozeState?.submitted_at ? 'status-ready' : clozeState?.has_answers ? 'status-review' : 'status-new'}`}>
-                    <div className="article-name"><h4>{isEnglish ? 'Cloze' : '完形填空'}</h4><p>{isEnglish ? '20 questions · 10 points' : '20 题 · 10 分'}</p></div>
-                    <div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? 'Loading…' : '正在读取…') : clozeState?.submitted_at ? (isEnglish ? 'Completed' : '已完成') : clozeState ? (isEnglish ? 'In progress' : '进行中') : (isEnglish ? 'Not started' : '未开始')}</span>
-                      {progressLoaded && clozeState?.submitted_at && <><div className="article-result"><strong>{clozeState.score}<small> / 10</small></strong></div><small>{completionLabel(clozeTask.id)}</small></>}
-                    </div><Link className={`article-action ${pendingHref === languageHref(`/cloze/${year}`) ? 'is-pending' : ''}`} href={languageHref(`/cloze/${year}`)} onClick={event => beginNavigation(event, languageHref(`/cloze/${year}`))}>{clozeState?.submitted_at ? (isEnglish ? 'Review answers' : '查看解析') : clozeState ? (isEnglish ? 'Continue' : '继续练习') : (isEnglish ? 'Start practice' : '开始练习')}{pendingHref === languageHref(`/cloze/${year}`) ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div>
-                  </article>}
-                  {readingBTask && <article className={`article-row ${readingBState?.submitted_at ? 'status-ready' : readingBState?.has_answers ? 'status-review' : 'status-new'}`}>
-                    <div className="article-name"><h4>{readingBTask.kind === 'headings' ? (isEnglish ? 'Subheading matching' : '小标题选择') : readingBTask.kind === 'matching' ? (isEnglish ? 'Information matching' : '信息匹配') : (isEnglish ? 'True or false' : '判断正误')}</h4><p>{isEnglish ? '5 questions · 10 points' : '5 题 · 10 分'}</p></div>
-                    <div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? 'Loading…' : '正在读取…') : readingBState?.submitted_at ? (isEnglish ? 'Completed' : '已完成') : readingBState ? (isEnglish ? 'In progress' : '进行中') : (isEnglish ? 'Not started' : '未开始')}</span>
-                      {progressLoaded && readingBState?.submitted_at && <><div className="article-result"><strong>{readingBState.score}<small> / 10</small></strong></div><small>{completionLabel(readingBTask.id)}</small></>}
-                    </div><Link className={`article-action ${pendingHref === languageHref(`/reading-b/${year}`) ? 'is-pending' : ''}`} href={languageHref(`/reading-b/${year}`)} onClick={event => beginNavigation(event, languageHref(`/reading-b/${year}`))}>{readingBState?.submitted_at ? (isEnglish ? 'Review answers' : '查看解析') : readingBState ? (isEnglish ? 'Continue' : '继续练习') : (isEnglish ? 'Start practice' : '开始练习')}{pendingHref === languageHref(`/reading-b/${year}`) ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div>
-                  </article>}
-                  {selectedType?.type === "translation" && selectedType.available && <article className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`}><div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div><div className="article-review"><div className="article-status"><span><i />{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationRedo[year] ? (isEnglish ? "Ready to redo" : "待重写") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</span>{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className="article-action" href={languageHref(`/translation/${year}`)} onClick={event => beginNavigation(event, languageHref(`/translation/${year}`))}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></div></article>}
+                  {clozeTask && <LibraryTaskCard  className={`article-row ${clozeState?.submitted_at ? 'status-ready' : clozeState?.has_answers ? 'status-review' : 'status-new'}`} summary={<div className="article-name"><h4>{isEnglish ? 'Cloze' : '完形填空'}</h4><p>{isEnglish ? '20 questions · 10 points' : '20 题 · 10 分'}</p></div>} status={<PracticeBadge>{!progressLoaded ? (isEnglish ? 'Loading…' : '正在读取…') : clozeState?.submitted_at ? (isEnglish ? 'Completed' : '已完成') : clozeState ? (isEnglish ? 'In progress' : '进行中') : (isEnglish ? 'Not started' : '未开始')}</PracticeBadge>} result={<div className="library-task-result-content">{progressLoaded && clozeState?.submitted_at && <><div className="article-result"><strong>{clozeState.score}<small> / 10</small></strong></div><small>{completionLabel(clozeTask.id)}</small></>}</div>} action={<div className="article-actions">{clozeState?.submitted_at && <Link className="article-action secondary" href={languageHref(`/cloze/${year}?redo=1`)} onClick={event => beginNavigation(event, languageHref(`/cloze/${year}?redo=1`))}>{isEnglish ? "Redo" : "重新练习"}</Link>}<><Link className={`article-action ${pendingHref === languageHref(`/cloze/${year}`) ? 'is-pending' : ''}`} href={languageHref(`/cloze/${year}`)} onClick={event => beginNavigation(event, languageHref(`/cloze/${year}`))}>{clozeState?.submitted_at ? (isEnglish ? 'Review answers' : '查看解析') : clozeState ? (isEnglish ? 'Continue' : '继续练习') : (isEnglish ? 'Start practice' : '开始练习')}{pendingHref === languageHref(`/cloze/${year}`) ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></></div>} />}
+                  {readingBTask && <LibraryTaskCard  className={`article-row ${readingBState?.submitted_at ? 'status-ready' : readingBState?.has_answers ? 'status-review' : 'status-new'}`} summary={<div className="article-name"><h4>{readingBTask.kind === 'headings' ? (isEnglish ? 'Subheading matching' : '小标题选择') : readingBTask.kind === 'matching' ? (isEnglish ? 'Information matching' : '信息匹配') : (isEnglish ? 'True or false' : '判断正误')}</h4><p>{isEnglish ? '5 questions · 10 points' : '5 题 · 10 分'}</p></div>} status={<PracticeBadge>{!progressLoaded ? (isEnglish ? 'Loading…' : '正在读取…') : readingBState?.submitted_at ? (isEnglish ? 'Completed' : '已完成') : readingBState ? (isEnglish ? 'In progress' : '进行中') : (isEnglish ? 'Not started' : '未开始')}</PracticeBadge>} result={<div className="library-task-result-content">{progressLoaded && readingBState?.submitted_at && <><div className="article-result"><strong>{readingBState.score}<small> / 10</small></strong></div><small>{completionLabel(readingBTask.id)}</small></>}</div>} action={<div className="article-actions">{readingBState?.submitted_at && <Link className="article-action secondary" href={languageHref(`/reading-b/${year}?redo=1`)} onClick={event => beginNavigation(event, languageHref(`/reading-b/${year}?redo=1`))}>{isEnglish ? "Redo" : "重新练习"}</Link>}<><Link className={`article-action ${pendingHref === languageHref(`/reading-b/${year}`) ? 'is-pending' : ''}`} href={languageHref(`/reading-b/${year}`)} onClick={event => beginNavigation(event, languageHref(`/reading-b/${year}`))}>{readingBState?.submitted_at ? (isEnglish ? 'Review answers' : '查看解析') : readingBState ? (isEnglish ? 'Continue' : '继续练习') : (isEnglish ? 'Start practice' : '开始练习')}{pendingHref === languageHref(`/reading-b/${year}`) ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></></div>} />}
+                  {selectedType?.type === "translation" && selectedType.available && <LibraryTaskCard  className={`article-row ${translationDrafts[year] ? "status-review" : translationAttempts[year] ? "status-ready" : "status-new"}`} summary={<div className="article-name"><h4>{isEnglish ? "Translation" : "英译中"}</h4><p>{isEnglish ? "15 points" : "满分 15 分"}</p></div>} status={<PracticeBadge>{!progressLoaded ? (isEnglish ? "Loading…" : "正在读取…") : translationRedo[year] ? (isEnglish ? "Ready to redo" : "待重写") : translationDrafts[year] ? (isEnglish ? "In progress" : "进行中") : translationAttempts[year] ? (isEnglish ? "Completed" : "已完成") : (isEnglish ? "Not started" : "未开始")}</PracticeBadge>} result={<div className="library-task-result-content">{progressLoaded&&translationAttempts[year]?<div className="article-result">{typeof translationScores[year]==='number'?<><strong>{translationScores[year]}<small> / 15</small></strong><small>{completionLabel(`translation-${year}`)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div>} action={<div className="article-actions">{translationAttempts[year] && <Link className="article-action secondary" href={languageHref(`/translation/${year}?redo=1`)} onClick={event => beginNavigation(event, languageHref(`/translation/${year}?redo=1`))}>{isEnglish ? "Redo" : "重新练习"}</Link>}<><Link className="article-action" href={languageHref(`/translation/${year}`)} onClick={event => beginNavigation(event, languageHref(`/translation/${year}`))}>{translationDrafts[year] ? (isEnglish ? "Continue" : "继续翻译") : translationAttempts[year] ? (isEnglish ? "View response" : "查看译文") : (isEnglish ? "Start translation" : "开始翻译")}<ChevronRight /></Link></></div>} />}
                   <div className="article-list">{selectedType?.type === "translation" || readingBTask || clozeTask ? null : !progressLoaded ? <div className="article-empty"><p>{isEnglish ? "Loading your learning progress…" : "正在读取学习进度…"}</p></div> : writingTasks.length ? writingTasks.map((task) => {
                     const state = writingAttempts[task.id];
                     const status = state === "redo" ? (isEnglish ? "Ready to rewrite" : "待重写") : state === "submitted" ? (isEnglish ? "Completed" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const href = languageHref(`/writing/${year}?part=${task.part}`);
                     const isPending = pendingHref === href;
-                    return <article key={task.id} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Part {task.part}</h4><p>{isEnglish ? `${task.targetWords} words · ${task.points} points` : `约 ${task.targetWords} 词 · ${task.points} 分`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span>{writingScores[task.id]?.submitted?<div className="article-result">{typeof writingScores[task.id].score==='number'?<><strong>{writingScores[task.id].score}<small> / {task.points}</small></strong><small>{completionLabel(task.id)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div><Link className={`article-action ${isPending ? "is-pending" : ""}`} href={href} onClick={(event) => beginNavigation(event, href)} aria-busy={isPending}>{isPending ? (isEnglish ? "Opening…" : "正在打开…") : state === "draft" ? (isEnglish ? "Continue" : "继续写作") : state === "submitted" ? (isEnglish ? "View response" : "查看答案") : (isEnglish ? "Start writing" : "开始写作")}{isPending ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div></article>;
+                    return <LibraryTaskCard key={task.id} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`} summary={<div className="article-name"><h4>Part {task.part}</h4><p>{isEnglish ? `${task.targetWords} words · ${task.points} points` : `约 ${task.targetWords} 词 · ${task.points} 分`}</p></div>} status={<PracticeBadge>{status}</PracticeBadge>} result={<div className="library-task-result-content">{writingScores[task.id]?.submitted?<div className="article-result">{typeof writingScores[task.id].score==='number'?<><strong>{writingScores[task.id].score}<small> / {task.points}</small></strong><small>{completionLabel(task.id)}</small></>:<small>{isEnglish?'Review not complete':'批阅未完成'}</small>}</div>:null}</div>} action={<div className="article-actions">{state === "submitted" && <Link className="article-action secondary" href={languageHref(`/writing/${year}?part=${task.part}&redo=1`)} onClick={event => beginNavigation(event, languageHref(`/writing/${year}?part=${task.part}&redo=1`))}>{isEnglish ? "Redo" : "重新练习"}</Link>}<><Link className={`article-action ${isPending ? "is-pending" : ""}`} href={href} onClick={(event) => beginNavigation(event, href)} aria-busy={isPending}>{isPending ? (isEnglish ? "Opening…" : "正在打开…") : state === "draft" ? (isEnglish ? "Continue" : "继续写作") : state === "submitted" ? (isEnglish ? "View response" : "查看答案") : (isEnglish ? "Start writing" : "开始写作")}{isPending ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></></div>} />;
                   }) : articles.length ? articles.map((article) => {
                     const state = attempts[article.id];
                     // 答案未录入的篇目提交时无法判分，直接标记为待开放而不是引导作答。
                     if (!article.gradable) {
-                      return <article key={article.number} className="article-row status-wait"><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{isEnglish ? "Answer key pending" : "答案待录入"}</span><small>{allowPreview ? (isEnglish ? "Local preview only · Grading disabled" : "仅本地预览 · 暂不判分") : (isEnglish ? "Practice opens once the answer key is imported." : "答案与解析录入后开放练习。")}</small></div>{allowPreview ? <Link className="article-action" href={languageHref(`/practice/${year}/${article.number}`)}>{isEnglish ? "Preview" : "预览题目"}<ChevronRight /></Link> : <span className="article-action is-disabled">{isEnglish ? "Not open yet" : "暂未开放"}</span>}</div></article>;
+                      return <LibraryTaskCard key={article.number} className="article-row status-wait" summary={<div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div>} status={<PracticeBadge>{isEnglish ? "Answer key pending" : "答案待录入"}</PracticeBadge>} result={<div className="library-task-result-content"><small>{allowPreview ? (isEnglish ? "Local preview only · Grading disabled" : "仅本地预览 · 暂不判分") : (isEnglish ? "Practice opens once the answer key is imported." : "答案与解析录入后开放练习。")}</small></div>} action={<>{allowPreview ? <Link className="article-action" href={languageHref(`/practice/${year}/${article.number}`)}>{isEnglish ? "Preview" : "预览题目"}<ChevronRight /></Link> : <span className="article-action is-disabled">{isEnglish ? "Not open yet" : "暂未开放"}</span>}</>} />;
                     }
                     const status = state === "submitted" ? (isEnglish ? "Submitted" : "已完成") : state === "draft" ? (isEnglish ? "In progress" : "进行中") : (isEnglish ? "Not started" : "未开始");
                     const action = state === "draft" ? (isEnglish ? "Continue" : "继续练习") : (isEnglish ? "Start practice" : "开始练习");
@@ -339,16 +334,12 @@ export function LibraryComparison({ papers, initialLanguage = "zh", initialType 
                     const isPending = pendingHref === href;
                     const redoHref = languageHref(`/practice/${year}/${article.number}?redo=1`);
                     const intensiveHref = languageHref(`/intensive/${year}/${article.number}`);
-                    return <article key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`}><div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div><div className="article-review"><div className="article-status"><span><i />{status}</span>{state==='submitted'?<div className="article-result">{typeof readingScores[article.id]==='number'?<><strong>{readingScores[article.id]!*2}<small> / {article.questionCount*2}</small></strong></>:<small>{isEnglish?'Score unavailable':'暂无成绩'}</small>}</div>:null}<small>{state === "submitted" ? completionLabel(article.id) : (isEnglish ? `Source: pages ${article.sourcePages.join("–")}` : `来源：PDF 第 ${article.sourcePages.join("–")} 页`)}</small></div>{state === "submitted" ? <div className="article-actions"><Link className={`article-action secondary ${pendingHref === redoHref ? "is-pending" : ""}`} href={redoHref} onClick={(event) => beginNavigation(event, redoHref)} aria-busy={pendingHref === redoHref}>{pendingHref === redoHref ? (isEnglish ? "Opening…" : "正在打开…") : (isEnglish ? "Redo" : "重新练习")}{pendingHref === redoHref ? <LoaderCircle className="is-spinning" /> : null}</Link><Link className={`article-action primary ${pendingHref === intensiveHref ? "is-pending" : ""}`} href={intensiveHref} onClick={(event) => beginNavigation(event, intensiveHref)} aria-busy={pendingHref === intensiveHref}>{pendingHref === intensiveHref ? (isEnglish ? "Opening…" : "正在打开…") : (isEnglish ? "Study deeply" : "进入精读")}{pendingHref === intensiveHref ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div> : <Link className={`article-action ${isPending ? "is-pending" : ""}`} href={href} onClick={(event) => beginNavigation(event, href)} aria-busy={isPending}>{isPending ? (isEnglish ? "Opening…" : "正在打开…") : action}{isPending ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link>}</div></article>;
+                    return <LibraryTaskCard key={article.number} className={`article-row ${state === "submitted" ? "status-ready" : state === "draft" ? "status-review" : "status-new"}`} summary={<div className="article-name"><h4>Text {article.number}</h4><p>{isEnglish ? `${article.wordCount} words · ${article.questionCount} questions` : `${article.wordCount} 词 · ${article.questionCount} 题`}</p></div>} status={<PracticeBadge>{status}</PracticeBadge>} result={<div className="library-task-result-content">{state==='submitted'?<div className="article-result">{typeof readingScores[article.id]==='number'?<><strong>{readingScores[article.id]!*2}<small> / {article.questionCount*2}</small></strong></>:<small>{isEnglish?'Score unavailable':'暂无成绩'}</small>}</div>:null}{state === "submitted" && <small>{completionLabel(article.id)}</small>}</div>} action={<>{state === "submitted" ? <div className="article-actions"><Link className={`article-action secondary ${pendingHref === redoHref ? "is-pending" : ""}`} href={redoHref} onClick={(event) => beginNavigation(event, redoHref)} aria-busy={pendingHref === redoHref}>{pendingHref === redoHref ? (isEnglish ? "Opening…" : "正在打开…") : (isEnglish ? "Redo" : "重新练习")}{pendingHref === redoHref ? <LoaderCircle className="is-spinning" /> : null}</Link><Link className={`article-action primary ${pendingHref === intensiveHref ? "is-pending" : ""}`} href={intensiveHref} onClick={(event) => beginNavigation(event, intensiveHref)} aria-busy={pendingHref === intensiveHref}>{pendingHref === intensiveHref ? (isEnglish ? "Opening…" : "正在打开…") : (isEnglish ? "Study deeply" : "进入精读")}{pendingHref === intensiveHref ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link></div> : <Link className={`article-action ${isPending ? "is-pending" : ""}`} href={href} onClick={(event) => beginNavigation(event, href)} aria-busy={isPending}>{isPending ? (isEnglish ? "Opening…" : "正在打开…") : action}{isPending ? <LoaderCircle className="is-spinning" /> : <ChevronRight />}</Link>}</>} />;
                   }) : <div className="article-empty"><p>{!selectedPaper ? (isEnglish ? "No paper has been imported yet." : "题库尚未导入任何真题。") : selectedType?.available ? (isEnglish ? "This section is registered from the source PDF and will be connected to its practice view next." : "该题型已按原卷登记，练习内容将在对应页面接入。") : (isEnglish ? "This section is not open yet." : "该题型尚未开放。")}</p></div>}</div>
                 </div>
               </div>
             </section>
-            <footer className="site-footer">
-              <span>© 2026 {isEnglish ? "ChiTouEN II" : "吃透英语二"}</span>
-              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">沪ICP备2026043148号-1</a>
-              <a href="https://beian.mps.gov.cn/#/query/webSearch?code=31011202023308" target="_blank" rel="noreferrer">沪公网安备31011202023308号</a>
-            </footer>
+            <SiteFooter english={isEnglish} onBackToTop={() => pageRef.current?.querySelector(".library")?.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })} />
           </section>
         </div>
       </div>

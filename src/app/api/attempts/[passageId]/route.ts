@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/guard";
+import { isUuid } from "@/lib/uuid";
 import { loadGradeResult } from "@/data/grade-attempt";
 import { isPassageGradable } from "@/data/passage-gradable";
 import { query } from "@/lib/db";
@@ -7,7 +8,6 @@ import { query } from "@/lib/db";
 type Context = { params: Promise<{ passageId: string }> };
 
 const MAX_ANSWER_COUNT = 10;
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type AttemptRow = { id: string; answers: Record<string, number>; submitted_at: string | null };
 
@@ -23,9 +23,9 @@ async function createAttempt(userId: string, passageId: string) {
 export async function GET(_request: Request, { params }: Context) {
   const { passageId } = await params;
   // 非 uuid 会让 Postgres 直接抛类型错误，先挡掉以免返回 500。
-  if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const latest = await query<AttemptRow>(LATEST_ATTEMPT_SQL, [user.id, passageId]);
   const current = latest.rows[0];
 
@@ -52,9 +52,9 @@ export async function GET(_request: Request, { params }: Context) {
 /** 重做：显式新建一条练习记录，不影响已提交的历史记录。 */
 export async function POST(_request: Request, { params }: Context) {
   const { passageId } = await params;
-  if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   if (!await isPassageGradable(passageId)) {
     return NextResponse.json({ error: "这篇的答案尚未录入，暂未开放练习。" }, { status: 409 });
   }
@@ -76,16 +76,16 @@ function isValidAnswers(value: unknown): value is Record<string, number> {
 
 export async function PATCH(request: Request, { params }: Context) {
   const { passageId } = await params;
-  if (!UUID_PATTERN.test(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(passageId)) return NextResponse.json({ error: "Invalid passage" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const body = await request.json().catch(() => null) as { attemptId?: unknown; answers?: unknown } | null;
   const { attemptId, answers } = body ?? {};
   if (typeof attemptId !== "string" || !isValidAnswers(answers)) {
     return NextResponse.json({ error: "Invalid answers" }, { status: 400 });
   }
   const result = await query(
-    "update practice_attempts set answers = $1 where id = $2 and user_id = $3 and passage_id = $4 and submitted_at is null",
+    "update practice_attempts set answers = $1, updated_at = now() where id = $2 and user_id = $3 and passage_id = $4 and submitted_at is null",
     [answers, attemptId, user.id, passageId],
   );
   return result.rowCount ? NextResponse.json({ ok: true }) : NextResponse.json({ error: "Attempt not found" }, { status: 404 });

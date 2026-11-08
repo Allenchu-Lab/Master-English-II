@@ -1,18 +1,36 @@
 "use client";
+import { ReviewScore } from "@/components/ui/review-score";
+import { ReviewOriginal } from "@/components/ui/review-original";
+import { DraftStatus } from "@/components/ui/draft-status";
+import { PracticeActionBar } from "@/components/ui/practice-action-bar";
+import { ReviewProgress } from "@/components/ui/review-progress";
+import { CompletionBadge } from "@/components/ui/completion-badge";
+import chartDimensions from "@/data/writing-chart-dimensions.json";
+import { Tabs } from "@heroui/react/tabs";
+import { useRedoRequest } from "@/components/ui/use-redo-request";
+import { PracticeBadge } from "@/components/ui/practice-badge";
 
-import Image from "next/image";
+import { Input } from "@heroui/react/input";
+import { TextArea } from "@heroui/react/textarea";
+
+import { PracticeDialog, PracticeDialogTitle, type PracticeDialogHandle } from "@/components/ui/practice-dialog";
+
+import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bookmark, BookMarked, Check, ChevronDown, Clock3, LoaderCircle, Pause, PenLine, Play, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowLeft, Bookmark, BookMarked, Check, Clock3, LoaderCircle, Pause, PenLine, Play, RotateCcw, Sparkles, X } from "lucide-react";
 import type { WritingChart, WritingTask } from "@/data/get-writing-paper";
-import { requestAi } from "@/lib/ai-request";
+import { requestReview } from "@/lib/request-review";
+import type { ReviewStage } from "@/lib/review-stream";
 import { writingBand, type WritingReview } from "@/lib/writing-review";
+import { DraftSaveError } from "@/lib/draft-save";
+import { useDraftAutosave, useMutationQueue, useUnsavedGuard } from "@/components/ui/use-draft-autosave";
+import { useUiLanguage } from "@/components/ui/use-ui-language";
+import { composeLetterAnswer, emptyLetterDraft, parseLetterAnswer, type LetterDraft } from "@/lib/letter-answer";
 
 type Attempt = { id: string; answer: string; elapsed_seconds: number; submitted_at: string | null; review: WritingReview | null };
-type LetterDraft = { salutation: string; body: string; closing: string; signature: string };
-
-const emptyLetterDraft: LetterDraft = { salutation: "", body: "", closing: "", signature: "" };
 
 const deductionLabels = {
   task: "任务完成",
@@ -50,30 +68,6 @@ function isLetterWritingTask(task: WritingTask) {
   return task.part === "A" && /\b(letter|email|reply)\b/i.test(task.prompt);
 }
 
-function composeLetterAnswer(draft: LetterDraft) {
-  const signoff = [draft.closing.trim(), draft.signature.trim()].filter(Boolean).join("\n");
-  return [draft.salutation.trim(), draft.body.trim(), signoff].filter(Boolean).join("\n\n");
-}
-
-function parseLetterAnswer(answer: string): LetterDraft {
-  const lines = answer.replace(/\r\n/g, "\n").split("\n");
-  while (lines[0]?.trim() === "") lines.shift();
-  while (lines.at(-1)?.trim() === "") lines.pop();
-
-  const firstLine = lines[0]?.trim() ?? "";
-  const hasSalutation = /^(dear\b|hello\b|hi\b|to whom\b)/i.test(firstLine);
-  const closingIndex = lines.findLastIndex((line) => /^(yours\b|sincerely\b|best regards\b|kind regards\b|respectfully\b)/i.test(line.trim()));
-  const bodyStart = hasSalutation ? 1 : 0;
-  const bodyEnd = closingIndex >= bodyStart ? closingIndex : lines.length;
-
-  return {
-    salutation: hasSalutation ? firstLine : "",
-    body: lines.slice(bodyStart, bodyEnd).join("\n").trim(),
-    closing: closingIndex >= bodyStart ? lines[closingIndex].trim() : "",
-    signature: closingIndex >= bodyStart ? lines.slice(closingIndex + 1).join("\n").trim() : "",
-  };
-}
-
 function formatRevisedAnswer(value: string, part: "A" | "B") {
   if (part !== "A") return value;
   return value
@@ -83,7 +77,10 @@ function formatRevisedAnswer(value: string, part: "A" | "B") {
 
 function PromptChart({ chart, year }: { chart: WritingChart; year: number }) {
   if (year >= 2010 && year <= 2026) {
-    return <figure className={`writing-chart writing-chart-original ${year === 2026 ? "writing-chart-enlarged" : ""}`}><Image src={`/writing/charts/${year}-part-b.png`} alt={chart.title} width={1600} height={1000} loading="eager" /></figure>;
+    // Reserve each scan's intrinsic aspect ratio before loading; CSS still controls display width.
+    const dimensions = chartDimensions[String(year) as keyof typeof chartDimensions];
+    // eslint-disable-next-line @next/next/no-img-element
+    return <figure className="writing-chart writing-chart-original"><img src={`/writing/charts/${year}-part-b.png`} alt={chart.title} width={dimensions.width} height={dimensions.height} loading="eager" /></figure>;
   }
 
   if (chart.type === "table" && chart.columns && chart.rows) {
@@ -92,7 +89,7 @@ function PromptChart({ chart, year }: { chart: WritingChart; year: number }) {
 
   if (chart.type === "pie" && chart.items) {
     const total = chart.items.reduce((sum, item) => sum + item.value, 0);
-    const colors = ["#16875b", "#69a88d", "#9bc6b3", "#c7ded3", "#dfe9e4"];
+    const colors = ["var(--chart-series-1)", "var(--chart-series-2)", "var(--chart-series-3)", "var(--chart-series-4)", "var(--chart-series-5)"];
     const stops = chart.items.map((item, index) => {
       const start = chart.items?.slice(0, index).reduce((sum, current) => sum + current.value, 0) ?? 0;
       const end = start + item.value;
@@ -133,8 +130,7 @@ function PromptChart({ chart, year }: { chart: WritingChart; year: number }) {
 
 export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "A" }: { tasks: WritingTask[]; initialLanguage?: "zh" | "en"; initialPart?: "A" | "B" }) {
   const router = useRouter();
-  const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
-  const saveTimer = useRef<number | null>(null);
+  const saveQueue = useMutationQueue();
   const navigationLock = useRef(false);
   const [navigating, setNavigating] = useState(false);
   const [savedDraft, setSavedDraft] = useState("");
@@ -148,17 +144,19 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const rewriteDialog = useRef<HTMLDialogElement>(null);
+  const rewriteDialog = useRef<PracticeDialogHandle>(null);
   const [rewriting, setRewriting] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const reviewSequence = useRef(0);
+  useEffect(() => () => { reviewSequence.current++; }, []);
+  const [reviewStage, setReviewStage] = useState<ReviewStage>(0);
   const [review, setReview] = useState<WritingReview | null>(null);
   const [savedExpressions, setSavedExpressions] = useState<Set<number>>(new Set());
   const [savingExpression, setSavingExpression] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
+  const { isEnglish } = useUiLanguage(initialLanguage);
   const [hydratedTaskId, setHydratedTaskId] = useState<string | null>(null);
   const activeTask = tasks.find((task) => task.part === activePart) ?? tasks[0];
-  const isEnglish = uiLanguage === "en";
   const usesLetterFrame = isLetterWritingTask(activeTask);
   const originalLetter = useMemo(() => parseLetterAnswer(answer), [answer]);
   const wordCount = useMemo(() => countWords(answer), [answer]);
@@ -167,36 +165,35 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   const elapsed = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
   const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
-  const snapshot = JSON.stringify({ answer, elapsedSeconds });
+  useRedoRequest(!loading && Boolean(attempt?.submitted_at), () => rewriteDialog.current?.showModal());
+  const snapshot = answer;
   const dirty = !loading && hydratedTaskId === activeTask?.id && !attempt?.submitted_at && savedDraft !== snapshot;
   const saveDraft = useCallback(() => {
-    const operation = saveQueue.current.catch(() => {}).then(async () => {
+    const operation = saveQueue.enqueue(async () => {
       setSaving(true);
       try {
         const response = await fetch(`/api/writing-attempts/${activeTask.id}`, {
           method: "PATCH", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ answer, elapsedSeconds }),
         });
-        if (!response.ok) throw new Error();
-        setSavedDraft(JSON.stringify({ answer, elapsedSeconds }));
+        if (!response.ok) throw new DraftSaveError(response.status);
+        setSavedDraft(answer);
         setSaveError(null);
       } catch (error) {
         setSaveError(isEnglish ? "Draft not saved. Try again before leaving." : "草稿保存失败，请重试后再离开。");
         throw error;
       } finally { setSaving(false); }
     });
-    saveQueue.current = operation;
     return operation;
-  }, [activeTask, answer, elapsedSeconds, isEnglish]);
+  }, [activeTask, answer, elapsedSeconds, isEnglish, saveQueue]);
 
   const navigate = async (target: "A" | "B" | string) => {
     if (navigationLock.current || loading || submitting || rewriting) return;
     if (target === activePart) return;
     navigationLock.current = true;
     setNavigating(true);
-    if (saveTimer.current) clearTimeout(saveTimer.current);
     try {
-      await saveQueue.current.catch(() => {});
+      await saveQueue.drain();
       if (dirty) await saveDraft();
       if (target === "A" || target === "B") {
         setHydratedTaskId(null);
@@ -211,24 +208,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     finally { navigationLock.current = false; setNavigating(false); }
   };
 
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
-
-  useEffect(() => {
-    const urlLanguage = new URLSearchParams(window.location.search).get("lang");
-    if (urlLanguage === "en" || urlLanguage === "zh") {
-      window.localStorage.setItem("ui-language", urlLanguage);
-      return;
-    }
-    const savedLanguage = window.localStorage.getItem("ui-language");
-    if (savedLanguage !== "en" && savedLanguage !== "zh") return;
-    const timer = window.setTimeout(() => setUiLanguage(savedLanguage), 0);
-    return () => window.clearTimeout(timer);
-  }, []);
+  useUnsavedGuard(dirty);
 
   useEffect(() => {
     document.documentElement.lang = isEnglish ? "en" : "zh-CN";
@@ -242,6 +222,8 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
 
   const loadAttempt = useCallback(async () => {
     if (!activeTask) return;
+    reviewSequence.current++;
+    setReviewing(false);
     setLoading(true);
     setError(null);
     setHydratedTaskId(null);
@@ -260,7 +242,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
         setSavedExpressions(new Set());
       }
       setAnswer(data.attempt.answer);
-      setSavedDraft(JSON.stringify({ answer: data.attempt.answer, elapsedSeconds: data.attempt.elapsed_seconds }));
+      setSavedDraft(data.attempt.answer);
       setSaveError(null);
       setLetterDraft(parseLetterAnswer(data.attempt.answer));
       setElapsedSeconds(data.attempt.elapsed_seconds);
@@ -278,21 +260,28 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     return () => window.clearTimeout(timer);
   }, [loadAttempt]);
 
-  useEffect(() => {
-    if (!dirty || navigating || submitting) return;
-    const timer = window.setTimeout(() => {
-      if (!navigationLock.current) void saveDraft().catch(() => {});
-    }, 500);
-    saveTimer.current = timer;
-    return () => window.clearTimeout(timer);
-  }, [dirty, snapshot, navigating, submitting, saveDraft]);
+  useDraftAutosave({
+    enabled: dirty && !navigating && !submitting && !rewriting,
+    snapshot,
+    save: saveDraft,
+    blocked: () => navigationLock.current,
+    delayMs: 500,
+    onError: () => {}, // saveDraft supplies the translated failure message.
+  });
 
   const runReview = async (taskId: string, attemptId: string) => {
+    const sequence = ++reviewSequence.current;
+    setReviewStage(0);
     setReviewing(true);
-    const result = await requestAi(`/api/writing-attempts/${taskId}/review`, { attemptId });
+    setError(null);
+    const result = await requestReview(`/api/writing-attempts/${taskId}/review`, attemptId, stage => {
+      if (reviewSequence.current === sequence) setReviewStage(stage);
+    });
+    if (reviewSequence.current !== sequence) return;
     setReviewing(false);
     if (!result.ok || !result.data || typeof result.data !== "object" || !("review" in result.data)) {
-      setError(isEnglish ? "Could not review this response. Try again." : "暂时无法完成批改，请重试。");
+      const message = result.data && typeof result.data === "object" && "error" in result.data && typeof result.data.error === "string" ? result.data.error : null;
+      setError(message ?? (isEnglish ? "Could not review this response. Try again." : "暂时无法完成批改，请重试。"));
       return;
     }
     setReview((result.data as { review: WritingReview }).review);
@@ -304,11 +293,10 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
       return;
     }
     navigationLock.current = true;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
     setSubmitting(true);
     setError(null);
     try {
-      await saveQueue.current.catch(() => {});
+      await saveQueue.drain();
       const response = await fetch(`/api/writing-attempts/${activeTask.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -328,10 +316,12 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
   };
 
   const rewrite = async () => {
-    if (!activeTask || rewriting) return;
+    if (!activeTask || rewriting || reviewing || navigationLock.current) return;
+    navigationLock.current = true;
     setRewriting(true);
     setError(null);
     try {
+      await saveQueue.drain();
       const response = await fetch(`/api/writing-attempts/${activeTask.id}`, { method: "PUT" });
       const data = await response.json().catch(() => ({})) as { attempt?: Attempt };
       if (!response.ok || !data.attempt) throw new Error();
@@ -339,6 +329,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
       setReview(null);
       setSavedExpressions(new Set());
       setAnswer("");
+      setSavedDraft("");
       setLetterDraft(emptyLetterDraft);
       setElapsedSeconds(0);
       setTimerRunning(false);
@@ -346,6 +337,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     } catch {
       setError(isEnglish ? "Could not start a new draft. Please try again." : "暂时无法开始重写，请稍后重试。");
     } finally {
+      navigationLock.current = false;
       setRewriting(false);
     }
   };
@@ -354,23 +346,22 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
     if (!attempt || savingExpression !== null) return;
     const isSaved = savedExpressions.has(index);
     setSavingExpression(index);
-    const response = await fetch("/api/writing-expressions", {
-      method: isSaved ? "DELETE" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ attemptId: attempt.id, expressionIndex: index }),
-    });
-    if (!response.ok) {
+    try {
+      const response = await fetch("/api/writing-expressions", {
+        method: isSaved ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptId: attempt.id, expressionIndex: index }),
+      });
+      if (!response.ok) throw new Error();
+      setSavedExpressions((current) => {
+        const next = new Set(current);
+        if (isSaved) next.delete(index);
+        else next.add(index);
+        return next;
+      });
+    } catch {
       setError(isEnglish ? "Could not update this expression." : "暂时无法更新这条表达，请重试。");
-      setSavingExpression(null);
-      return;
-    }
-    setSavedExpressions((current) => {
-      const next = new Set(current);
-      if (isSaved) next.delete(index);
-      else next.add(index);
-      return next;
-    });
-    setSavingExpression(null);
+    } finally { setSavingExpression(null); }
   };
 
   if (!activeTask) return null;
@@ -382,70 +373,66 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
         <Link href={languageHref(`/?type=writing&year=${activeTask.year}`)} className="practice-back" aria-label={isEnglish ? "Back to practice" : "返回刷题"} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); void navigate(event.currentTarget.href); } }}><ArrowLeft /></Link>
         <nav><PenLine /><Link href={languageHref(`/?type=writing&year=${activeTask.year}`)} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); void navigate(event.currentTarget.href); } }}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{activeTask.year}</span><span>/</span><strong>{isEnglish ? "Writing" : "写作"}</strong></nav>
         <div className="practice-timer-group">
-          <button className={`practice-timer ${timerRunning ? "is-running" : ""}`} onClick={() => setTimerRunning((running) => !running)} disabled={Boolean(attempt?.submitted_at)}>
+          <Button className={`practice-timer ${timerRunning ? "is-running" : ""}`} onClick={() => setTimerRunning((running) => !running)} disabled={Boolean(attempt?.submitted_at)}>
             {timerRunning ? <Pause /> : elapsedSeconds ? <Play /> : <Clock3 />}<span>{elapsed}</span><small>{timerRunning ? (isEnglish ? "Pause" : "暂停") : elapsedSeconds ? (isEnglish ? "Resume" : "继续") : (isEnglish ? "Start" : "开始")}</small>
-          </button>
-          <button className="timer-reset" onClick={() => { setTimerRunning(false); setElapsedSeconds(0); }} disabled={Boolean(attempt?.submitted_at) || elapsedSeconds === 0} aria-label={isEnglish ? "Reset timer" : "重新计时"}><RotateCcw /></button>
+          </Button>
+          <Button className="timer-reset" onClick={() => { setTimerRunning(false); setElapsedSeconds(0); }} disabled={Boolean(attempt?.submitted_at) || elapsedSeconds === 0} aria-label={isEnglish ? "Reset timer" : "重新计时"}><RotateCcw /></Button>
         </div>
         <div className="practice-header-actions">
           {attempt?.submitted_at
-            ? <span className="header-submitted"><Check />{isEnglish ? "Completed" : "已完成"}</span>
-            : <button className="header-submit" onClick={submit} disabled={loading || submitting || navigating || !answer.trim()} aria-busy={submitting}>{submitting && <LoaderCircle className="spin" />}{submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "完成写作")}</button>}
+            ? <CompletionBadge>{isEnglish ? "Completed" : "已完成"}</CompletionBadge>
+            : <Button variant="primary" className="header-submit" disabled={loading || submitting || navigating || !answer.trim()} aria-busy={submitting} onClick={() => void submit()}>{submitting ? (isEnglish ? "Submitting…" : "正在提交…") : (isEnglish ? "Submit" : "提交作答")}</Button>}
         </div>
       </header>
 
-      <div className="writing-layout">
+      <Tabs variant="primary" className="writing-layout" selectedKey={activePart} onSelectionChange={key => { if (key === "A" || key === "B") void navigate(key); }}>
         <section className="writing-prompt-pane">
-          <div className="writing-part-tabs" role="tablist" aria-label={isEnglish ? "Writing task" : "写作任务"}>
-            {tasks.map((task) => <button key={task.id} role="tab" aria-selected={activePart === task.part} className={activePart === task.part ? "active" : ""} disabled={loading || navigating || submitting || rewriting} onClick={() => { void navigate(task.part); }}><strong>Part {task.part}</strong><span>{task.targetWords} {isEnglish ? "words" : "词"} · {task.points} {isEnglish ? "pts" : "分"}</span></button>)}
-          </div>
-          <article className="writing-prompt">
+          <Tabs.ListContainer className="writing-task-tabs"><Tabs.List aria-label={isEnglish ? "Writing task" : "写作任务"}>{tasks.map(task => <Tabs.Tab key={task.id} id={task.part} isDisabled={loading || navigating || submitting || rewriting}>Part {task.part}<Tabs.Indicator /></Tabs.Tab>)}</Tabs.List></Tabs.ListContainer>
+          <Tabs.Panel id={activePart} className="writing-task-panel"><article className="writing-prompt">
             <span className="writing-question-number">{activeTask.questionNumber}. Directions</span>
             <p>{activeTask.prompt}</p>
             {activeTask.chart && <PromptChart chart={activeTask.chart} year={activeTask.year} />}
             <small>{isEnglish ? `Source: ${activeTask.year} paper · page ${activeTask.sourcePage}` : `来源：${activeTask.year} 年真题 · 第 ${activeTask.sourcePage} 页`}</small>
-          </article>
+          </article></Tabs.Panel>
         </section>
 
         <section className={`writing-editor-pane ${attempt?.submitted_at ? "has-review" : ""}`}>
+          {!attempt?.submitted_at && <>
           <header>
-            <div><span>{isEnglish ? "YOUR RESPONSE" : "你的答案"}</span><strong>{isEnglish ? `Part ${activeTask.part}` : `写作 Part ${activeTask.part}`}</strong></div>
+            <div><strong>{isEnglish ? "Review & reflection" : "批阅和复盘"}</strong></div>
             <div className={wordCount >= activeTask.targetWords ? "is-ready" : ""}><strong>{wordCount}</strong><span>/ {activeTask.targetWords} {isEnglish ? "words" : "词"}</span></div>
           </header>
+          </>}
           <div className="writing-editor">
+            {attempt?.submitted_at && <h2 className="review-page-title">{isEnglish ? "Review & reflection" : "批阅和复盘"}</h2>}
             {loading ? <div className="writing-editor-loading"><LoaderCircle className="spin" />{isEnglish ? "Opening your draft…" : "正在打开草稿…"}</div> : attempt?.submitted_at ? (
-              reviewing ? <div className="writing-review-loading"><LoaderCircle className="is-spinning" /><strong>{isEnglish ? "Reviewing your response" : "正在批改你的作文"}</strong><span>{isEnglish ? "Scoring, locating deductions and extracting reusable expressions…" : "正在评分、定位扣分依据并提炼可迁移表达…"}</span></div>
+              reviewing ? <ReviewProgress english={isEnglish} kind="writing" stage={reviewStage} />
                 : review ? <div className="writing-review">
-                  <section className="writing-review-score">
-                    <div><span>{isEnglish ? "ESTIMATED SCORE" : "AI 预估分"}</span><strong>{review.score}<small>/ {review.maxScore}</small></strong><em>{isEnglish ? `Band ${writingBand(review.score, review.maxScore)}` : `第 ${writingBand(review.score, review.maxScore)} 档`}</em></div>
-                    <div><p>{review.summary}</p><dl><dt>{isEnglish ? "To reach the next band" : "升档最优先修改"}</dt><dd>{review.nextBandGap}</dd></dl></div>
-                  </section>
-                  <button className="writing-rewrite" onClick={() => rewriteDialog.current?.showModal()} disabled={rewriting}>{rewriting && <LoaderCircle className="spin" />}{isEnglish ? "Write again" : "重新写一遍"}</button>
-                  <details className="writing-original-answer">
-                    <summary><span>{isEnglish ? "View original response" : "查看本次原文"}</span><ChevronDown aria-hidden="true" /></summary>
+                  <ReviewScore score={review.score} total={review.maxScore} band={writingBand(review.score, review.maxScore)} english={isEnglish} summary={review.summary} nextBandGap={review.nextBandGap} />
+                  <ReviewOriginal label={isEnglish ? "My response" : "我的作答"}>
                     {usesLetterFrame ? <div className="writing-original-letter">
                       <p className={originalLetter.salutation ? "" : "is-missing"}>{originalLetter.salutation || (isEnglish ? "Salutation not provided" : "未填写称呼")}</p>
                       {originalLetter.body && <p>{originalLetter.body}</p>}
                       {(originalLetter.closing || originalLetter.signature) && <p className="writing-original-signoff">{[originalLetter.closing, originalLetter.signature].filter(Boolean).join("\n")}</p>}
                     </div> : <p>{answer}</p>}
-                  </details>
+                  </ReviewOriginal>
                   <section className="writing-review-section">
                     <header><div><span>01</span><strong>{isEnglish ? "Where points were lost" : "扣分依据"}</strong></div><small>{isEnglish ? "Every deduction is linked to your original response" : "每一处扣分都对应你的原文"}</small></header>
-                    <div className="writing-deductions">{review.deductions.map((item, index) => <article key={`${item.original}-${index}`}><div><span>{isEnglish ? item.category : deductionLabels[item.category]}</span><strong>-{item.impact}</strong></div><blockquote>{item.original}</blockquote><p>{item.reason}</p><div className="writing-suggestion"><Check /><span>{item.suggestion}</span></div></article>)}</div>
+                    <div className="writing-deductions">{review.deductions.length === 0 && <p className="analysis-empty-note">{isEnglish ? "No clear deductions were identified in this response." : "本次作答未发现明确扣分项。"}</p>}{review.deductions.map((item, index) => <article key={`${item.original}-${index}`}><div><PracticeBadge>{isEnglish ? item.category : deductionLabels[item.category]}</PracticeBadge><strong>-{item.impact}</strong></div><blockquote>{item.original}</blockquote><p>{item.reason}</p><div className="writing-suggestion"><Check /><span>{item.suggestion}</span></div></article>)}</div>
                   </section>
                   <section className="writing-review-section">
-                    <header><div><span>02</span><strong>{isEnglish ? "Higher-scoring revision" : "基于原文的提分版本"}</strong><em className="writing-target-band">{writingBand(review.score, review.maxScore) < 5 ? (isEnglish ? `Target Band ${writingBand(review.score, review.maxScore) + 1}` : `目标第 ${writingBand(review.score, review.maxScore) + 1} 档`) : (isEnglish ? "Band 5 revision" : "第 5 档优化版")}</em></div><small>{isEnglish ? "Your ideas, with only necessary changes" : "保留你的观点，只做必要修改"}</small></header>
+                    <header><div><span>02</span><strong>{isEnglish ? "Higher-scoring revision" : "基于原文的提分版本"}</strong><PracticeBadge className="writing-target-band">{writingBand(review.score, review.maxScore) < 5 ? (isEnglish ? `Band ${writingBand(review.score, review.maxScore) + 1}` : `第 ${writingBand(review.score, review.maxScore) + 1} 档`) : (isEnglish ? "Band 5" : "第 5 档")}</PracticeBadge></div><small>{isEnglish ? "Your ideas, with only necessary changes" : "保留你的观点，只做必要修改"}</small></header>
                     <div className="writing-revised-answer">{formatRevisedAnswer(review.revisedAnswer, activeTask.part)}</div>
                   </section>
                   <section className="writing-review-section">
                     <header><div><span>03</span><strong>{isEnglish ? "Expressions worth remembering" : "这次值得记住的表达"}</strong></div><div className="writing-review-section-actions"><small>{isEnglish ? "Save patterns you can reuse in other topics" : "保存可迁移到其他主题的写法"}</small><Link href={languageHref("/writing/expressions")}><BookMarked />{isEnglish ? "My expressions" : "我的表达"}</Link></div></header>
-                    <div className="writing-expressions">{review.expressions.map((item, index) => <article key={item.pattern}><div><p><del>{item.original}</del><strong>{item.rewrite}</strong></p><button className={savedExpressions.has(index) ? "is-saved" : ""} onClick={() => void toggleExpression(index)} disabled={savingExpression === index}>{savedExpressions.has(index) ? <Check /> : <Bookmark />}{savedExpressions.has(index) ? (isEnglish ? "Saved" : "已保存") : (isEnglish ? "Save" : "保存表达")}</button></div><blockquote>{item.pattern}</blockquote><ul>{item.useCases.map((useCase) => <li key={useCase}>{useCase}</li>)}</ul></article>)}</div>
+                    <div className="writing-expressions">{review.expressions.length === 0 && <p className="analysis-empty-note">{isEnglish ? "No additional expressions were extracted from this response." : "本次未提取到额外的可迁移表达。"}</p>}{review.expressions.map((item, index) => <article key={item.pattern}><div><p><del>{item.original}</del><strong>{item.rewrite}</strong></p><Button className={savedExpressions.has(index) ? "is-saved" : ""} onClick={() => void toggleExpression(index)} disabled={savingExpression === index}>{savedExpressions.has(index) ? <Check /> : <Bookmark />}{savedExpressions.has(index) ? (isEnglish ? "Saved" : "已保存") : (isEnglish ? "Save" : "保存表达")}</Button></div><blockquote>{item.pattern}</blockquote><ul>{item.useCases.map((useCase) => <li key={useCase}>{useCase}</li>)}</ul></article>)}</div>
                   </section>
-                </div> : <div className="writing-review-loading"><Sparkles /><strong>{isEnglish ? "Review is not ready" : "批改尚未完成"}</strong><button onClick={() => void runReview(activeTask.id, attempt.id)}>{isEnglish ? "Review again" : "重新批改"}</button></div>
+                </div> : <div className="writing-review-loading"><Sparkles /><strong>{isEnglish ? "Review is not ready" : "批改尚未完成"}</strong><Button onClick={() => void runReview(activeTask.id, attempt.id)}>{isEnglish ? "Review again" : "重新批改"}</Button></div>
             ) : usesLetterFrame ? <div className="writing-letter-editor">
               <label className="writing-letter-line">
                 <span>{isEnglish ? "Salutation" : "称呼"}</span>
-                <input disabled={navigating || submitting} value={letterDraft.salutation} onChange={(event) => {
+                <Input disabled={navigating || submitting} value={letterDraft.salutation} onChange={(event) => {
                   const next = { ...letterDraft, salutation: keepEnglishInput(event.target.value) };
                   setLetterDraft(next);
                   setAnswer(composeLetterAnswer(next));
@@ -454,7 +441,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
               </label>
               <label className="writing-letter-body">
                 <span>{isEnglish ? "Body" : "正文"}</span>
-                <textarea disabled={navigating || submitting} value={letterDraft.body} onChange={(event) => {
+                <TextArea disabled={navigating || submitting} value={letterDraft.body} onChange={(event) => {
                   const next = { ...letterDraft, body: keepEnglishInput(event.target.value) };
                   setLetterDraft(next);
                   setAnswer(composeLetterAnswer(next));
@@ -464,7 +451,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
               <div className="writing-letter-signoff">
                 <label className="writing-letter-line">
                   <span>{isEnglish ? "Closing" : "结束语"}</span>
-                  <input disabled={navigating || submitting} value={letterDraft.closing} onChange={(event) => {
+                  <Input disabled={navigating || submitting} value={letterDraft.closing} onChange={(event) => {
                     const next = { ...letterDraft, closing: keepEnglishInput(event.target.value) };
                     setLetterDraft(next);
                     setAnswer(composeLetterAnswer(next));
@@ -473,7 +460,7 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
                 </label>
                 <label className="writing-letter-line">
                   <span>{isEnglish ? "Signature" : "署名"}</span>
-                  <input disabled={navigating || submitting} value={letterDraft.signature} onChange={(event) => {
+                  <Input disabled={navigating || submitting} value={letterDraft.signature} onChange={(event) => {
                     const next = { ...letterDraft, signature: keepEnglishInput(event.target.value) };
                     setLetterDraft(next);
                     setAnswer(composeLetterAnswer(next));
@@ -481,26 +468,28 @@ export function WritingPractice({ tasks, initialLanguage = "zh", initialPart = "
                   }} placeholder="Your name" spellCheck="true" inputMode="text" lang="en" autoCapitalize="words" />
                 </label>
               </div>
-            </div> : <textarea disabled={navigating || submitting} value={answer} onChange={(event) => {
+            </div> : <TextArea disabled={navigating || submitting} value={answer} onChange={(event) => {
               const next = keepEnglishInput(event.target.value);
               setAnswer(next);
               setError(null);
             }} placeholder={isEnglish ? "Start writing here…" : "在这里开始写作…"} spellCheck="true" inputMode="text" lang="en" autoCapitalize="sentences" aria-label={isEnglish ? "Writing response" : "写作答案"} />}
+            {!attempt?.submitted_at && <DraftStatus tone={error || saveError ? "error" : showLengthWarning ? "warning" : "default"}>{error ?? saveError ?? (saving || dirty ? (isEnglish ? "Saving…" : "正在保存…") : showLengthWarning ? (isEnglish ? `${wordsRemaining} words below the suggested length. A shorter response may lower your score.` : `距离建议字数还差 ${wordsRemaining} 词，字数不足可能影响得分。`) : (isEnglish ? "Draft saved automatically" : "草稿自动保存"))}</DraftStatus>}
           </div>
-          <footer>
-            <span aria-live="polite" className={error || saveError ? "has-error" : showLengthWarning ? "has-warning" : ""}>{error ?? saveError ?? (attempt?.submitted_at ? (isEnglish ? "AI estimate for practice only" : "AI 评分仅供练习参考") : saving || dirty ? (isEnglish ? "Saving…" : "正在保存…") : showLengthWarning ? (isEnglish ? `${wordsRemaining} words below the suggested length. A shorter response may lower your score.` : `距离建议字数还差 ${wordsRemaining} 词，字数不足可能影响得分。`) : (isEnglish ? "Draft saved automatically" : "草稿已自动保存"))}</span>
-          </footer>
+          {attempt?.submitted_at ? <PracticeActionBar tone={error ? "error" : "default"} summary={error ?? (review ? <strong>{review.score} / {review.maxScore}</strong> : (isEnglish ? "Submitted" : "已提交"))} actions={[
+            { id: "home", label: isEnglish ? "Back to library" : "返回首页", variant: "secondary", href: languageHref(`/?type=writing&year=${activeTask.year}`) },
+            { id: "redo", label: isEnglish ? "Redo" : "重新练习", variant: "primary", disabled: rewriting || navigating, onPress: () => rewriteDialog.current?.showModal() },
+          ]} /> : null}
         </section>
-      </div>
-    <dialog ref={rewriteDialog} className="translation-redo-dialog" aria-labelledby="writing-redo-title" aria-describedby="writing-redo-description">
-      <button className="translation-dialog-close" aria-label={isEnglish ? "Close" : "关闭"} onClick={() => rewriteDialog.current?.close()}><X size={20} /></button>
-      <h2 id="writing-redo-title">{isEnglish ? "Write again?" : "重新写这篇作文？"}</h2>
+      </Tabs>
+    <PracticeDialog ref={rewriteDialog} className="translation-redo-dialog" aria-labelledby="writing-redo-title" aria-describedby="writing-redo-description">
+      <Button className="translation-dialog-close" aria-label={isEnglish ? "Close" : "关闭"} onClick={() => rewriteDialog.current?.close()}><X data-icon-size="20" /></Button>
+      <PracticeDialogTitle id="writing-redo-title">{isEnglish ? "Write again?" : "重新写这篇作文？"}</PracticeDialogTitle>
       <p id="writing-redo-description">{isEnglish ? "You will start with a blank response. Your submitted writing and review will be kept." : "将开始一份空白作答，已提交的作文与批阅结果会保留。"}</p>
       <div className="translation-dialog-actions">
-        <button autoFocus onClick={() => rewriteDialog.current?.close()}>{isEnglish ? "Keep reviewing" : "继续复盘"}</button>
-        <button className="translation-primary" onClick={() => { rewriteDialog.current?.close(); void rewrite(); }}>{isEnglish ? "Write again" : "重新写一遍"}</button>
+        <Button variant="secondary" autoFocus onClick={() => rewriteDialog.current?.close()}>{isEnglish ? "Keep reviewing" : "继续复盘"}</Button>
+        <Button variant="primary" className="translation-primary" onClick={() => { rewriteDialog.current?.close(); void rewrite(); }}>{isEnglish ? "Write again" : "重新写一遍"}</Button>
       </div>
-    </dialog>
+    </PracticeDialog>
     </main>
   );
 }

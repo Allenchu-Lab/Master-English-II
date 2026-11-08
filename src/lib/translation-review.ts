@@ -19,15 +19,6 @@ export function translationBand(score: number) {
   return score >= 13 ? 4 : score >= 9 ? 3 : score >= 5 ? 2 : 1;
 }
 
-export function validTranslationDeductions(sentences: TranslationSentence[], answer: string) {
-  return sentences.every(sentence => Array.isArray(sentence.deductions) && sentence.deductions.length <= 12 && sentence.deductions.every(item =>
-    item && typeof item.source === 'string' && item.source.trim().length > 0 && sentence.original.includes(item.source) &&
-    typeof item.quote === 'string' && (item.category === 'omission' ? item.quote === '' : item.quote.trim().length > 0 && answer.includes(item.quote)) &&
-    ['meaning', 'omission', 'logic', 'expression'].includes(item.category) &&
-    ['minor', 'major'].includes(item.severity) && typeof item.reason === 'string' && item.reason.trim().length > 0
-  ));
-}
-
 export function normalizeTranslationDeductions(sentences: TranslationSentence[]) {
   for (const sentence of sentences) {
     if (!Array.isArray(sentence.deductions)) continue;
@@ -40,18 +31,20 @@ export function normalizeTranslationDeductions(sentences: TranslationSentence[])
   }
 }
 
-export function translationDeductionFailure(sentences: TranslationSentence[], answer: string) {
+export function translationDeductionFailure(sentences: TranslationSentence[], answer: string): string | null {
   for (const sentence of sentences) {
     if (!Array.isArray(sentence.deductions)) return 'missing-deductions';
+    if (sentence.deductions.length > 12) return 'deduction-shape';
     for (const item of sentence.deductions) {
       if (!item || typeof item !== 'object') return 'invalid-deduction';
-      if (typeof item.source !== 'string' || !sentence.original.includes(item.source)) return 'source-quote';
-      if (typeof item.quote !== 'string' || (item.category !== 'omission' && !answer.includes(item.quote))) return 'answer-quote';
+      if (typeof item.source !== 'string' || !item.source.trim() || !sentence.original.includes(item.source)) return 'source-quote';
+      if (typeof item.quote !== 'string' || (item.category === 'omission' ? item.quote !== '' : !item.quote.trim() || !answer.includes(item.quote))) return 'answer-quote';
       if (!['meaning','omission','logic','expression'].includes(item.category)) return 'category';
       if (!['minor','major'].includes(item.severity)) return 'severity';
+      if (typeof item.reason !== 'string' || !item.reason.trim()) return 'deduction-shape';
     }
   }
-  return 'deduction-shape';
+  return null;
 }
 
 export function parseTranslationReview(value: unknown, passage: string, answer: string) {
@@ -64,7 +57,8 @@ export function parseTranslationReview(value: unknown, passage: string, answer: 
     || !s.original.trim() || !passage.includes(s.original))) throw Error('sentences');
   const sentences = review.sentences as TranslationSentence[];
   normalizeTranslationDeductions(sentences);
-  if (!validTranslationDeductions(sentences, answer)) throw Error(translationDeductionFailure(sentences, answer));
+  const failure = translationDeductionFailure(sentences, answer);
+  if (failure) throw Error(failure);
   const issues = sentences.filter(s => s.deductions!.length > 0);
   if (!issues.length && review.score !== 15) throw Error('score-consistency');
   if (issues.length && review.score === 15) throw Error('score-consistency');

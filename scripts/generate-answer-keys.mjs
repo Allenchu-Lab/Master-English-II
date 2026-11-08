@@ -29,7 +29,8 @@ async function generateText(year, text, answers) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         signal: AbortSignal.timeout(120_000),
         body: JSON.stringify({
-          model: "deepseek-chat",
+          model: process.env.DEEPSEEK_MODEL || "deepseek-flash",
+          thinking: { type: "disabled" },
           temperature: 0.1,
           response_format: { type: "json_object" },
           messages: [

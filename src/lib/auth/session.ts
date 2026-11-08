@@ -47,20 +47,6 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return user ? { id: user.id, email: user.email, isAnonymous: user.is_anonymous } : null;
 }
 
-export async function getOrCreateSessionUser() {
-  const current = await getSessionUser();
-  if (current) return current;
-
-  const result = await transaction(async (client) => {
-    const created = await client.query<{ id: string }>("insert into app_users (is_anonymous) values (true) returning id");
-    const userId = created.rows[0].id;
-    const token = await createSession(client, userId);
-    return { user: { id: userId, email: null, isAnonymous: true } satisfies SessionUser, token };
-  });
-  await setSessionCookie(result.token);
-  return result.user;
-}
-
 export async function replaceSession(userId: string, previousUserId?: string) {
   const previousToken = (await cookies()).get(cookieName)?.value;
   const token = await transaction(async (client) => {

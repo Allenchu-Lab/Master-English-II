@@ -2,10 +2,14 @@
 
 export type AuthUser = { email: string | null; isAnonymous: boolean };
 
+export class AuthApiError extends Error {
+  constructor(public status: number, message: string) { super(message); this.name = "AuthApiError"; }
+}
+
 async function api<T>(url: string, options?: RequestInit) {
   const response = await fetch(url, options);
   const body = await response.json() as T & { error?: string };
-  if (!response.ok) throw new Error(body.error ?? "Request failed");
+  if (!response.ok) throw new AuthApiError(response.status, body.error ?? "Request failed");
   return body;
 }
 

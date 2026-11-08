@@ -44,6 +44,10 @@ yarn-error.log*
 /plans/
 /design-qa.md
 
+# local design artifacts
+/assets/
+/output/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

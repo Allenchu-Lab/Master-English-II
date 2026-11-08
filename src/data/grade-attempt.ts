@@ -36,14 +36,6 @@ export const KEYS_SQL = `
 
 export const PUBLISHED_QUESTION_COUNT_SQL = "select count(*) from questions where passage_id = $1 and status = 'published'";
 
-/** 选项下标必须是 0 到 3 的整数，缺任何一题都视为未完成。 */
-export function hasCompleteAnswers(keys: KeyRow[], answers: Record<string, number>): boolean {
-  return keys.every((item) => {
-    const selected = answers[String(item.question_number)];
-    return Number.isInteger(selected) && selected >= 0 && selected <= 3;
-  });
-}
-
 export function hasValidAnswers(keys: KeyRow[], answers: Record<string, number>): boolean {
   return Object.entries(answers).every(([number, selected]) =>
     keys.some((item) => String(item.question_number) === number)

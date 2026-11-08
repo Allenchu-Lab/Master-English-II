@@ -19,5 +19,5 @@ export default async function WritingPage({ params, searchParams }: Props) {
   if (!Number.isInteger(year)) notFound();
   const tasks = await getWritingPaper(year);
   if (!tasks.length) notFound();
-  return <WritingPractice tasks={tasks} initialLanguage={lang === "en" ? "en" : "zh"} initialPart={part === "B" ? "B" : "A"} />;
+  return <WritingPractice key={tasks[0].id} tasks={tasks} initialLanguage={lang === "en" ? "en" : "zh"} initialPart={part === "B" ? "B" : "A"} />;
 }

@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/guard";
+import { isUuid } from "@/lib/uuid";
 import { query } from "@/lib/db";
 import type { WritingReview } from "@/lib/writing-review";
 
 type Context = { params: Promise<{ taskId: string }> };
 type AttemptRow = { id: string; answer: string; elapsed_seconds: number; submitted_at: string | null; review: WritingReview | null };
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_ANSWER_LENGTH = 12_000;
 
 export async function GET(_request: Request, { params }: Context) {
   const { taskId } = await params;
-  if (!UUID_PATTERN.test(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const result = await query<AttemptRow>(`
     with existing as (
       select id, answer, elapsed_seconds, submitted_at, review
@@ -36,9 +36,9 @@ export async function GET(_request: Request, { params }: Context) {
 
 export async function PUT(_request: Request, { params }: Context) {
   const { taskId } = await params;
-  if (!UUID_PATTERN.test(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const result = await query<AttemptRow>(`
     insert into writing_attempts (user_id, task_id)
     select $1, id from writing_tasks where id = $2 and status = 'published'
@@ -52,9 +52,9 @@ export async function PUT(_request: Request, { params }: Context) {
 
 export async function PATCH(request: Request, { params }: Context) {
   const { taskId } = await params;
-  if (!UUID_PATTERN.test(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const body = await request.json().catch(() => null) as { answer?: unknown; elapsedSeconds?: unknown } | null;
   if (typeof body?.answer !== "string" || body.answer.length > MAX_ANSWER_LENGTH
     || typeof body.elapsedSeconds !== "number" || !Number.isInteger(body.elapsedSeconds) || body.elapsedSeconds < 0) {
@@ -71,9 +71,9 @@ export async function PATCH(request: Request, { params }: Context) {
 
 export async function POST(request: Request, { params }: Context) {
   const { taskId } = await params;
-  if (!UUID_PATTERN.test(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
-  const user = await getSessionUser();
-  if (!user || user.isAnonymous) return NextResponse.json({ error: "Please sign in to practice." }, { status: 401 });
+  if (!isUuid(taskId)) return NextResponse.json({ error: "Invalid task" }, { status: 400 });
+  const user = await requireUser();
+  if (user instanceof NextResponse) return user;
   const body = await request.json().catch(() => null) as { answer?: unknown; elapsedSeconds?: unknown } | null;
   if (typeof body?.answer !== "string" || !body.answer.trim() || body.answer.length > MAX_ANSWER_LENGTH
     || typeof body.elapsedSeconds !== "number" || !Number.isInteger(body.elapsedSeconds) || body.elapsedSeconds < 0) {

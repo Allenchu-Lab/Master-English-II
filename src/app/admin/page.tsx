@@ -78,9 +78,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <article className="admin-panel admin-trend">
           <header><div><p>学习趋势</p><h2>最近 {days} 天有效练习</h2></div><nav className="admin-range" aria-label="选择统计周期"><Link className={days === 7 ? "active" : ""} href={rangeHref(7)}>7 天</Link><Link className={days === 30 ? "active" : ""} href={rangeHref(30)}>30 天</Link></nav></header>
           <div className="admin-chart-legend"><span><i />有效开始</span><span><i className="completed" />完成文章</span></div>
-          <div className="admin-chart" style={{ gridTemplateColumns: `repeat(${data.daily.length}, minmax(26px, 1fr))` }}>
+          <div className="admin-chart" style={{ gridTemplateColumns: `repeat(${data.daily.length}, minmax(var(--admin-chart-column-min), 1fr))` }}>
             {data.daily.map((day) => <div className="admin-chart-day" key={day.date}>
-              <div className="admin-bar-track" title={`${day.activeUsers} 人有效学习，${day.attempts} 次有效开始，${day.completed} 篇完成`}><i style={{ height: `${day.attempts ? Math.max(6, Math.round((day.attempts / maxDailyAttempts) * 100)) : 0}%` }} /><i className="completed" style={{ height: `${day.completed ? Math.max(6, Math.round((day.completed / maxDailyAttempts) * 100)) : 0}%` }} /></div>
+              <div className="admin-bar-track" title={`${day.activeUsers} 人有效学习，${day.attempts} 次有效开始，${day.completed} 篇完成`}><i style={{ height: day.attempts ? `max(var(--admin-chart-bar-min), ${Math.round((day.attempts / maxDailyAttempts) * 100)}%)` : "0%" }} /><i className="completed" style={{ height: day.completed ? `max(var(--admin-chart-bar-min), ${Math.round((day.completed / maxDailyAttempts) * 100)}%)` : "0%" }} /></div>
               <strong>{day.attempts}</strong><span>{day.date.slice(5).replace("-", "/")}</span>
             </div>)}
           </div>

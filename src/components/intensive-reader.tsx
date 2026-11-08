@@ -1,11 +1,19 @@
 "use client";
+import { PracticeActionBar } from "@/components/ui/practice-action-bar";
+
+import { PracticeProgress } from "@/components/ui/practice-progress";
+
+import { Button } from "@/components/ui/button";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, LoaderCircle, LockKeyhole, RotateCcw, Sparkles } from "lucide-react";
 import type { PracticePassage } from "@/data/get-practice-passage";
 import { SelectableHighlight } from "@/components/selectable-highlight";
-import { requestAi } from "@/lib/ai-request";
+import { useUiLanguage } from "@/components/ui/use-ui-language";
+import { requestReview } from "@/lib/request-review";
+import { ReviewProgress } from "@/components/ui/review-progress";
+import type { ReviewStage } from "@/lib/review-stream";
 
 type AccessState = "checking" | "allowed" | "denied" | "error";
 type ParagraphAnalysis = {
@@ -21,6 +29,7 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
   const [accessState, setAccessState] = useState<AccessState>("checking");
   const [activeParagraph, setActiveParagraph] = useState(0);
   const [analyses, setAnalyses] = useState<Record<number, ParagraphAnalysis>>({});
+  const [analysisStages, setAnalysisStages] = useState<Record<number, ReviewStage>>({});
   const [loadingParagraphs, setLoadingParagraphs] = useState<Record<number, boolean>>({});
   const pendingParagraphs = useRef(new Set<number>());
   const mounted = useRef(true);
@@ -28,24 +37,11 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
   const [analysisFailure, setAnalysisError] = useState<{ paragraph: number; message: string } | null>(null);
   const analysisError = analysisFailure?.paragraph === activeParagraph ? analysisFailure.message : null;
   const loadingParagraph = loadingParagraphs[activeParagraph] ? activeParagraph : null;
-  const [uiLanguage, setUiLanguage] = useState<"zh" | "en">(initialLanguage);
-  const isEnglish = uiLanguage === "en";
+  const { isEnglish } = useUiLanguage(initialLanguage);
 
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; };
-  }, []);
-
-  useEffect(() => {
-    const urlLanguage = new URLSearchParams(window.location.search).get("lang");
-    if (urlLanguage === "en" || urlLanguage === "zh") {
-      window.localStorage.setItem("ui-language", urlLanguage);
-      return;
-    }
-    const savedLanguage = window.localStorage.getItem("ui-language");
-    if (savedLanguage !== "en" && savedLanguage !== "zh") return;
-    const timer = window.setTimeout(() => setUiLanguage(savedLanguage), 0);
-    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -92,9 +88,10 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
     pendingParagraphs.current.add(paragraph);
     setLoadingParagraphs((current) => ({ ...current, [paragraph]: true }));
     setAnalysisError(null);
+    setAnalysisStages(current => ({ ...current, [paragraph]: 0 }));
     try {
-      const response = await requestAi("/api/intensive-reading", { paragraph: paragraphs[paragraph], year: passage.year, text: passage.number, paragraphNumber: paragraph + 1 });
-      const result = response.data as ParagraphAnalysis & { error?: string };
+      const response = await requestReview("/api/intensive-reading", { paragraph: paragraphs[paragraph], year: passage.year, text: passage.number, paragraphNumber: paragraph + 1 }, stage => { if (mounted.current) setAnalysisStages(current => ({ ...current, [paragraph]: stage })); });
+      const result = (response.data ?? {}) as ParagraphAnalysis & { error?: string };
       if (!mounted.current) return;
       if (!response.ok) throw new Error(isEnglish ? "Unable to generate the analysis. Please try again." : (result.error ?? "生成失败，请稍后重试。"));
       setAnalyses((current) => ({ ...current, [paragraph]: result }));
@@ -135,29 +132,27 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
     <header className="intensive-header">
       <Link href={languageHref(`/?type=reading_a&year=${passage.year}`)} className="practice-back" aria-label={isEnglish ? "Back to library" : "返回首页"}><ArrowLeft /></Link>
       <nav><BookOpen /><Link href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Practice" : "刷题"}</Link><span>/</span><span>{isEnglish ? `${passage.year} Paper` : `${passage.year} 年`}</span><span>/</span><strong>Text {passage.number} {isEnglish ? "Intensive Reading" : "精读"}</strong></nav>
-      <Link className="intensive-review-link" href={languageHref(`/practice/${passage.year}/${passage.number}`)}><RotateCcw />{isEnglish ? "Review answers" : "回看作答"}</Link>
     </header>
 
     <div className="intensive-layout">
       <article className="intensive-paper">
         <header><span>{passage.year} · TEXT {passage.number}</span><h1>{isEnglish ? "Paragraph Study" : "逐段精读"}</h1><p>{isEnglish ? "Click an unfamiliar word for its meaning. Select a paragraph to study it." : "点击不认识的单词查看释义，选择段落进行精读。"}</p></header>
-        <nav className="intensive-mobile-index" aria-label={isEnglish ? "Select a paragraph" : "选择精读段落"}>{paragraphs.map((_, index) => <button key={index} className={activeParagraph === index ? "active" : ""} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>{index + 1}{analyses[index] && <Check />}</button>)}</nav>
+        <nav className="intensive-mobile-index" aria-label={isEnglish ? "Select a paragraph" : "选择精读段落"}>{paragraphs.map((_, index) => <Button key={index} className={activeParagraph === index ? "active" : ""} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>{index + 1}{analyses[index] && <Check />}</Button>)}</nav>
         {paragraphs.map((paragraph, index) => <div key={index} className={`intensive-paragraph ${activeParagraph === index ? "active" : ""}`} onClick={() => { setActiveParagraph(index); setAnalysisError(null); }}>
-          <button type="button" className="intensive-paragraph-number" onClick={(event) => { event.stopPropagation(); setActiveParagraph(index); setAnalysisError(null); }} aria-label={isEnglish ? `Select paragraph ${index + 1}` : `选择第 ${index + 1} 段`}>{String(index + 1).padStart(2, "0")}</button>
+          <Button type="button" className="intensive-paragraph-number" onClick={(event) => { event.stopPropagation(); setActiveParagraph(index); setAnalysisError(null); }} aria-label={isEnglish ? `Select paragraph ${index + 1}` : `选择第 ${index + 1} 段`}>{String(index + 1).padStart(2, "0")}</Button>
           <SelectableHighlight text={paragraph} scope={`passage:${index}`} storageKey={highlightStorageKey} isEnglish={isEnglish} mode="lookup" />
           {analyses[index] && <Check className="intensive-paragraph-check" />}
         </div>)}
       </article>
 
       <aside className="intensive-insight">
-        <div className="intensive-insight-head"><strong>{isEnglish ? "Paragraph analysis" : "段落解析"}</strong><i><b style={{ width: `${completedCount / paragraphs.length * 100}%` }} /></i><span>{isEnglish ? `${completedCount} / ${paragraphs.length} analyzed` : `${completedCount} / ${paragraphs.length} 已解析`}</span></div>
+        <div className="intensive-insight-head"><strong>{isEnglish ? "Paragraph analysis" : "段落解析"}</strong><PracticeProgress value={completedCount} total={paragraphs.length} label={isEnglish ? "Analyzed paragraphs" : "已解析段落"} /><span>{isEnglish ? `${completedCount} / ${paragraphs.length} analyzed` : `${completedCount} / ${paragraphs.length} 已解析`}</span></div>
 
-        {!analysis ? <section className="analysis-empty">
-          <LoaderCircle className="is-spinning" aria-hidden="true" />
-          <h3>{analysisError ? (isEnglish ? "Analysis unavailable" : "暂时无法解析") : (isEnglish ? "Analyzing paragraph" : "正在解析本段")}</h3>
-          {analysisError && <button onClick={generateAnalysis}>{isEnglish ? "Try again" : "重试"}</button>}
-          {analysisError && <p className="analysis-error">{analysisError}</p>}
-        </section> : <div className="analysis-content">
+        {!analysis ? (analysisError ? <section className="analysis-empty">
+          <h3>{isEnglish ? "Analysis unavailable" : "暂时无法解析"}</h3>
+          <Button variant="primary" onClick={generateAnalysis}>{isEnglish ? "Try again" : "重试"}</Button>
+          <p className="analysis-error">{analysisError}</p>
+        </section> : <ReviewProgress english={isEnglish} kind="intensive" stage={analysisStages[activeParagraph] ?? 0} />) : <div className="analysis-content">
           <section className="understanding-compare">
             <div className="understanding-ai"><span><Sparkles />{isEnglish ? "AI summary" : "AI 段意"}</span><p>{analysis.summary}</p></div>
           </section>
@@ -165,14 +160,18 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
           {!!analysis.structure.length && <section className="analysis-card"><div className="analysis-card-title"><span>02</span><h3>{isEnglish ? "Sentence structure" : "长难句结构"}</h3></div>{analysis.structure.map((item, index) => <div className="structure-item" key={`${item.original}-${index}`}><blockquote>{item.original}</blockquote><p>{item.explanation}</p></div>)}</section>}
           {!!analysis.vocabulary.length && <section className="analysis-card"><div className="analysis-card-title"><span>03</span><h3>{isEnglish ? "Key words and phrases" : "重点词与短语"}</h3></div><dl>{analysis.vocabulary.map((item) => <div key={item.term}><dt>{item.term}</dt><dd>{item.meaning}</dd></div>)}</dl></section>}
           <section className="analysis-card exam-tip"><div className="analysis-card-title"><span>04</span><h3>{isEnglish ? "Exam insight" : "命题提示"}</h3></div><p>{analysis.examTip}</p></section>
-          <button className="regenerate-analysis" onClick={generateAnalysis} disabled={loadingParagraph === activeParagraph}>{loadingParagraph === activeParagraph ? <LoaderCircle className="is-spinning" /> : <RotateCcw />}{isEnglish ? "Regenerate" : "重新生成"}</button>
+          {loadingParagraph === activeParagraph && <ReviewProgress english={isEnglish} kind="intensive" stage={analysisStages[activeParagraph] ?? 0} />}
+          <Button className="regenerate-analysis" onClick={generateAnalysis} disabled={loadingParagraph === activeParagraph}><RotateCcw />{isEnglish ? "Regenerate" : "重新生成"}</Button>
           {analysisError && <p className="analysis-error">{analysisError}</p>}
         </div>}
 
-        <footer className="intensive-panel-nav">
-          <button disabled={activeParagraph === 0} onClick={() => setActiveParagraph((current) => current - 1)}><ChevronLeft />{isEnglish ? "Previous" : "上一段"}</button>
-          {activeParagraph < paragraphs.length - 1 ? <button className="primary" onClick={() => setActiveParagraph((current) => current + 1)}>{isEnglish ? "Next" : "下一段"}<ChevronRight /></button> : <Link href={languageHref(`/?type=reading_a&year=${passage.year}`)}>{isEnglish ? "Finish and return" : "完成精读，返回首页"}<Check /></Link>}
-        </footer>
+        <PracticeActionBar summary={isEnglish ? `Paragraph ${activeParagraph + 1} / ${paragraphs.length}` : `第 ${activeParagraph + 1} / ${paragraphs.length} 段`} actions={[
+          { id: "review", label: isEnglish ? "Review answers" : "回看作答", variant: "secondary", href: languageHref(`/practice/${passage.year}/${passage.number}`) },
+          { id: "previous", label: <><ChevronLeft />{isEnglish ? "Previous" : "上一段"}</>, variant: "secondary", disabled: activeParagraph === 0, onPress: () => setActiveParagraph(current => current - 1) },
+          activeParagraph < paragraphs.length - 1
+            ? { id: "next", label: <>{isEnglish ? "Next" : "下一段"}<ChevronRight /></>, variant: "primary", onPress: () => setActiveParagraph(current => current + 1) }
+            : { id: "finish", label: <>{isEnglish ? "Finish and return" : "完成精读，返回首页"}<Check /></>, variant: "primary", href: languageHref(`/?type=reading_a&year=${passage.year}`) },
+        ]} />
       </aside>
     </div>
   </main>;

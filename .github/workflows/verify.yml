@@ -17,11 +17,23 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Unit and AI regression tests (no paid requests)
+        run: npm run test:unit && npm run test:regression
+
       - name: Lint and build
         run: npm run verify
+
+      - name: Install isolated test database tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql
+          echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+
+      - name: Local integration tests (temporary accounts, local mail)
+        run: npm run test:local

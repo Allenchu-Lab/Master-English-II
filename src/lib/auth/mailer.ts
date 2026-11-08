@@ -1,3 +1,4 @@
+import { runtimeTokens } from "@/styles/runtime-tokens";
 import "server-only";
 
 import { ses } from "tencentcloud-sdk-nodejs-ses";
@@ -90,7 +91,7 @@ export async function sendLoginCode(email: string, code: string) {
   }
   const subject = "ChiTouEN II 登录验证码";
   const text = `你的登录验证码是：${code}。验证码 10 分钟内有效，请勿转发给他人。`;
-  const html = `<p>你的登录验证码是：</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p><p>验证码 10 分钟内有效，请勿转发给他人。</p>`;
+  const html = `<p>你的登录验证码是：</p><p style="font-size:${runtimeTokens.email.codeSize};font-weight:${runtimeTokens.email.codeWeight};letter-spacing:${runtimeTokens.email.codeTracking}">${code}</p><p>验证码 10 分钟内有效，请勿转发给他人。</p>`;
 
   if (sesSelected()) {
     await sendViaSes(email, subject, code);

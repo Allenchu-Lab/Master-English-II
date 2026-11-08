@@ -40,7 +40,14 @@ sudo nginx -t && sudo systemctl reload nginx
 ```bash
 cd /opt/master-english
 git pull --ff-only
-docker compose up -d --build
+bash deploy/preflight.sh .env
+# Build before changing the running app; keep the old app serving during build.
+docker compose build app
+bash deploy/backup.sh
+# 024 is additive and safe to run again; existing volumes do not run init SQL automatically.
+docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -1' < deploy/postgres/024-practice-updated-at.sql
+docker compose up -d --no-deps app
+curl --fail --max-time 10 http://127.0.0.1:3000/api/health
 ```
 
 ## 检查状态
@@ -253,4 +260,6 @@ docker compose exec -T db psql -U master_english -d master_english < 增量文�
 - 测试环境使用公网 IP 时设置 `COOKIE_SECURE=false`；绑定域名并启用 HTTPS 后改为 `true`。
 - 安全组只放 80。compose 未发布 db 端口，app 只绑 `127.0.0.1:3000`，不要额外开放 5432。
 - `deploy/nginx/master-english.conf` 里的 `X-Forwarded-For $proxy_add_x_forwarded_for` 与应用限流取「最后一跳」的逻辑配套，不要改动。若后续在 Nginx 前再加一层 CLB，最后一跳会变成 CLB 内网 IP，届时限流实现需同步调整。
-- 应用是匿名优先的，不登录即可做题与精读，因此 SES 未配置不影响内测主流程。
+- 当前练习和精读 API 要求邮箱登录。发布后应验证真实邮件发送配置；不要在生产开启 LOCAL_AUTH_MAIL。
+
+继续练习入口需要先在现有数据库执行 `deploy/postgres/024-practice-updated-at.sql`，再部署引用 `practice_attempts.updated_at` 的应用代码。迁移可重复执行；旧记录只可用开始时间回填，之后保存会记录准确更新时间。
