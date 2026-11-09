@@ -2,6 +2,26 @@
 
 服务器只需保留 Nginx、Docker 和 Git。PostgreSQL 不开放公网端口，应用仅通过本机 `127.0.0.1:3000` 提供给 Nginx。
 
+## 本机快捷连接
+
+当前开发 Mac 已在 `~/.ssh/config` 配置别名 `chitou-prod`，使用独立 Ed25519 密钥登录现有 `ubuntu` 账户，并严格校验已核对的服务器主机指纹。
+
+```bash
+ssh chitou-prod
+cd /opt/master-english
+# 仓库由 root 管理，Git 更新等管理操作使用 sudo。
+sudo git status --short
+sudo docker compose ps
+```
+
+可直接从本机检查服务：
+
+```bash
+ssh -o BatchMode=yes chitou-prod 'cd /opt/master-english && sudo -n docker compose ps && curl --fail --max-time 10 http://127.0.0.1:3000/api/health'
+```
+
+该别名和私钥仅保存在这台 Mac，其他电脑需要单独授权。私钥不得提交到仓库或上传服务器。撤销此连接时，仅移除服务器 `ubuntu` 账户 `authorized_keys` 中注释为 `allenchu-mac-chitou-production` 的公钥；保留其他已有密钥。
+
 ## 两个环境变量文件的分工
 
 这一点最容易配错，先看清楚：

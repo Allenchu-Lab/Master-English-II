@@ -333,7 +333,6 @@
   --radius-4: 4px;
   --intensive-paragraph-number-letter-spacing: .06em;
   --space-23: 23px;
-  --intensive-insight-head-transition: width 180ms var(--ease);
   --analysis-empty-min-height: 0;
   --analysis-empty-padding: 44px 28px;
   --analysis-step-letter-spacing: .1em;
@@ -1041,6 +1040,13 @@
 }
 
 :root {
+  --danger-soft: var(--practice-danger-surface);
+  --danger-soft-hover: color-mix(in srgb, var(--practice-danger-surface) 90%, var(--practice-danger-border));
+  --danger-soft-foreground: var(--practice-danger);
+  --control-glass-danger-soft-image: linear-gradient(to bottom, color-mix(in srgb, var(--danger-soft) 55%, var(--color-white)), var(--danger-soft));
+  --control-glass-danger-soft-hover-image: linear-gradient(to bottom, color-mix(in srgb, var(--danger-soft) 35%, var(--color-white)), var(--danger-soft-hover));
+  --control-glass-danger-soft-pressed-image: linear-gradient(to bottom, var(--danger-soft-hover), var(--danger-soft));
+  --control-glass-danger-soft-edge: 1px solid color-mix(in srgb, var(--danger-soft) 80%, var(--danger-soft-foreground));
   --control-glass-secondary-image: linear-gradient(to bottom, var(--color-white), color-mix(in srgb, var(--color-canvas) 85%, var(--color-white)));
   --control-glass-secondary-hover-image: linear-gradient(to bottom, var(--color-white), color-mix(in srgb, var(--color-canvas) 90%, var(--practice-border-color)));
   --control-glass-secondary-pressed-image: linear-gradient(to bottom, var(--color-canvas), var(--color-white));

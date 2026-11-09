@@ -1,8 +1,6 @@
 "use client";
 import { PracticeActionBar } from "@/components/ui/practice-action-bar";
 
-import { PracticeProgress } from "@/components/ui/practice-progress";
-
 import { Button } from "@/components/ui/button";
 
 import Link from "next/link";
@@ -123,7 +121,6 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
   }
 
   const analysis = analyses[activeParagraph];
-  const completedCount = Object.keys(analyses).length;
   const highlightStorageKey = `reading-highlights:${passage.id}`;
   const languageHref = (path: string) => isEnglish ? `${path}${path.includes("?") ? "&" : "?"}lang=en` : path;
 
@@ -146,7 +143,6 @@ export function IntensiveReader({ passage, initialLanguage = "zh" }: { passage: 
       </article>
 
       <aside className="intensive-insight">
-        <div className="intensive-insight-head"><strong>{isEnglish ? "Paragraph analysis" : "段落解析"}</strong><PracticeProgress value={completedCount} total={paragraphs.length} label={isEnglish ? "Analyzed paragraphs" : "已解析段落"} /><span>{isEnglish ? `${completedCount} / ${paragraphs.length} analyzed` : `${completedCount} / ${paragraphs.length} 已解析`}</span></div>
 
         {!analysis ? (analysisError ? <section className="analysis-empty">
           <h3>{isEnglish ? "Analysis unavailable" : "暂时无法解析"}</h3>

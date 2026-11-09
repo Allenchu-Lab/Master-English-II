@@ -170,7 +170,7 @@ export function EmailAuth({ isEnglish, onAuthChange, loginRequest, onCancel, com
               <Input id="hui-code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={event => { setCode(event.target.value.replace(/\D/g, "").slice(0, 6)); setError(null); }} placeholder="000000" autoFocus/>
               <Button type="submit" variant="primary" fullWidth disabled={loading || code.length < 6}>{loading && <LoaderCircle className="is-spinning"/>}{loading ? (isEnglish ? "Signing in…" : "正在登录……") : (isEnglish ? "Verify and sign in" : "验证并登录")}</Button>
               {error && <div className="hui-auth-error" role="alert"><AlertCircle aria-hidden="true"/><span>{error}</span></div>}
-              <Button variant="ghost" onClick={() => { setStep("email"); setError(null); }}><ArrowLeft/>{isEnglish ? "Change email" : "更换邮箱"}</Button>
+              <Button variant="secondary" onClick={() => { setStep("email"); setError(null); }}><ArrowLeft/>{isEnglish ? "Change email" : "更换邮箱"}</Button>
             </form>}
             {notice && <p role="status">{notice}</p>}
             {signedIn && error && <div className="hui-auth-error" role="alert"><AlertCircle aria-hidden="true"/><span>{error}</span></div>}
