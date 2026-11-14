@@ -559,6 +559,10 @@
   --size-12: 12px;
   --writing-expressions-background: #f1f2f0;
   --expressions-comparison-mobile-columns: minmax(0, 1fr);
+  --expressions-summary-columns: minmax(0, 1fr) auto auto;
+  --expressions-preview-lines: 2;
+  --expressions-focus-offset: -2px;
+  --expressions-chevron-open: rotate(180deg);
   --expressions-card-radius: var(--library-task-radius);
   --expressions-card-padding: 24px;
   --expressions-card-border: 1px solid transparent;

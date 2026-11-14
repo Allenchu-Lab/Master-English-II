@@ -640,7 +640,7 @@ svg { width: var(--size-18); height: var(--size-18); stroke-width: var(--layout-
 .writing-expressions ul { margin: var(--layout-margin); padding: var(--auth-close-padding); display: flex; flex-wrap: wrap; gap: var(--space-6); list-style: none; }
 .writing-expressions li { padding: var(--writing-review-score-padding); border-radius: var(--radius-999); background: var(--writing-expressions-background); color: var(--muted); font-size: var(--analysis-caption-size); }
 
-.expressions-page { min-height: var(--intensive-gate-min-height); overflow-y: auto; background: var(--expressions-page-background); color: var(--ink); }
+.expressions-page { height: var(--layout-height); overflow-y: auto; background: var(--expressions-page-background); color: var(--ink); }
 .expressions-header { position: sticky; top: var(--reading-b-match-sheet-top); z-index: var(--reading-b-page-z-index); min-height: var(--size-56); padding: var(--expressions-header-padding); display: grid; grid-template-columns: var(--expressions-header-grid-template-columns); align-items: center; gap: var(--space-12); border-bottom: var(--content-header-border-bottom); background: var(--expressions-header-background); -webkit-backdrop-filter: var(--practice-header-filter); backdrop-filter: var(--practice-header-filter); }
 .expressions-header svg { width: var(--size-20); height: var(--size-20); flex-shrink: var(--year-complete-flex-shrink); }
 .expressions-header > a { justify-self: start; border-radius: var(--radius-control); }
@@ -650,24 +650,31 @@ svg { width: var(--size-18); height: var(--size-18); stroke-width: var(--layout-
 .expressions-content > header p { margin: var(--layout-margin); color: var(--muted); font-size: var(--font-size-14); line-height: var(--line-height-24); }
 .expressions-error { display: grid; justify-items: start; gap: var(--space-12); margin: var(--expressions-error-margin); }
 .expressions-error .practice-notice { margin: var(--layout-margin); }
-.expressions-list { display: grid; gap: var(--space-16); }
-.expression-card, .expressions-state { border: var(--expressions-card-border); border-radius: var(--expressions-card-radius); background: var(--color-surface); box-shadow: none; }
-.expression-card { padding: var(--expressions-card-padding); gap: var(--space-20); min-width: var(--product-main-min-width); }
-.expression-card-header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: var(--space-12); padding: var(--layout-margin); }
-.expression-card-header button { flex-shrink: var(--year-complete-flex-shrink); }
-.expression-card-header button svg { width: var(--size-16); height: var(--size-16); }
-.expression-card-content { display: grid; gap: var(--space-20); padding: var(--layout-margin); }
+.expressions-year-groups { display: grid; gap: var(--space-24); }
+.expressions-year-title { margin: var(--layout-margin); margin-bottom: var(--space-12); font-size: var(--font-size-20); line-height: var(--line-height-28); font-weight: var(--font-weight-700); }
+.expressions-list, .expressions-state { border: var(--expressions-card-border); border-radius: var(--expressions-card-radius); background: var(--color-surface); box-shadow: none; }
+.expressions-list { overflow: hidden; }
+.expression-row + .expression-row { border-top: var(--content-header-border-bottom); }
+.expression-summary { display: grid; grid-template-columns: var(--expressions-summary-columns); align-items: center; gap: var(--space-12); padding: var(--space-12) var(--space-16); min-height: var(--size-48); cursor: pointer; list-style: none; }
+.expression-summary::-webkit-details-marker { display: none; }
+.expression-summary:hover, .expression-row[open] > .expression-summary { background: var(--color-selection); }
+.expression-summary:focus-visible { outline: var(--layout-outline); outline-offset: var(--expressions-focus-offset); }
+.expression-summary > svg { width: var(--size-16); height: var(--size-16); color: var(--muted); }
+.expression-row[open] > .expression-summary > svg { transform: var(--expressions-chevron-open); }
+.expression-preview { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--expressions-preview-lines); overflow: hidden; overflow-wrap: anywhere; font-size: var(--font-size-14); line-height: var(--line-height-22); font-weight: var(--font-weight-600); }
+.expression-details { display: grid; gap: var(--space-16); padding: var(--space-16); border-top: var(--content-header-border-bottom); }
 .expression-comparison { display: grid; grid-template-columns: var(--practice-split-columns); gap: var(--space-24); }
 .expression-comparison > div { min-width: var(--product-main-min-width); }
-.expression-card h2, .expression-card-footer > span { margin: var(--layout-margin); color: var(--muted); font-size: var(--font-size-12); line-height: var(--line-height-20); font-weight: var(--font-weight-600); }
+.expression-details h3, .expression-use-cases > span { margin: var(--layout-margin); color: var(--muted); font-size: var(--font-size-12); line-height: var(--line-height-20); font-weight: var(--font-weight-600); }
 .expression-comparison p { margin: var(--expressions-text-margin); font-family: var(--font-ui); font-size: var(--expressions-body-size); line-height: var(--expressions-body-line-height); overflow-wrap: anywhere; }
 .expression-rewrite p { font-weight: var(--font-weight-600); }
-.expression-pattern { padding: var(--space-16); border-radius: var(--expressions-pattern-radius); background: var(--color-canvas); min-width: var(--product-main-min-width); }
+.expression-pattern { padding: var(--space-12); border-radius: var(--expressions-pattern-radius); background: var(--color-canvas); min-width: var(--product-main-min-width); }
 .expression-pattern blockquote { margin: var(--expressions-text-margin); font-size: var(--expressions-body-size); line-height: var(--expressions-body-line-height); color: var(--ink); overflow-wrap: anywhere; }
-.expression-card-footer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-12); padding: var(--layout-margin); }
-.expression-card-footer ul { margin: var(--layout-margin); padding: var(--layout-margin); display: flex; flex-wrap: wrap; gap: var(--space-8); list-style: none; min-width: var(--product-main-min-width); }
-.expression-card-footer li { min-width: var(--product-main-min-width); max-width: var(--hui-types-max-width); }
-.expression-card-footer .practice-badge { max-width: var(--hui-types-max-width); height: auto; white-space: normal; overflow-wrap: anywhere; }
+.expression-details-footer, .expression-use-cases { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-12); }
+.expression-details-footer > button { margin-inline-start: auto; }
+.expression-use-cases ul { margin: var(--layout-margin); padding: var(--layout-margin); display: flex; flex-wrap: wrap; gap: var(--space-8); list-style: none; min-width: var(--product-main-min-width); }
+.expression-use-cases li { min-width: var(--product-main-min-width); max-width: var(--hui-types-max-width); }
+.expression-use-cases .practice-badge { max-width: var(--hui-types-max-width); height: auto; white-space: normal; overflow-wrap: anywhere; }
 .expressions-state { min-height: var(--size-300); padding: var(--expressions-card-padding); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-16); text-align: center; }
 .expressions-state > svg { width: var(--size-25); height: var(--size-25); color: var(--accent); }
 .expressions-state .card__title { font-size: var(--font-size-20); font-weight: var(--font-weight-700); }
@@ -803,7 +810,7 @@ svg { width: var(--size-18); height: var(--size-18); stroke-width: var(--layout-
   .expressions-header { padding-inline: var(--space-12); }
   .expressions-content { width: var(--expressions-content-width-2); padding: var(--expressions-content-padding-2); }
   .expressions-content h1 { font-size: var(--font-size-23); line-height: var(--line-height-32); }
-  .expression-card, .expressions-state { padding: var(--space-16); }
+  .expressions-state { padding: var(--space-16); }
   .expression-comparison { grid-template-columns: var(--expressions-comparison-mobile-columns); gap: var(--space-16); }
   .intensive-header { padding-inline: var(--space-12); }
   .intensive-header nav > span { display: none; }

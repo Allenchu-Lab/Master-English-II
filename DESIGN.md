@@ -312,8 +312,9 @@ AI 等待态不展示步骤计数，避免让用户误以为阶段等时。真�
 延续本站中性画布、白色内容表面与系统字体。参考 Readwise 的阅读层级（https://styles.refero.design/style/c848b5d7-c7e8-4c76-85d3-6c91cbaa1c42），借鉴 Literal 收藏页的聚焦单列结构（https://refero.design/pages/279e9e16-453f-4b13-b3a3-b10e707c596a）；不引入其绿色品牌色、衬线字体或营销页大留白。
 
 - 顶部只保留“返回写作”和收藏数量；“我的表达”仅在内容区作为一级标题出现，避免重复图标与标题。
-- 条目与空状态使用 HeroUI Card；年份、数量和适用场景复用 PracticeBadge（HeroUI Chip），错误复用 PracticeNotice（HeroUI Alert）。
-- 取消保存使用统一 secondary Button，空状态去写作使用 primary 链接按钮；沿用清透微立体按钮，不给内容卡增加投影。
+- 收藏按真题年份从新到旧分组，组内保留收藏时间倒序。年份使用分组标题，每年共用一块白色列表表面。参考 Superlist 阅读列表的分组（https://refero.design/pages/714507ca-404e-4763-8c5f-6f9cce58a0e4）与 Memotron 的细线分隔行（https://refero.design/pages/64bb5d51-95c7-4847-bac8-9a1c3ac85b5a）。
+- 收藏页在视口内纵向滚动，顶部返回入口与收藏总数保持可见。条目使用原生 details/summary，默认收起且一次展开一条。摘要最多两行，显示优化表达、Part A/B 标签和展开箭头。展开后显示完整对照、可迁移句型及适用场景。空状态使用 HeroUI Card；题型、数量和适用场景复用 PracticeBadge（HeroUI Chip），错误复用 PracticeNotice（HeroUI Alert）。
+- 取消保存位于展开区内，使用统一 secondary Button，空状态去写作使用 primary 链接按钮；沿用清透微立体按钮，不给内容卡增加投影。
 - 原表达和优化表达桌面各占 50%，手机上下排列；优化表达用较高字重，原表达保持完整可读，不加整段删除线。
 - 可迁移句型放浅灰圆角分块，标签允许换行；标题、正文和辅助文字沿用现有字号层级。
 - 样式值均来自 expressions 组件 token 或现有语义 token。加载失败提供重新加载，不同时显示“无收藏”。

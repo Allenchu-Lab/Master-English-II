@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BookMarked, BookmarkMinus, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookMarked, BookmarkMinus, ChevronDown, LoaderCircle } from "lucide-react";
 
 type SavedExpression = {
   id: string;
@@ -73,6 +73,14 @@ export function WritingExpressionsLibrary({ initialLanguage }: { initialLanguage
     setLoadRevision(value => value + 1);
   };
 
+  const expressionsByYear = new Map<number, SavedExpression[]>();
+  for (const expression of expressions) {
+    const group = expressionsByYear.get(expression.year);
+    if (group) group.push(expression);
+    else expressionsByYear.set(expression.year, [expression]);
+  }
+  const yearGroups = [...expressionsByYear.entries()].sort(([left], [right]) => right - left);
+
   return <main className="expressions-page">
     <title>{isEnglish ? "ChiTouEN II · My Expressions" : "吃透英语二 · 我的表达"}</title>
     <header className="expressions-header">
@@ -86,28 +94,39 @@ export function WritingExpressionsLibrary({ initialLanguage }: { initialLanguage
       </header>
       {error && <div className="expressions-error"><PracticeNotice>{error}</PracticeNotice>{!expressions.length && <Button variant="secondary" onClick={retry}>{isEnglish ? "Try again" : "重新加载"}</Button>}</div>}
       {loading ? <Card className="expressions-state" role="status"><LoaderCircle className="spin" aria-hidden="true" /><Card.Description>{isEnglish ? "Loading expressions…" : "正在加载表达…"}</Card.Description></Card>
-        : expressions.length ? <div className="expressions-list">{expressions.map((item) => <Card role="article" key={item.id} className="expression-card" aria-label={`${item.year} · Part ${item.part}`}>
-          <Card.Header className="expression-card-header">
-            <PracticeBadge>{item.year} · Part {item.part}</PracticeBadge>
-            <Button variant="secondary" size="sm" onClick={() => void remove(item.id)} disabled={removing !== null} aria-busy={removing === item.id} aria-label={isEnglish ? `Remove saved expression: ${item.rewrite}` : `取消保存：${item.rewrite}`}>
-              {removing === item.id ? <LoaderCircle className="spin" aria-hidden="true" /> : <BookmarkMinus aria-hidden="true" />}{isEnglish ? "Remove" : "取消保存"}
-            </Button>
-          </Card.Header>
-          <Card.Content className="expression-card-content">
-            <div className="expression-comparison">
-              <div><h2>{isEnglish ? "Original" : "原表达"}</h2><p>{item.original}</p></div>
-              <div className="expression-rewrite"><h2>{isEnglish ? "Improved expression" : "优化表达"}</h2><p>{item.rewrite}</p></div>
+        : yearGroups.length ? <div className="expressions-year-groups">
+          {yearGroups.map(([year, items]) => <section key={year} aria-labelledby={`expressions-year-${year}`}>
+            <h2 id={`expressions-year-${year}`} className="expressions-year-title">{year}{isEnglish ? "" : " 年"}</h2>
+            <div className="expressions-list">
+              {items.map((item) => <details key={item.id} name="saved-expression" className="expression-row">
+                <summary className="expression-summary">
+                  <span className="expression-preview" lang="en">{item.rewrite}</span>
+                  <PracticeBadge>Part {item.part}</PracticeBadge>
+                  <ChevronDown aria-hidden="true" />
+                </summary>
+                <div className="expression-details">
+                  <div className="expression-comparison">
+                    <div><h3>{isEnglish ? "Original" : "原表达"}</h3><p lang="en">{item.original}</p></div>
+                    <div className="expression-rewrite"><h3>{isEnglish ? "Improved expression" : "优化表达"}</h3><p lang="en">{item.rewrite}</p></div>
+                  </div>
+                  {item.pattern && <section className="expression-pattern">
+                    <h3>{isEnglish ? "Reusable pattern" : "可迁移句型"}</h3>
+                    <blockquote>{item.pattern}</blockquote>
+                  </section>}
+                  <div className="expression-details-footer">
+                    {item.use_cases.length > 0 && <div className="expression-use-cases">
+                      <span>{isEnglish ? "Use it for" : "适用场景"}</span>
+                      <ul>{item.use_cases.map((useCase, index) => <li key={`${useCase}-${index}`}><PracticeBadge>{useCase}</PracticeBadge></li>)}</ul>
+                    </div>}
+                    <Button variant="secondary" size="sm" onClick={() => void remove(item.id)} disabled={removing !== null} aria-busy={removing === item.id} aria-label={isEnglish ? `Remove saved expression: ${item.rewrite}` : `取消保存：${item.rewrite}`}>
+                      {removing === item.id ? <LoaderCircle className="spin" aria-hidden="true" /> : <BookmarkMinus aria-hidden="true" />}{isEnglish ? "Remove" : "取消保存"}
+                    </Button>
+                  </div>
+                </div>
+              </details>)}
             </div>
-            <section className="expression-pattern" aria-label={isEnglish ? "Reusable pattern" : "可迁移句型"}>
-              <h2>{isEnglish ? "Reusable pattern" : "可迁移句型"}</h2>
-              <blockquote>{item.pattern}</blockquote>
-            </section>
-          </Card.Content>
-          {item.use_cases.length > 0 && <Card.Footer className="expression-card-footer">
-            <span>{isEnglish ? "Use it for" : "适用场景"}</span>
-            <ul>{item.use_cases.map((useCase, index) => <li key={`${useCase}-${index}`}><PracticeBadge>{useCase}</PracticeBadge></li>)}</ul>
-          </Card.Footer>}
-        </Card>)}</div>
+          </section>)}
+        </div>
           : !error && <Card className="expressions-state">
             <BookMarked aria-hidden="true" />
             <Card.Title>{isEnglish ? "No saved expressions yet" : "还没有保存表达"}</Card.Title>
